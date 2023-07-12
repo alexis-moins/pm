@@ -1,0 +1,92 @@
+name: pm
+help: Local project manager
+version: 0.1.0
+
+environment_variables:
+  - name: PM_ROOT_DIR
+    help: Root directory used to manage projects
+    default: ${HOME}/dev
+
+  - name: PM_MAX_DEPTH
+    help: Maximum depth to display sub-directories
+    default: '2'
+
+dependencies:
+  - git
+  - tmux
+  - fd
+  - gum
+
+commands:
+  - name: new
+    help: Create a new empty project
+
+    args:
+      - name: name
+        help: Name of the new project
+
+    flags:
+      - short: -n
+        long: --no-git
+        help: Skip git repository initialization
+
+      - short: -d
+        long: --detach
+        help: Don't create a tmux session
+
+      - short: -s
+        long: --silent
+        help: Execute quietly
+
+    examples:
+      - pm new recipe
+      - pm new personal/recipe
+
+  - name: clone
+    help: Clone a remote git repository
+
+    args:
+      - name: url
+        help: URL of the remote repository
+        required: true
+
+      - name: name
+        required: true
+        help: Name of the clone repository
+
+    examples:
+      - pm clone git@github:awesome-user/project
+
+  - name: switch
+    help: Switch to a project
+
+    args:
+      - name: name
+        help: Name of the project
+
+  - name: link
+    help: Create a symbolic link to the pm script
+
+    args:
+      - name: path
+        help: Path to the symbolic link
+        default: ${HOME}/.local/bin
+
+    flags:
+      - short: -r
+        long: --remove
+        help: Remove the symbolic link instead
+
+      - short: -s
+        long: --source
+        arg: source
+        default: ${HOME}/.pm
+        help: Path to the directory containing the pm script
+
+      - short: -c
+        long: --copy
+        help: Copy the script instead of creating a symbolic link
+
+    examples:
+      - pm link /usr/local/bin
+      - pm link --source ~/scripts/pm --remove
