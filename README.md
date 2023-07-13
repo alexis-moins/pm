@@ -66,7 +66,7 @@ pm new personal/portal
 pm switch
 
 # You can even clone github repositories
-pm clone alexis-moins/recipe personal/recipe
+pm clone git@github.com:alexis-moins/recipe
 ```
 
 ## Tmux integration

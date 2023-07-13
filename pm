@@ -117,16 +117,12 @@ pm_clone_usage() {
   fi
 
   printf "%s\n" "Usage:"
-  printf "  pm clone URL [DESTINATION] [OPTIONS]\n"
+  printf "  pm clone URL [DESTINATION]\n"
   printf "  pm clone --help | -h\n"
   echo
 
   if [[ -n $long_usage ]]; then
     printf "%s\n" "Options:"
-
-    printf "  %s\n" "--no-ssh, -n"
-    printf "    Use https instead of ssh\n"
-    echo
 
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
@@ -143,8 +139,8 @@ pm_clone_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  pm clone awesome-user/project\n"
-    printf "  pm clone awesome-user/project --no-ssh\n"
+    printf "  pm clone git@github.com:alexis-moins/portal.git\n"
+    printf "  pm clone git@github.com:alexis-moins/portal.git personal/portal\n"
     echo
 
   fi
@@ -366,20 +362,12 @@ pm_new_command() {
 
 pm_clone_command() {
   local url="${args[url]}"
-
   local destination="${args[destination]}"
-  local no_ssh="${args[--no-ssh]}"
 
   if [[ -z "${destination}" ]]; then
       local prompt='Project destination: '
       destination=`gum input --prompt "${prompt}" --placeholder 'work/awesome-project' --value "$(basename ${url})"`
       echo "${prompt}$(cyan ${destination})"
-  fi
-
-  if [[ -z "${no_ssh}" ]]; then
-      url="git@github.com:${url}.git"
-  else
-      url="https://github.com/${url}.git"
   fi
 
   if [[ -d "${PM_ROOT_DIR}/${destination}" ]]; then
@@ -675,12 +663,6 @@ pm_clone_parse_requirements() {
     key="$1"
     case "$key" in
 
-      --no-ssh | -n)
-
-        args['--no-ssh']=1
-        shift
-        ;;
-
       -?*)
         printf "invalid option: %s\n" "$key" >&2
         exit 1
@@ -707,7 +689,7 @@ pm_clone_parse_requirements() {
   done
 
   if [[ -z ${args['url']+x} ]]; then
-    printf "missing required argument: URL\nusage: pm clone URL [DESTINATION] [OPTIONS]\n" >&2
+    printf "missing required argument: URL\nusage: pm clone URL [DESTINATION]\n" >&2
     exit 1
   fi
 
