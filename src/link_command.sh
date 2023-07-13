@@ -9,24 +9,24 @@ if [[ -n "${remove}" ]]; then
         run_silent rm -rf "${path}/pm"
         echo "$(green ✔) Link removed from $(magenta "${path}")"
     else
-        echo "$(pm:) no link found in $(magenta "${path}")"
+        echo "$(red pm:) no link found in $(magenta "${path}")"
         exit 1
     fi
 else
     if [[ -f "${path}/pm" ]]; then
-        echo "$(pm:) there is already a link in $(magenta "${path}")"
+        echo "$(red pm:) there is already a link in $(magenta "${path}")"
         exit 1
     fi
 
     if [[ ! -d "${source}" ]]; then
-        echo "$(pm:) source directory $(magenta "${source}") does not exist"
+        echo "$(red pm:) source directory $(magenta "${source}") does not exist"
         exit 1
     fi
 
     source=`realpath "${source}"`
 
     if [[ ! -f "${source}/pm" ]]; then
-        echo "$(pm:) script 'pm' not found in $(magenta "${source}")"
+        echo "$(red pm:) script 'pm' not found in $(magenta "${source}")"
         exit 1
     fi
 

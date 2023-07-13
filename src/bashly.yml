@@ -46,12 +46,17 @@ commands:
         help: URL of the remote repository
         required: true
 
-      - name: name
-        required: true
-        help: Name of the clone repository
+      - name: destination
+        help: Where to clone the project (relative to the PM_ROOT_DIR)
+
+    flags:
+      - short: -n
+        long: --no-ssh
+        help: Use https instead of ssh
 
     examples:
-      - pm clone git@github:awesome-user/project
+      - pm clone awesome-user/project
+      - pm clone awesome-user/project --no-ssh
 
   - name: switch
     help: Switch to a project
