@@ -17,9 +17,9 @@
 
 ---
 
-`pm` is a bash script allowing users:
-- to rapidly create new local projects (using `$PM_ROOT_DIR` as the root of all projects)
-- to navigate between these projects using tmux
+`pm` is a bash script allowing users to:
+- Rapidly create new local projects (using `$PM_ROOT_DIR` as the root of all projects)
+- Navigate between these projects using tmux
 
 ## Prerequisites
 
@@ -80,7 +80,9 @@ bind-key e display-popup -E "pm switch"
 bind-key i display-popup -E "pm new"
 ```
 
-You should now be able to create new projects using `<prefix> + i` and to switch a project's session using `<prefix> + e`.
+You should now be able to:
+- Create new projects using `<prefix> + i`
+- Switch to a project's session using `<prefix> + e`.
 
 ## Usage
 
