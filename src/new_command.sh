@@ -1,8 +1,9 @@
 local project="${args[name]}"
-local silent="${args[--silent]}"
 
 if [[ -z "${project}" ]]; then
-    project=`gum input --prompt 'Name of the project: '`
+    local prompt='Project name: '
+    project=`gum input --prompt "${prompt}"  --placeholder 'work/awesme-project'`
+    echo "${prompt}$(cyan ${project})"
 fi
 
 local path="${PM_ROOT_DIR}/${project}"
@@ -17,9 +18,11 @@ command mkdir -p "${path}"
 if confirm "Initialize git repository?"; then
     pushd "${path}" &> /dev/null
     command git init &> /dev/null
-fi
 
-[[ -z "${silent}" ]] && echo "$(green ✔) Created new project"
+    echo "Initialize git repository: $(cyan yes)"
+else
+    echo "Initialize git repository: $(cyan no)"
+fi
 
 local name=`basename "${path}" | sed 's/\./dot-/'`
 

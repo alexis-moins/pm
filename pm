@@ -87,10 +87,6 @@ pm_new_usage() {
     printf "    Don't create a tmux session\n"
     echo
 
-    printf "  %s\n" "--silent, -s"
-    printf "    Execute quietly\n"
-    echo
-
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
     echo
@@ -102,8 +98,8 @@ pm_new_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  pm new recipe\n"
-    printf "  pm new personal/recipe\n"
+    printf "  pm new recipe --no-git\n"
+    printf "  pm new personal/recipe --detach\n"
     echo
 
   fi
@@ -325,10 +321,11 @@ run_silent() {
 
 pm_new_command() {
   local project="${args[name]}"
-  local silent="${args[--silent]}"
 
   if [[ -z "${project}" ]]; then
-      project=`gum input --prompt 'Name of the project: '`
+      local prompt='Project name: '
+      project=`gum input --prompt "${prompt}"  --placeholder 'work/awesme-project'`
+      echo "${prompt}$(cyan ${project})"
   fi
 
   local path="${PM_ROOT_DIR}/${project}"
@@ -343,9 +340,11 @@ pm_new_command() {
   if confirm "Initialize git repository?"; then
       pushd "${path}" &> /dev/null
       command git init &> /dev/null
-  fi
 
-  [[ -z "${silent}" ]] && echo "$(green ✔) Created new project"
+      echo "Initialize git repository: $(cyan yes)"
+  else
+      echo "Initialize git repository: $(cyan no)"
+  fi
 
   local name=`basename "${path}" | sed 's/\./dot-/'`
 
@@ -602,12 +601,6 @@ pm_new_parse_requirements() {
       --detach | -d)
 
         args['--detach']=1
-        shift
-        ;;
-
-      --silent | -s)
-
-        args['--silent']=1
         shift
         ;;
 

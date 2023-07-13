@@ -34,13 +34,9 @@ commands:
         long: --detach
         help: Don't create a tmux session
 
-      - short: -s
-        long: --silent
-        help: Execute quietly
-
     examples:
-      - pm new recipe
-      - pm new personal/recipe
+      - pm new recipe --no-git
+      - pm new personal/recipe --detach
 
   - name: clone
     help: Clone a remote git repository
