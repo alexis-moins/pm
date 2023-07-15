@@ -86,3 +86,6 @@ commands:
     examples:
       - pm link /usr/local/bin
       - pm link --source ~/scripts/pm --remove
+
+  - name: root
+    help: Print the root of the projects

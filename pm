@@ -33,6 +33,7 @@ pm_usage() {
   printf "  %s   Clone a remote git repository\n" "clone "
   printf "  %s   Switch to a project\n" "switch"
   printf "  %s   Create a symbolic link to the pm script\n" "link  "
+  printf "  %s   Print the root of the projects\n" "root  "
   echo
 
   if [[ -n $long_usage ]]; then
@@ -224,6 +225,32 @@ pm_link_usage() {
     printf "%s\n" "Examples:"
     printf "  pm link /usr/local/bin\n"
     printf "  pm link --source ~/scripts/pm --remove\n"
+    echo
+
+  fi
+}
+
+pm_root_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm root - Print the root of the projects\n"
+    echo
+
+  else
+    printf "pm root - Print the root of the projects\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm root\n"
+  printf "  pm root --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
     echo
 
   fi
@@ -463,6 +490,11 @@ pm_link_command() {
 
 }
 
+pm_root_command() {
+  echo "${PM_ROOT_DIR}"
+
+}
+
 parse_requirements() {
 
   while [[ $# -gt 0 ]]; do
@@ -546,6 +578,13 @@ parse_requirements() {
       action="link"
       shift
       pm_link_parse_requirements "$@"
+      shift $#
+      ;;
+
+    root)
+      action="root"
+      shift
+      pm_root_parse_requirements "$@"
       shift $#
       ;;
 
@@ -815,6 +854,46 @@ pm_link_parse_requirements() {
 
 }
 
+pm_root_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_root_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="root"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
 initialize() {
   version="0.1.0"
   long_usage=''
@@ -838,6 +917,7 @@ run() {
     "clone") pm_clone_command ;;
     "switch") pm_switch_command ;;
     "link") pm_link_command ;;
+    "root") pm_root_command ;;
   esac
 }
 
