@@ -1,10 +1,6 @@
-local project="${args[name]}"
+local project="${args[name]:-$(filter_project)}"
 
-if [[ -z "${project}" ]]; then
-    pushd "${PM_ROOT_DIR}" &> /dev/null
-    project=`fd --hidden --type d --max-depth ${PM_MAX_DEPTH} | gum filter --placeholder "Select a project"`
-    popd &> /dev/null
-fi
+[[ -z "${project}" ]] && exit 1
 
 local path="${PM_ROOT_DIR}/${project}"
 local name=`basename "${path}" | sed 's/\./dot-/'`

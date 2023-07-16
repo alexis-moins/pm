@@ -16,6 +16,7 @@ dependencies:
   - tmux
   - fd
   - gum
+  - rg
 
 commands:
   - name: new
@@ -53,8 +54,8 @@ commands:
       - pm clone git@github.com:alexis-moins/portal.git
       - pm clone git@github.com:alexis-moins/portal.git personal/portal
 
-  - name: switch
-    help: Switch to a project
+  - name: open
+    help: Open a project in a tmux session
 
     args:
       - name: name
@@ -89,3 +90,27 @@ commands:
 
   - name: root
     help: Print the root of the projects
+
+  - name: space
+    help: space related commands
+
+    commands:
+      - name: add
+        help: Add new spaces
+
+        catch_all:
+          label: directories
+          help: Directories to add as spaces
+          required: true
+
+        examples:
+          - pm space add personal 
+          - pm space add school/first-year school/second-year
+
+      - name: list
+        alias: ls
+        help: List registered project spaces
+
+        examples:
+          - pm space ls
+          - pm space list

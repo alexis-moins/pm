@@ -29,11 +29,12 @@ pm_usage() {
   echo
 
   printf "%s\n" "Commands:"
-  printf "  %s   Create a new empty project\n" "new   "
-  printf "  %s   Clone a remote git repository\n" "clone "
-  printf "  %s   Switch to a project\n" "switch"
-  printf "  %s   Create a symbolic link to the pm script\n" "link  "
-  printf "  %s   Print the root of the projects\n" "root  "
+  printf "  %s   Create a new empty project\n" "new  "
+  printf "  %s   Clone a remote git repository\n" "clone"
+  printf "  %s   Open a project in a tmux session\n" "open "
+  printf "  %s   Create a symbolic link to the pm script\n" "link "
+  printf "  %s   Print the root of the projects\n" "root "
+  printf "  %s   space related commands\n" "space"
   echo
 
   if [[ -n $long_usage ]]; then
@@ -147,20 +148,20 @@ pm_clone_usage() {
   fi
 }
 
-pm_switch_usage() {
+pm_open_usage() {
   if [[ -n $long_usage ]]; then
-    printf "pm switch - Switch to a project\n"
+    printf "pm open - Open a project in a tmux session\n"
     echo
 
   else
-    printf "pm switch - Switch to a project\n"
+    printf "pm open - Open a project in a tmux session\n"
     echo
 
   fi
 
   printf "%s\n" "Usage:"
-  printf "  pm switch [NAME]\n"
-  printf "  pm switch --help | -h\n"
+  printf "  pm open [NAME]\n"
+  printf "  pm open --help | -h\n"
   echo
 
   if [[ -n $long_usage ]]; then
@@ -256,6 +257,108 @@ pm_root_usage() {
   fi
 }
 
+pm_space_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm space - space related commands\n"
+    echo
+
+  else
+    printf "pm space - space related commands\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm space COMMAND\n"
+  printf "  pm space [COMMAND] --help | -h\n"
+  echo
+
+  printf "%s\n" "Commands:"
+  printf "  %s   Add new spaces\n" "add "
+  printf "  %s   List registered project spaces\n" "list"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+pm_space_add_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm space add - Add new spaces\n"
+    echo
+
+  else
+    printf "pm space add - Add new spaces\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm space add DIRECTORIES...\n"
+  printf "  pm space add --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    echo "  DIRECTORIES..."
+    printf "    Directories to add as spaces\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm space add personal\n"
+    printf "  pm space add school/first-year school/second-year\n"
+    echo
+
+  fi
+}
+
+pm_space_list_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm space list - List registered project spaces\n"
+    echo
+
+  else
+    printf "pm space list - List registered project spaces\n"
+    echo
+
+  fi
+
+  printf "Alias: ls\n"
+  echo
+
+  printf "%s\n" "Usage:"
+  printf "  pm space list\n"
+  printf "  pm space list --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm space ls\n"
+    printf "  pm space list\n"
+    echo
+
+  fi
+}
+
 normalize_input() {
   local arg flags
 
@@ -339,8 +442,13 @@ magenta_underlined() { print_in_color "\e[4;35m" "$*"; }
 cyan_underlined() { print_in_color "\e[4;36m" "$*"; }
 
 confirm() {
-    local response=`gum input --prompt "${1} $(green "(yes|no)") " --placeholder ""`
+    local response=`gum choose --header "${1}" --header.foreground="7" --cursor.foreground="4" 'yes' 'no'`
     [[ "${response}" == "yes" ]] && return 0 || return 1
+}
+
+filter_project() {
+    fd --type d --max-depth 1 --base-directory "${PM_ROOT_DIR}" . $(cat "${PM_ROOT_DIR}/spaces") | \
+        gum filter --placeholder "Select a project"
 }
 
 run_silent() {
@@ -351,9 +459,22 @@ pm_new_command() {
   local project="${args[name]}"
 
   if [[ -z "${project}" ]]; then
-      local prompt='Project name: '
-      project=`gum input --prompt "${prompt}"  --placeholder 'work/awesme-project'`
-      echo "${prompt}$(cyan ${project})"
+      local prompt="Project name: "
+      project=`gum input --prompt "${prompt}" --placeholder 'awesome-cli'`
+
+      [[ -z "${project}" ]] && exit 1
+      echo "${prompt}$(blue ${project})"
+  fi
+
+  if [[ -f "${PM_ROOT_DIR}/spaces" ]] && ! confirm "Use default space?"; then
+      space=`cat "${PM_ROOT_DIR}/spaces" | gum choose --header 'Select a project space:' --header.foreground='7' --cursor.foreground='4'`
+
+      [[ -z "${space}" ]] && exit 1
+
+      project="${space}/${project}"
+      echo "Project space: $(blue ${space})"
+  else
+      echo "Project space: $(blue default)"
   fi
 
   local path="${PM_ROOT_DIR}/${project}"
@@ -365,13 +486,13 @@ pm_new_command() {
 
   command mkdir -p "${path}"
 
-  if confirm "Initialize git repository?"; then
+  if confirm "Init git repository?"; then
       pushd "${path}" &> /dev/null
       command git init &> /dev/null
 
-      echo "Initialize git repository: $(cyan yes)"
+      echo "Init git repository: $(blue yes)"
   else
-      echo "Initialize git repository: $(cyan no)"
+      echo "Init git repository: $(blue no)"
   fi
 
   local name=`basename "${path}" | sed 's/\./dot-/'`
@@ -415,14 +536,10 @@ pm_clone_command() {
 
 }
 
-pm_switch_command() {
-  local project="${args[name]}"
+pm_open_command() {
+  local project="${args[name]:-$(filter_project)}"
 
-  if [[ -z "${project}" ]]; then
-      pushd "${PM_ROOT_DIR}" &> /dev/null
-      project=`fd --hidden --type d --max-depth ${PM_MAX_DEPTH} | gum filter --placeholder "Select a project"`
-      popd &> /dev/null
-  fi
+  [[ -z "${project}" ]] && exit 1
 
   local path="${PM_ROOT_DIR}/${project}"
   local name=`basename "${path}" | sed 's/\./dot-/'`
@@ -495,6 +612,27 @@ pm_root_command() {
 
 }
 
+pm_space_add_command() {
+  local spaces_index="${PM_ROOT_DIR}/spaces"
+
+  for space in ${other_args[*]}; do
+      # Create the space if it does not exist yet
+      [[ ! -d "${PM_ROOT_DIR}/${space}" ]] && command mkdir -p "${PM_ROOT_DIR}/${space}" &> /dev/null
+
+      echo "${space}" >> "${spaces_index}"
+  done
+
+  command sort --unique "${spaces_index}" --output "${spaces_index}"
+
+}
+
+pm_space_list_command() {
+  if [[ -f "${PM_ROOT_DIR}/spaces" ]]; then
+      cat "${PM_ROOT_DIR}/spaces"
+  fi
+
+}
+
 parse_requirements() {
 
   while [[ $# -gt 0 ]]; do
@@ -548,6 +686,13 @@ parse_requirements() {
     exit 1
   fi
 
+  if command -v rg >/dev/null 2>&1; then
+    deps['rg']="$(command -v rg | head -n1)"
+  else
+    printf "missing dependency: rg\n" >&2
+    exit 1
+  fi
+
   action=${1:-}
 
   case $action in
@@ -567,10 +712,10 @@ parse_requirements() {
       shift $#
       ;;
 
-    switch)
-      action="switch"
+    open)
+      action="open"
       shift
-      pm_switch_parse_requirements "$@"
+      pm_open_parse_requirements "$@"
       shift $#
       ;;
 
@@ -585,6 +730,13 @@ parse_requirements() {
       action="root"
       shift
       pm_root_parse_requirements "$@"
+      shift $#
+      ;;
+
+    space)
+      action="space"
+      shift
+      pm_space_parse_requirements "$@"
       shift $#
       ;;
 
@@ -734,13 +886,13 @@ pm_clone_parse_requirements() {
 
 }
 
-pm_switch_parse_requirements() {
+pm_open_parse_requirements() {
 
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --help | -h)
         long_usage=yes
-        pm_switch_usage
+        pm_open_usage
         exit
         ;;
 
@@ -751,7 +903,7 @@ pm_switch_parse_requirements() {
     esac
   done
 
-  action="switch"
+  action="open"
 
   while [[ $# -gt 0 ]]; do
     key="$1"
@@ -894,6 +1046,166 @@ pm_root_parse_requirements() {
 
 }
 
+pm_space_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_space_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action=${1:-}
+
+  case $action in
+    -*) ;;
+
+    add)
+      action="add"
+      shift
+      pm_space_add_parse_requirements "$@"
+      shift $#
+      ;;
+
+    list | ls)
+      action="list"
+      shift
+      pm_space_list_parse_requirements "$@"
+      shift $#
+      ;;
+
+    "")
+      pm_space_usage >&2
+      exit 1
+      ;;
+
+    *)
+      printf "invalid command: %s\n" "$action" >&2
+      exit 1
+      ;;
+
+  esac
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_space_add_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_space_add_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="space add"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      --)
+        shift
+        other_args+=("$@")
+        break
+        ;;
+
+      -?*)
+        other_args+=("$1")
+        shift
+        ;;
+
+      *)
+
+        other_args+=("$1")
+        shift
+
+        ;;
+
+    esac
+  done
+
+  if [[ ${#other_args[@]} -eq 0 ]]; then
+    printf "missing required argument: DIRECTORIES...\nusage: pm space add DIRECTORIES...\n" >&2
+    exit 1
+  fi
+
+}
+
+pm_space_list_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_space_list_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="space list"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
 initialize() {
   version="0.1.0"
   long_usage=''
@@ -915,9 +1227,12 @@ run() {
   case "$action" in
     "new") pm_new_command ;;
     "clone") pm_clone_command ;;
-    "switch") pm_switch_command ;;
+    "open") pm_open_command ;;
     "link") pm_link_command ;;
     "root") pm_root_command ;;
+    "space") pm_space_command ;;
+    "space add") pm_space_add_command ;;
+    "space list") pm_space_list_command ;;
   esac
 }
 

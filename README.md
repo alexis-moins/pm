@@ -73,16 +73,16 @@ pm clone git@github.com:alexis-moins/recipe
 
 It is recommended that you place the following configuration inside your `~/.tmux.conf` file.
 ```
-# Create a session for a project (or switch there)
-bind-key e display-popup -E "pm switch"
+# Open a project in a new session
+bind-key o display-popup -E "pm open"
 
-# Create a new empty project and navigate there
-bind-key i display-popup -E "pm new"
+# Create a new project and navigate there
+bind-key - display-popup -E "pm new"
 ```
 
 You should now be able to:
-- Create new projects using `<prefix> + i`
-- Switch to a project's session using `<prefix> + e`.
+- Create new projects using `<prefix> + -`
+- Quickly open a project with `<prefix> + o`.
 
 ## Usage
 
