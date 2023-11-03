@@ -1,15 +1,11 @@
 name: pm
 help: Local project manager
-version: 0.1.0
+version: 1.0.0
 
 environment_variables:
   - name: PM_ROOT_DIR
     help: Root directory used to manage projects
     default: ${HOME}/dev
-
-  - name: PM_MAX_DEPTH
-    help: Maximum depth to display sub-directories
-    default: '2'
 
 dependencies:
   - git
@@ -21,6 +17,7 @@ dependencies:
 commands:
   - name: new
     help: Create a new empty project
+    group: PROJECT
 
     args:
       - name: name
@@ -41,6 +38,7 @@ commands:
 
   - name: clone
     help: Clone a remote git repository
+    group: PROJECT
 
     args:
       - name: url
@@ -56,6 +54,7 @@ commands:
 
   - name: open
     help: Open a project in a tmux session
+    group: PROJECT
 
     args:
       - name: name
@@ -88,11 +87,11 @@ commands:
       - pm link /usr/local/bin
       - pm link --source ~/scripts/pm --remove
 
-  - name: root
-    help: Print the root of the projects
+  - name: dir
+    help: Show projects' root directory
 
   - name: space
-    help: space related commands
+    help: Create, delete or list spaces
 
     commands:
       - name: add

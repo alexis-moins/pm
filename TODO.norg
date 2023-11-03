@@ -7,4 +7,4 @@
 
   - ( ) Improve `pm new` command to select between spaces
 
-  - ( ) rename `pm root` to `pm dir` to stay consistent with `recipe`
+  - (x) rename `pm root` to `pm dir` to stay consistent with `recipe`
