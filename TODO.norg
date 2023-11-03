@@ -1,0 +1,10 @@
+* Features
+  - ( ) Use a default space:
+  -- ( ) create the associated directory 
+  -- ( ) register the space
+
+  - ( ) Use github format by default in clone command `pm clone alexis-moins/recipe personal/recipe`
+
+  - ( ) Improve `pm new` command to select between spaces
+
+  - ( ) rename `pm root` to `pm dir` to stay consistent with `recipe`
