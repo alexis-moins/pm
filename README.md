@@ -61,13 +61,13 @@ pm init
 pm space add personal
 
 # You can then create new projects in this space
-pm new personal/portal
+pm new portal --space personal
 
-# Opening the project is a breeze
+# Opening the project is even simpler
 pm open personal/portal
 
 # You can even clone github repositories
-pm clone alexis-moins/recipe personal/recipe
+pm clone alexis-moins/portfolio personal/portfolio
 ```
 
 ## Tmux integration
