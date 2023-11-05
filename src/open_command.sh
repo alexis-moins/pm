@@ -1,6 +1,4 @@
-local project="${args[name]:-$(filter_project)}"
-
-[[ -z "${project}" ]] && exit 1
+local project="${args[name]}"
 
 local path="${PM_ROOT_DIR}/${project}"
 local name=`basename "${path}" | sed 's/\./dot-/'`

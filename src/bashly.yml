@@ -29,6 +29,13 @@ commands:
         required: true
 
     flags:
+      - short: -s
+        long: --space
+        help: Space of the new project
+        arg: space
+        default: default
+        validate: space_exists
+
       - short: -n
         long: --no-git
         help: Skip git repository initialization
@@ -38,24 +45,24 @@ commands:
         help: Don't attach to the new tmux session
 
     examples:
-      - pm new recipe --no-git
-      - pm new personal/recipe --detach
+      - pm new recipe --detach
+      - pm new recipe --no-git --space=tools
 
   - name: clone
     help: Clone a remote git repository
     group: PROJECT
 
     args:
-      - name: url
-        help: URL of the remote repository
+      - name: repository
+        help: "Remote repository to clone (FORMAT: <username>/<repository>)"
         required: true
 
       - name: destination
-        help: Where to clone the project (relative to the PM_ROOT_DIR)
+        help: Where to clone the project (relative to ${PM_ROOT_DIR})
 
     examples:
-      - pm clone git@github.com:alexis-moins/portal.git
-      - pm clone git@github.com:alexis-moins/portal.git personal/portal
+      - pm clone alexis-moins/portal
+      - pm clone alexis-moins/portal personal/portal
 
   - name: open
     help: Open a project in a tmux session
@@ -64,9 +71,23 @@ commands:
     args:
       - name: name
         help: Name of the project
+        required: true
+
+    examples:
+      - pm open school/elixir-api
+
+  - name: filter
+    help: Filter projects by name
+    group: PROJECT
+
+    examples:
+      - pm filter
 
   - name: dir
     help: Show projects' root directory
+
+    examples:
+      - pm dir
 
   - name: space
     help: Create, delete or list spaces
@@ -94,11 +115,22 @@ commands:
 
       - name: remove
         alias: rm
-        help: Remove a space. It does not remove projects for you
+        help: Remove a space (projects will not be removed)
 
         args:
           - name: space
             help: Name of the space to remove
+            required: true
+
+        examples:
+          - pm space rm personal
+          - pm space remove school/first-year
+
+      - name: filter
+        help: Filter spaces by name
+
+        examples:
+          - pm space filter
 
   - name: list
     alias: ls
@@ -134,3 +166,6 @@ commands:
 
   - name: update
     help: Update to the latest version
+
+    examples:
+      - pm update

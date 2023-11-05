@@ -1,11 +1,10 @@
-local project="${args[name]}"
+local name="${args[name]}"
+local space="${args[--space]}"
 
-space="$(filter_space 'Select project space:')"
+local detach="${args[--detach]}"
+local no_git="${args[--no-git]}"
 
-[[ -z "${space}" ]] && exit 1
-
-project="${space}/${project}"
-echo "Project space: $(magenta ${space})"
+project="${space}/${name}"
 
 local path="${PM_ROOT_DIR}/${project}"
 
@@ -16,16 +15,17 @@ fi
 
 \mkdir -p "${path}"
 
-if confirm "Init git repository?"; then
+if [[ -z "${no_git}" ]]; then
     pushd "${path}" &> /dev/null
     \git init &> /dev/null
-
-    echo "Init git repository? $(magenta yes)"
-else
-    echo "Init git repository? $(magenta no)"
 fi
 
 local name=`basename "${path}" | sed 's/\./dot-/'`
+
+if [[ -n "${detach}" ]]; then
+    echo "$(green ✔) Project $(magenta ${name}) created in $(magenta_underlined ${space})"
+    exit 0
+fi
 
 if [[ -z "${TMUX}" ]]; then
     # Outside tmux session
@@ -36,4 +36,4 @@ else
     tmux switch-client -t "${name}"
 fi
 
-echo -e "\n$(green ✔) Project created"
+echo "$(green ✔) Project $(magenta ${name}) created in $(magenta_underlined ${space}) space"
