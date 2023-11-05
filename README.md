@@ -17,7 +17,7 @@
 
 ---
 
-`pm` is a bash script allowing users to rapidly create new projects (using `$PM_HOME` as the root of all projects). It integrate with tmux to allow for seemless navigation between these projects.
+`pm` is a bash script allowing users to rapidly create new projects. It integrate with tmux to allow for a seemless navigation.
 
 ## Prerequisites
 
