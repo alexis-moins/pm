@@ -1,4 +1,4 @@
-local space="${args[space]:-$(filter_space 'Select a space to remove...')}"
+local space="${args[space]}"
 
 local new_spaces=`command rg -vN --color=never "${space}" "${PM_HOME}/spaces"`
 

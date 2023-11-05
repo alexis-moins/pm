@@ -33,7 +33,7 @@ commands:
         long: --space
         help: Space of the new project
         arg: space
-        default: default
+        required: true
         validate: space_exists
 
       - short: -n
@@ -95,12 +95,13 @@ commands:
 
     commands:
       - name: add
-        help: Add new spaces
+        help: Add a new space
 
-        catch_all:
-          label: directories
-          help: Directories to add as spaces
-          required: true
+        args:
+          - name: space
+            help: Name of the space to add
+            required: true
+            validate: space_is_missing
 
         examples:
           - pm space add personal
@@ -122,6 +123,7 @@ commands:
           - name: space
             help: Name of the space to remove
             required: true
+            validate: space_exists
 
         examples:
           - pm space rm personal

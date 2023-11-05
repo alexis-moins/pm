@@ -89,9 +89,8 @@ pm_new_usage() {
   if [[ -n $long_usage ]]; then
     printf "%s\n" "Options:"
 
-    printf "  %s\n" "--space, -s SPACE"
+    printf "  %s\n" "--space, -s SPACE (required)"
     printf "    Space of the new project\n"
-    printf "    Default: default\n"
     echo
 
     printf "  %s\n" "--no-git, -n"
@@ -274,7 +273,7 @@ pm_space_usage() {
   echo
 
   printf "%s\n" "Commands:"
-  printf "  %s   Add new spaces\n" "add   "
+  printf "  %s   Add a new space\n" "add   "
   printf "  %s   List registered spaces\n" "list  "
   printf "  %s   Remove a space (projects will not be removed)\n" "remove"
   printf "  %s   Filter spaces by name\n" "filter"
@@ -292,17 +291,17 @@ pm_space_usage() {
 
 pm_space_add_usage() {
   if [[ -n $long_usage ]]; then
-    printf "pm space add - Add new spaces\n"
+    printf "pm space add - Add a new space\n"
     echo
 
   else
-    printf "pm space add - Add new spaces\n"
+    printf "pm space add - Add a new space\n"
     echo
 
   fi
 
   printf "%s\n" "Usage:"
-  printf "  pm space add DIRECTORIES...\n"
+  printf "  pm space add SPACE\n"
   printf "  pm space add --help | -h\n"
   echo
 
@@ -315,8 +314,8 @@ pm_space_add_usage() {
 
     printf "%s\n" "Arguments:"
 
-    echo "  DIRECTORIES..."
-    printf "    Directories to add as spaces\n"
+    printf "  %s\n" "SPACE"
+    printf "    Name of the space to add\n"
     echo
 
     printf "%s\n" "Examples:"
@@ -787,7 +786,17 @@ validate_not_empty() {
 }
 
 validate_space_exists() {
-    [[ ! -d "${PM_HOME}/${1}" ]] && echo "${1} must be an existing space. See $(yellow_underlined pm space list)"
+    if [[ ! -d "${PM_HOME}/${1}" ]]; then
+        echo "${1} must be an existing space"
+        echo -e "\nSee $(yellow_underlined pm space list)"
+    fi
+}
+
+validate_space_is_missing() {
+    if [[ -d "${PM_HOME}/${1}" ]]; then
+        echo "${1} is already a registered space"
+        echo -e "\nSee $(yellow_underlined pm space list)"
+    fi
 }
 
 pm_new_command() {
@@ -896,7 +905,7 @@ pm_dir_command() {
 }
 
 pm_space_add_command() {
-  local spaces_index="${PM_HOME}/spaces"
+  local space="${args[space]}"
 
   for space in ${other_args[*]}; do
       # Create the space if it does not exist yet
@@ -918,7 +927,7 @@ pm_space_list_command() {
 }
 
 pm_space_remove_command() {
-  local space="${args[space]:-$(filter_space 'Select a space to remove...')}"
+  local space="${args[space]}"
 
   local new_spaces=`command rg -vN --color=never "${space}" "${PM_HOME}/spaces"`
 
@@ -1316,7 +1325,10 @@ pm_new_parse_requirements() {
     exit 1
   fi
 
-  [[ -n ${args['--space']:-} ]] || args['--space']="default"
+  if [[ -z ${args['--space']+x} ]]; then
+    printf "missing required flag: --space, -s SPACE\n" >&2
+    exit 1
+  fi
 
 }
 
@@ -1612,29 +1624,34 @@ pm_space_add_parse_requirements() {
     key="$1"
     case "$key" in
 
-      --)
-        shift
-        other_args+=("$@")
-        break
-        ;;
-
       -?*)
-        other_args+=("$1")
-        shift
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
         ;;
 
       *)
 
-        other_args+=("$1")
-        shift
+        if [[ -z ${args['space']+x} ]]; then
+
+          if [[ -n $(validate_space_is_missing "$1") ]]; then
+            printf "validation error in %s:\n%s\n" "SPACE" "$(validate_space_is_missing "$1")" >&2
+            exit 1
+          fi
+
+          args['space']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
 
         ;;
 
     esac
   done
 
-  if [[ ${#other_args[@]} -eq 0 ]]; then
-    printf "missing required argument: DIRECTORIES...\nusage: pm space add DIRECTORIES...\n" >&2
+  if [[ -z ${args['space']+x} ]]; then
+    printf "missing required argument: SPACE\nusage: pm space add SPACE\n" >&2
     exit 1
   fi
 
@@ -1711,6 +1728,11 @@ pm_space_remove_parse_requirements() {
       *)
 
         if [[ -z ${args['space']+x} ]]; then
+
+          if [[ -n $(validate_space_exists "$1") ]]; then
+            printf "validation error in %s:\n%s\n" "SPACE" "$(validate_space_exists "$1")" >&2
+            exit 1
+          fi
 
           args['space']=$1
           shift
@@ -2117,6 +2139,12 @@ pm_tmux_keybindings_parse_requirements() {
 
 }
 
+before_hook() {
+  [[ ! -d "${PM_HOME}" ]] && command mkdir -p "${PM_HOME}/default"
+  [[ ! -f "${PM_HOME}/spaces" ]] && echo "default" > "${PM_HOME}/spaces"
+
+}
+
 initialize() {
   version="0.1.0"
   long_usage=''
@@ -2124,6 +2152,7 @@ initialize() {
 
   export PM_INSTALL="${PM_INSTALL:-${HOME}/.pm}"
   export PM_HOME="${PM_HOME:-${HOME}/dev}"
+
 
 }
 
@@ -2134,6 +2163,7 @@ run() {
   declare -a input=()
   normalize_input "$@"
   parse_requirements "${input[@]}"
+  before_hook
 
   case "$action" in
     "new") pm_new_command ;;

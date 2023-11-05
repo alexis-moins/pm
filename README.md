@@ -54,9 +54,6 @@ Clone the repository then move the [pm](pm) script to `~/.local/bin/` or anywher
 After installing, you can follow these steps to quickly see how it works:
 
 ```bash
-# First initialize pm
-pm init
-
 # Add a new space (a 'default' space is setup by pm for you)
 pm space add personal
 
@@ -79,7 +76,7 @@ pm clone alexis-moins/portfolio personal/portfolio
 | `Leader + o` | `pm tmux open` | `bind-key o display-popup -E 'pm tmux open'` | Select an existing project to navigate to          |
 | `Leader + -` | `pm tmux new`  | `bind-key - display-popup -E 'pm tmux new'`  | Create a new project and create a new tmux session |
 
-You will be asked to add them to your tmux config when running `pm init` but you can also manually add them by running
+You can add them to your tmux config by running
 ```bash
 pm tmux keybindings >> ~/.tmux.conf
 ```

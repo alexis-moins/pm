@@ -1,4 +1,4 @@
-local spaces_index="${PM_HOME}/spaces"
+local space="${args[space]}"
 
 for space in ${other_args[*]}; do
     # Create the space if it does not exist yet
