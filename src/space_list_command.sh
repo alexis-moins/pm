@@ -1,3 +1,3 @@
-if [[ -f "${PM_ROOT_DIR}/spaces" ]]; then
-    cat "${PM_ROOT_DIR}/spaces"
+if [[ -f "${PM_HOME}/spaces" ]]; then
+    cat "${PM_HOME}/spaces"
 fi

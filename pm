@@ -57,14 +57,14 @@ pm_usage() {
 
     printf "%s\n" "Environment Variables:"
 
-    printf "  %s\n" "PM_ROOT_DIR"
-    printf "    Directory where the projects will be managed\n"
-    printf "    Default: ${HOME}/dev\n"
-    echo
-
     printf "  %s\n" "PM_INSTALL"
     printf "    Directory where the repository was cloned\n"
     printf "    Default: ${HOME}/.pm\n"
+    echo
+
+    printf "  %s\n" "PM_HOME"
+    printf "    Directory where the projects will be managed\n"
+    printf "    Default: ${HOME}/dev\n"
     echo
 
   fi
@@ -150,7 +150,7 @@ pm_clone_usage() {
     echo
 
     printf "  %s\n" "DESTINATION"
-    printf "    Where to clone the project (relative to ${PM_ROOT_DIR})\n"
+    printf "    Where to clone the project (relative to ${PM_HOME})\n"
     echo
 
     printf "%s\n" "Examples:"
@@ -751,12 +751,12 @@ confirm() {
 }
 
 filter_project() {
-    command fd --type d --max-depth 1 --base-directory "${PM_ROOT_DIR}" . $(cat "${PM_ROOT_DIR}/spaces") | sort --unique | \
+    command fd --type d --max-depth 1 --base-directory "${PM_HOME}" . $(cat "${PM_HOME}/spaces") | sort --unique | \
         gum filter --placeholder "Select a project"
 }
 
 filter_space() {
-    command cat "${PM_ROOT_DIR}/spaces" | gum filter --placeholder "Select a space"
+    command cat "${PM_HOME}/spaces" | gum filter --placeholder "Select a space"
 }
 
 filter_recipe_book_healthy() {
@@ -787,7 +787,7 @@ validate_not_empty() {
 }
 
 validate_space_exists() {
-    [[ ! -d "${PM_ROOT_DIR}/${1}" ]] && echo "${1} must be an existing space. See $(yellow_underlined pm space list)"
+    [[ ! -d "${PM_HOME}/${1}" ]] && echo "${1} must be an existing space. See $(yellow_underlined pm space list)"
 }
 
 pm_new_command() {
@@ -799,7 +799,7 @@ pm_new_command() {
 
   project="${space}/${name}"
 
-  local path="${PM_ROOT_DIR}/${project}"
+  local path="${PM_HOME}/${project}"
 
   if [[ -d "${path}" ]]; then
       echo "$(red pm:) project already exists"
@@ -839,7 +839,7 @@ pm_clone_command() {
 
   [[ -z "${destination}" ]] && destination="default/$(basename ${repository})"
 
-  if [[ -d "${PM_ROOT_DIR}/${destination}" ]]; then
+  if [[ -d "${PM_HOME}/${destination}" ]]; then
       echo "$(red pm:) destination already contains this project"
       exit 1
   fi
@@ -847,7 +847,7 @@ pm_clone_command() {
   local project_name=`basename "${destination}"`
 
   local project_dir=`dirname "${destination}"`
-  local destination_dir="${PM_ROOT_DIR}/${project_dir}"
+  local destination_dir="${PM_HOME}/${project_dir}"
 
   [[ ! -d "${project_dir}" ]] && command mkdir -p "${destination_dir}"
   pushd "${destination_dir}" &> /dev/null
@@ -860,7 +860,7 @@ pm_clone_command() {
 pm_open_command() {
   local project="${args[name]}"
 
-  local path="${PM_ROOT_DIR}/${project}"
+  local path="${PM_HOME}/${project}"
   local name=`basename "${path}" | sed 's/\./dot-/'`
 
   local session=`tmux list-windows -aF '#S: #{pane_current_path}' | \
@@ -891,16 +891,16 @@ pm_filter_command() {
 }
 
 pm_dir_command() {
-  echo "${PM_ROOT_DIR}"
+  echo "${PM_HOME}"
 
 }
 
 pm_space_add_command() {
-  local spaces_index="${PM_ROOT_DIR}/spaces"
+  local spaces_index="${PM_HOME}/spaces"
 
   for space in ${other_args[*]}; do
       # Create the space if it does not exist yet
-      [[ ! -d "${PM_ROOT_DIR}/${space}" ]] && command mkdir -p "${PM_ROOT_DIR}/${space}" &> /dev/null
+      [[ ! -d "${PM_HOME}/${space}" ]] && command mkdir -p "${PM_HOME}/${space}" &> /dev/null
 
       echo "${space}" >> "${spaces_index}"
   done
@@ -911,8 +911,8 @@ pm_space_add_command() {
 }
 
 pm_space_list_command() {
-  if [[ -f "${PM_ROOT_DIR}/spaces" ]]; then
-      cat "${PM_ROOT_DIR}/spaces"
+  if [[ -f "${PM_HOME}/spaces" ]]; then
+      cat "${PM_HOME}/spaces"
   fi
 
 }
@@ -920,9 +920,9 @@ pm_space_list_command() {
 pm_space_remove_command() {
   local space="${args[space]:-$(filter_space 'Select a space to remove...')}"
 
-  local new_spaces=`command rg -vN --color=never "${space}" "${PM_ROOT_DIR}/spaces"`
+  local new_spaces=`command rg -vN --color=never "${space}" "${PM_HOME}/spaces"`
 
-  echo "${new_spaces}" > "${PM_ROOT_DIR}/spaces"
+  echo "${new_spaces}" > "${PM_HOME}/spaces"
   echo "$(yellow Note:) pm does not remove projects. Remove them manually"
   echo "$(green ✔) Space removed from index"
 
@@ -934,7 +934,7 @@ pm_space_filter_command() {
 }
 
 pm_list_command() {
-  command fd --type d --max-depth 1 --base-directory "${PM_ROOT_DIR}" . $(cat "${PM_ROOT_DIR}/spaces") | sort --unique
+  command fd --type d --max-depth 1 --base-directory "${PM_HOME}" . $(cat "${PM_HOME}/spaces") | sort --unique
 
 }
 
@@ -998,7 +998,7 @@ pm_tmux_new_command() {
   project="${space}/${project}"
   echo "Project space: $(blue ${space})"
 
-  local path="${PM_ROOT_DIR}/${project}"
+  local path="${PM_HOME}/${project}"
 
   if [[ -d "${path}" ]]; then
       echo "$(red np:) project already exists"
@@ -1035,7 +1035,7 @@ pm_tmux_open_command() {
 
   [[ -z "${project}" ]] && exit 1
 
-  local path="${PM_ROOT_DIR}/${project}"
+  local path="${PM_HOME}/${project}"
   local name=`basename "${path}" | sed 's/\./dot-/'`
 
   local session=`tmux list-windows -aF '#S: #{pane_current_path}' | \
@@ -1091,8 +1091,8 @@ parse_requirements() {
     esac
   done
 
-  export PM_ROOT_DIR="${PM_ROOT_DIR:-${HOME}/dev}"
   export PM_INSTALL="${PM_INSTALL:-${HOME}/.pm}"
+  export PM_HOME="${PM_HOME:-${HOME}/dev}"
 
   if command -v git >/dev/null 2>&1; then
     deps['git']="$(command -v git | head -n1)"
@@ -2122,8 +2122,8 @@ initialize() {
   long_usage=''
   set -e
 
-  export PM_ROOT_DIR="${PM_ROOT_DIR:-${HOME}/dev}"
   export PM_INSTALL="${PM_INSTALL:-${HOME}/.pm}"
+  export PM_HOME="${PM_HOME:-${HOME}/dev}"
 
 }
 

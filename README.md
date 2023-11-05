@@ -17,7 +17,7 @@
 
 ---
 
-`pm` is a bash script allowing users to rapidly create new projects (using `$PM_ROOT_DIR` as the root of all projects). It integrate with tmux to allow for seemless navigation between these projects.
+`pm` is a bash script allowing users to rapidly create new projects (using `$PM_HOME` as the root of all projects). It integrate with tmux to allow for seemless navigation between these projects.
 
 ## Prerequisites
 
@@ -120,12 +120,12 @@ Options:
     Show version number
 
 Environment Variables:
-  PM_HOME
-    Directory where the projects will be managed
-    Default: ~/dev
-
   PM_INSTALL
     Directory where the repository was cloned
     Default: ~/.pm
+
+  PM_HOME
+    Directory where the projects will be managed
+    Default: ~/dev
 ```
 

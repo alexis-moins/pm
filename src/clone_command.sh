@@ -3,7 +3,7 @@ local destination="${args[destination]}"
 
 [[ -z "${destination}" ]] && destination="default/$(basename ${repository})"
 
-if [[ -d "${PM_ROOT_DIR}/${destination}" ]]; then
+if [[ -d "${PM_HOME}/${destination}" ]]; then
     echo "$(red pm:) destination already contains this project"
     exit 1
 fi
@@ -11,7 +11,7 @@ fi
 local project_name=`basename "${destination}"`
 
 local project_dir=`dirname "${destination}"`
-local destination_dir="${PM_ROOT_DIR}/${project_dir}"
+local destination_dir="${PM_HOME}/${project_dir}"
 
 [[ ! -d "${project_dir}" ]] && command mkdir -p "${destination_dir}"
 pushd "${destination_dir}" &> /dev/null

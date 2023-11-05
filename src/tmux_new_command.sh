@@ -10,7 +10,7 @@ space="$(filter_space)"
 project="${space}/${project}"
 echo "Project space: $(blue ${space})"
 
-local path="${PM_ROOT_DIR}/${project}"
+local path="${PM_HOME}/${project}"
 
 if [[ -d "${path}" ]]; then
     echo "$(red np:) project already exists"

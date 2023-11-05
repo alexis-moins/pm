@@ -6,7 +6,7 @@ local no_git="${args[--no-git]}"
 
 project="${space}/${name}"
 
-local path="${PM_ROOT_DIR}/${project}"
+local path="${PM_HOME}/${project}"
 
 if [[ -d "${path}" ]]; then
     echo "$(red pm:) project already exists"

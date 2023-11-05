@@ -1,1 +1,1 @@
-echo "${PM_ROOT_DIR}"
+echo "${PM_HOME}"

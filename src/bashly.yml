@@ -3,13 +3,13 @@ help: Project manager built on top of tmux
 version: 0.1.0
 
 environment_variables:
-  - name: PM_ROOT_DIR
-    help: Directory where the projects will be managed
-    default: ${HOME}/dev
-
   - name: PM_INSTALL
     help: Directory where the repository was cloned
     default: ${HOME}/.pm
+
+  - name: PM_HOME
+    help: Directory where the projects will be managed
+    default: ${HOME}/dev
 
 dependencies:
   - git
@@ -58,7 +58,7 @@ commands:
         required: true
 
       - name: destination
-        help: Where to clone the project (relative to ${PM_ROOT_DIR})
+        help: Where to clone the project (relative to ${PM_HOME})
 
     examples:
       - pm clone alexis-moins/portal

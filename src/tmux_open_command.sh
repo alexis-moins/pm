@@ -2,7 +2,7 @@ local project="$(filter_project)"
 
 [[ -z "${project}" ]] && exit 1
 
-local path="${PM_ROOT_DIR}/${project}"
+local path="${PM_HOME}/${project}"
 local name=`basename "${path}" | sed 's/\./dot-/'`
 
 local session=`tmux list-windows -aF '#S: #{pane_current_path}' | \
