@@ -17,9 +17,7 @@
 
 ---
 
-`pm` is a bash script allowing users to:
-- Rapidly create new local projects (using `$PM_ROOT_DIR` as the root of all projects)
-- Navigate between these projects using tmux with a set of keybindings
+`pm` is a bash script allowing users to rapidly create new projects (using `$PM_ROOT_DIR` as the root of all projects). It integrate with tmux to allow for seemless navigation between these projects.
 
 ## Prerequisites
 
@@ -35,75 +33,56 @@
 ### Using pm
 
 ```bash
-# Clone the repository in the recommended location
+# Clone the repository
 git clone git@github.com:alexis-moins/pm.git ~/.pm
 
 # Let pm create the symbolic link for you!
 cd ~/.pm && ./pm link
 ```
 
-The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory. If you cloned the repository elsewhere, you may pass the repository path to the link command using the `-s | --source` flag. Likewise, you can also change the link destination path with the optional `path` argument!
+The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory. You can also change the link destination path with the optional `path` argument.
 ```bash
-./pm link /usr/local/bin/ --source ~/scritps/pm
+./recipe link /usr/local/bin/
 ```
 
 ### Manually
 
-Clone the repository then move the [pm](pm) script to `~/.local/bin/` or anywhere in your `PATH`, and make it executable.
+Clone the repository then move the [pm](pm) script to `~/.local/bin/` or anywhere in your `PATH`, and ensure it is executable!
 
 ## Quick Start
 
 After installing, you can follow these steps to quickly see how it works:
 
 ```bash
-# First initialize your project root (~/dev by default)
+# First initialize pm
 pm init
 
-# You can specify a name right away (sub-directories will be created for you)
+# Add a new space (a 'default' space is setup by pm for you)
+pm space add personal
+
+# You can then create new projects in this space
 pm new personal/portal
 
-# Fuzzy find a project to open/switch to using tmux
+# Opening the project is a breeze
 pm open personal/portal
 
 # You can even clone github repositories
-pm clone alexis-moins/recipe tools/recipe
-
-###
-# First initialize a new recipe book
-recipe init
-
-# Or, if you already have a recipe book
-recipe clone git@github.com:awesome-user/recipe-book
-
-# You can add a recipe
-recipe add Dockerfile docker/express-js
-
-# View the list of your recipes
-recipe list
-
-# Check you recipe book at any time
-recipe doctor
-
-# Edit a recipe
-recipe edit docker/express-js
-
-# Even use a recipe in another project
-recipe use docker/express-js Dockerfile
-
-# Optionally, you can add a remote repository to sync your recipe book across devices
-recipe git remote add origin git@github.com:awesome-user/recipe-book
+pm clone alexis-moins/recipe personal/recipe
 ```
 
 ## Tmux integration
 
-`pm` comes with the following tmux keybindings. You will be asked to add them to your config when running `pm init` but you can also manually add them by running
+`pm` comes with the following interactive tmux keybindings:
+
+| Keybinding   | Command        | Code                                         | Description                                        |
+| ------------ | -------------- | -------------------------------------------- | -------------------------------------------------- |
+| `Leader + o` | `pm tmux open` | `bind-key o display-popup -E 'pm tmux open'` | Select an existing project to navigate to          |
+| `Leader + -` | `pm tmux new`  | `bind-key - display-popup -E 'pm tmux new'`  | Create a new project and create a new tmux session |
+
+You will be asked to add them to your tmux config when running `pm init` but you can also manually add them by running
 ```bash
 pm tmux keybindings >> ~/.tmux.conf
 ```
-
-You should now be able to:
-- Create new projects using `<prefix> + -`
-- Quickly open a project with `<prefix> + o`.
 
 ## Usage
 
@@ -141,7 +120,7 @@ Options:
     Show version number
 
 Environment Variables:
-  PM_ROOT_DIR
+  PM_HOME
     Directory where the projects will be managed
     Default: ~/dev
 
