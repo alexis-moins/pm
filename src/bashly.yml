@@ -4,8 +4,12 @@ version: 1.0.0
 
 environment_variables:
   - name: PM_ROOT_DIR
-    help: Root directory used to manage projects
+    help: Directory where the projects will be managed
     default: ${HOME}/dev
+
+  - name: PM_INSTALL
+    help: Directory where the repository was cloned
+    default: ${HOME}/.pm
 
 dependencies:
   - git
@@ -61,33 +65,6 @@ commands:
       - name: name
         help: Name of the project
 
-  - name: link
-    help: Create a symbolic link to the pm script
-
-    args:
-      - name: path
-        help: Path to the symbolic link
-        default: ${HOME}/.local/bin
-
-    flags:
-      - short: -r
-        long: --remove
-        help: Remove the symbolic link instead
-
-      - short: -s
-        long: --source
-        arg: source
-        default: ${HOME}/.pm
-        help: Path to the directory containing the pm script
-
-      - short: -c
-        long: --copy
-        help: Copy the script instead of creating a symbolic link
-
-    examples:
-      - pm link /usr/local/bin
-      - pm link --source ~/scripts/pm --remove
-
   - name: dir
     help: Show projects' root directory
 
@@ -131,3 +108,29 @@ commands:
       label: spaces
       help: Spaces to list projects from
       required: true
+
+  - name: link
+    help: Create a link to this script
+
+    args:
+      - name: path
+        help: Path to the link
+        default: ${HOME}/.local/bin
+
+    flags:
+      - short: -c
+        long: --copy
+        help: Copy the script instead of creating a symbolic link
+        conflicts: [--remove]
+
+      - short: -r
+        long: --remove
+        help: Remove the link instead of creating it
+        conflicts: [--copy]
+
+    examples:
+      - pm link --remove
+      - pm link /usr/local/bin
+
+  - name: update
+    help: Update to the latest version

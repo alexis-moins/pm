@@ -29,15 +29,16 @@ pm_usage() {
   echo
 
   printf "%s\n" "PROJECT Commands:"
-  printf "  %s   Create a new empty project\n" "new  "
-  printf "  %s   Clone a remote git repository\n" "clone"
-  printf "  %s   Open a project in a tmux session\n" "open "
+  printf "  %s   Create a new empty project\n" "new   "
+  printf "  %s   Clone a remote git repository\n" "clone "
+  printf "  %s   Open a project in a tmux session\n" "open  "
   echo
   printf "%s\n" "Commands:"
-  printf "  %s   Create a symbolic link to the pm script\n" "link "
-  printf "  %s   Show projects' root directory\n" "dir  "
-  printf "  %s   Create, delete or list spaces\n" "space"
-  printf "  %s   List project directories\n" "list "
+  printf "  %s   Show projects' root directory\n" "dir   "
+  printf "  %s   Create, delete or list spaces\n" "space "
+  printf "  %s   List project directories\n" "list  "
+  printf "  %s   Create a link to this script\n" "link  "
+  printf "  %s   Update to the latest version\n" "update"
   echo
 
   if [[ -n $long_usage ]]; then
@@ -53,8 +54,13 @@ pm_usage() {
     printf "%s\n" "Environment Variables:"
 
     printf "  %s\n" "PM_ROOT_DIR"
-    printf "    Root directory used to manage projects\n"
+    printf "    Directory where the projects will be managed\n"
     printf "    Default: ${HOME}/dev\n"
+    echo
+
+    printf "  %s\n" "PM_INSTALL"
+    printf "    Directory where the repository was cloned\n"
+    printf "    Default: ${HOME}/.pm\n"
     echo
 
   fi
@@ -173,57 +179,6 @@ pm_open_usage() {
 
     printf "  %s\n" "NAME"
     printf "    Name of the project\n"
-    echo
-
-  fi
-}
-
-pm_link_usage() {
-  if [[ -n $long_usage ]]; then
-    printf "pm link - Create a symbolic link to the pm script\n"
-    echo
-
-  else
-    printf "pm link - Create a symbolic link to the pm script\n"
-    echo
-
-  fi
-
-  printf "%s\n" "Usage:"
-  printf "  pm link [PATH] [OPTIONS]\n"
-  printf "  pm link --help | -h\n"
-  echo
-
-  if [[ -n $long_usage ]]; then
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--remove, -r"
-    printf "    Remove the symbolic link instead\n"
-    echo
-
-    printf "  %s\n" "--source, -s SOURCE"
-    printf "    Path to the directory containing the pm script\n"
-    printf "    Default: ${HOME}/.pm\n"
-    echo
-
-    printf "  %s\n" "--copy, -c"
-    printf "    Copy the script instead of creating a symbolic link\n"
-    echo
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Arguments:"
-
-    printf "  %s\n" "PATH"
-    printf "    Path to the symbolic link\n"
-    printf "    Default: ${HOME}/.local/bin\n"
-    echo
-
-    printf "%s\n" "Examples:"
-    printf "  pm link /usr/local/bin\n"
-    printf "  pm link --source ~/scripts/pm --remove\n"
     echo
 
   fi
@@ -423,6 +378,78 @@ pm_list_usage() {
 
     echo "  SPACES..."
     printf "    Spaces to list projects from\n"
+    echo
+
+  fi
+}
+
+pm_link_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm link - Create a link to this script\n"
+    echo
+
+  else
+    printf "pm link - Create a link to this script\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm link [PATH] [OPTIONS]\n"
+  printf "  pm link --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--copy, -c"
+    printf "    Copy the script instead of creating a symbolic link\n"
+    echo
+
+    printf "  %s\n" "--remove, -r"
+    printf "    Remove the link instead of creating it\n"
+    echo
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "PATH"
+    printf "    Path to the link\n"
+    printf "    Default: ${HOME}/.local/bin\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm link --remove\n"
+    printf "  pm link /usr/local/bin\n"
+    echo
+
+  fi
+}
+
+pm_update_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm update - Update to the latest version\n"
+    echo
+
+  else
+    printf "pm update - Update to the latest version\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm update\n"
+  printf "  pm update --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
     echo
 
   fi
@@ -629,47 +656,6 @@ pm_open_command() {
 
 }
 
-pm_link_command() {
-  local path="${args[path]}"
-
-  local source="${args[--source]}"
-  local remove="${args[--remove]}"
-  local copy="${args[--copy]}"
-
-  if [[ -n "${remove}" ]]; then
-      if [[ -f "${path}/pm" ]]; then
-          run_silent rm -rf "${path}/pm"
-          echo "$(green ✔) Link removed from $(magenta "${path}")"
-      else
-          echo "$(red pm:) no link found in $(magenta "${path}")"
-          exit 1
-      fi
-  else
-      if [[ -f "${path}/pm" ]]; then
-          echo "$(red pm:) there is already a link in $(magenta "${path}")"
-          exit 1
-      fi
-
-      if [[ ! -d "${source}" ]]; then
-          echo "$(red pm:) source directory $(magenta "${source}") does not exist"
-          exit 1
-      fi
-
-      source=`realpath "${source}"`
-
-      if [[ ! -f "${source}/pm" ]]; then
-          echo "$(red pm:) script 'pm' not found in $(magenta "${source}")"
-          exit 1
-      fi
-
-      local executable=`test -n "${copy}" && echo "cp" || echo "ln -s"`
-
-      run_silent ${executable} "${source}/pm" "${path}/pm"
-      echo "$(green ✔) Link created in $(magenta "${path}")"
-  fi
-
-}
-
 pm_dir_command() {
   echo "${PM_ROOT_DIR}"
 
@@ -713,6 +699,53 @@ pm_list_command() {
 
 }
 
+pm_link_command() {
+  local path="${args[path]}"
+  local copy="${args[--copy]}"
+  local remove="${args[--remove]}"
+
+  if [[ -n "${remove}" ]]; then
+      if [[ -f "${path}/pm" ]]; then
+          run_silent rm -rf "${path}/pm"
+          echo "$(green ✔) Link removed from $(magenta "${path}")"
+      else
+          echo "No link found in $(magenta "${path}")"
+          exit 1
+      fi
+  else
+      if [[ -f "${path}/pm" ]]; then
+          echo "There is already a link in $(magenta "${path}")"
+          exit 1
+      fi
+
+      if [[ ! -d "${PM_INSTALL}" ]]; then
+          echo "Source directory $(magenta "${PM_INSTALL}") does not exist"
+          exit 1
+      fi
+
+      if [[ ! -f "${PM_INSTALL}/pm" ]]; then
+          echo "Script 'pm' not found in $(magenta "${PM_INSTALL}")"
+          exit 1
+      fi
+
+      local executable=`test -n "${copy}" && echo "cp" || echo "ln -s"`
+
+      run_silent ${executable} "${PM_INSTALL}/pm" "${path}/pm"
+      echo "$(green ✔) Link created in $(magenta "${path}")"
+  fi
+
+}
+
+pm_update_command() {
+  if [[ ! -d "${PM_INSTALL}" ]]; then
+      echo "${PM_INSTALL} is not a directory. Check documentation for installation instruction."
+      exit 1
+  fi
+
+  git -C "${PM_INSTALL}" pull
+
+}
+
 parse_requirements() {
 
   while [[ $# -gt 0 ]]; do
@@ -736,6 +769,7 @@ parse_requirements() {
   done
 
   export PM_ROOT_DIR="${PM_ROOT_DIR:-${HOME}/dev}"
+  export PM_INSTALL="${PM_INSTALL:-${HOME}/.pm}"
 
   if command -v git >/dev/null 2>&1; then
     deps['git']="$(command -v git | head -n1)"
@@ -798,13 +832,6 @@ parse_requirements() {
       shift $#
       ;;
 
-    link)
-      action="link"
-      shift
-      pm_link_parse_requirements "$@"
-      shift $#
-      ;;
-
     dir)
       action="dir"
       shift
@@ -823,6 +850,20 @@ parse_requirements() {
       action="list"
       shift
       pm_list_parse_requirements "$@"
+      shift $#
+      ;;
+
+    link)
+      action="link"
+      shift
+      pm_link_parse_requirements "$@"
+      shift $#
+      ;;
+
+    update)
+      action="update"
+      shift
+      pm_update_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1020,80 +1061,6 @@ pm_open_parse_requirements() {
 
     esac
   done
-
-}
-
-pm_link_parse_requirements() {
-
-  while [[ $# -gt 0 ]]; do
-    case "${1:-}" in
-      --help | -h)
-        long_usage=yes
-        pm_link_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  action="link"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      --remove | -r)
-
-        args['--remove']=1
-        shift
-        ;;
-
-      --source | -s)
-
-        if [[ -n ${2+x} ]]; then
-
-          args['--source']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--source requires an argument: --source, -s SOURCE" >&2
-          exit 1
-        fi
-        ;;
-
-      --copy | -c)
-
-        args['--copy']=1
-        shift
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        if [[ -z ${args['path']+x} ]]; then
-
-          args['path']=$1
-          shift
-        else
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-        fi
-
-        ;;
-
-    esac
-  done
-
-  [[ -n ${args['path']:-} ]] || args['path']="${HOME}/.local/bin"
-  [[ -n ${args['--source']:-} ]] || args['--source']="${HOME}/.pm"
 
 }
 
@@ -1401,12 +1368,123 @@ pm_list_parse_requirements() {
 
 }
 
+pm_link_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_link_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="link"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      --copy | -c)
+
+        if [[ -n "${args['--remove']:-}" ]]; then
+          printf "conflicting options: %s cannot be used with %s\n" "$key" "--remove" >&2
+          exit 1
+        fi
+
+        args['--copy']=1
+        shift
+        ;;
+
+      --remove | -r)
+
+        if [[ -n "${args['--copy']:-}" ]]; then
+          printf "conflicting options: %s cannot be used with %s\n" "$key" "--copy" >&2
+          exit 1
+        fi
+
+        args['--remove']=1
+        shift
+        ;;
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        if [[ -z ${args['path']+x} ]]; then
+
+          args['path']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  [[ -n ${args['path']:-} ]] || args['path']="${HOME}/.local/bin"
+
+}
+
+pm_update_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_update_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="update"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
 initialize() {
   version="1.0.0"
   long_usage=''
   set -e
 
   export PM_ROOT_DIR="${PM_ROOT_DIR:-${HOME}/dev}"
+  export PM_INSTALL="${PM_INSTALL:-${HOME}/.pm}"
 
 }
 
@@ -1422,13 +1500,14 @@ run() {
     "new") pm_new_command ;;
     "clone") pm_clone_command ;;
     "open") pm_open_command ;;
-    "link") pm_link_command ;;
     "dir") pm_dir_command ;;
     "space") pm_space_command ;;
     "space add") pm_space_add_command ;;
     "space list") pm_space_list_command ;;
     "space remove") pm_space_remove_command ;;
     "list") pm_list_command ;;
+    "link") pm_link_command ;;
+    "update") pm_update_command ;;
   esac
 }
 
