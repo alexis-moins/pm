@@ -42,7 +42,7 @@ cd ~/.pm && ./pm link
 
 The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory. You can also change the link destination path with the optional `path` argument.
 ```bash
-./recipe link /usr/local/bin/
+./pm link /usr/local/bin/
 ```
 
 ### Manually
