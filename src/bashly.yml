@@ -101,7 +101,6 @@ commands:
           - name: space
             help: Name of the space to add
             required: true
-            validate: space_is_missing
 
         examples:
           - pm space add personal
