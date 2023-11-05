@@ -7,4 +7,5 @@ for space in ${other_args[*]}; do
     echo "${space}" >> "${spaces_index}"
 done
 
-command sort --unique "${spaces_index}" --output "${spaces_index}"
+\sort --unique "${spaces_index}" --output "${spaces_index}"
+echo "$(green ✔) New space(s) added"

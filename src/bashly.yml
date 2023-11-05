@@ -1,5 +1,5 @@
 name: pm
-help: Local project manager
+help: Project manager built on top of tmux
 version: 1.0.0
 
 environment_variables:
@@ -22,6 +22,7 @@ commands:
     args:
       - name: name
         help: Name of the new project
+        required: true
 
     flags:
       - short: -n
@@ -30,7 +31,7 @@ commands:
 
       - short: -d
         long: --detach
-        help: Don't create a tmux session
+        help: Don't attach to the new tmux session
 
     examples:
       - pm new recipe --no-git
@@ -103,13 +104,30 @@ commands:
           required: true
 
         examples:
-          - pm space add personal 
+          - pm space add personal
           - pm space add school/first-year school/second-year
 
       - name: list
         alias: ls
-        help: List registered project spaces
+        help: List registered spaces
 
         examples:
           - pm space ls
           - pm space list
+
+      - name: remove
+        alias: rm
+        help: Remove a space. It does not remove projects for you
+
+        args:
+          - name: space
+            help: Name of the space to remove
+
+  - name: list
+    alias: ls
+    help: List project directories
+
+    catch_all:
+      label: spaces
+      help: Spaces to list projects from
+      required: true

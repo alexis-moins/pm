@@ -62,11 +62,11 @@ pm new
 # You can specify a name right away (sub-directories will be created for you)
 pm new personal/portal
 
-# Fuzzy find a project to switch to using tmux
-pm switch
+# Fuzzy find a project to open/switch to using tmux
+pm open
 
 # You can even clone github repositories
-pm clone git@github.com:alexis-moins/recipe
+pm clone alexis-moins/recipe tools/recipe
 ```
 
 ## Tmux integration
@@ -80,6 +80,10 @@ bind-key o display-popup -E "pm open"
 bind-key - display-popup -E "pm new"
 ```
 
+```bash
+pm keybinds >> ~/.tmux.conf
+```
+
 You should now be able to:
 - Create new projects using `<prefix> + -`
 - Quickly open a project with `<prefix> + o`.
@@ -89,18 +93,22 @@ You should now be able to:
 ```
 $ pm
 
-pm - Local project manager
+pm - Project manager built on top of tmux
 
 Usage:
   pm COMMAND
   pm [COMMAND] --help | -h
   pm --version | -v
 
+PROJECT Commands:
+  new     Create a new empty project
+  clone   Clone a remote git repository
+  open    Open a project in a tmux session
+
 Commands:
-  new      Create a new empty project
-  clone    Clone a remote git repository
-  switch   Switch to a project
-  link     Create a symbolic link to the pm script
+  link    Create a symbolic link to the pm script
+  dir     Show projects' root directory
+  space   Create, delete or list spaces
 
 Options:
   --help, -h
@@ -113,9 +121,5 @@ Environment Variables:
   PM_ROOT_DIR
     Root directory used to manage projects
     Default: ~/dev
-
-  PM_MAX_DEPTH
-    Maximum depth to display sub-directories
-    Default: 2
 ```
 

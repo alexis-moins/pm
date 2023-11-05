@@ -13,11 +13,11 @@ version_command() {
 
 pm_usage() {
   if [[ -n $long_usage ]]; then
-    printf "pm - Local project manager\n"
+    printf "pm - Project manager built on top of tmux\n"
     echo
 
   else
-    printf "pm - Local project manager\n"
+    printf "pm - Project manager built on top of tmux\n"
     echo
 
   fi
@@ -37,6 +37,7 @@ pm_usage() {
   printf "  %s   Create a symbolic link to the pm script\n" "link "
   printf "  %s   Show projects' root directory\n" "dir  "
   printf "  %s   Create, delete or list spaces\n" "space"
+  printf "  %s   List project directories\n" "list "
   echo
 
   if [[ -n $long_usage ]]; then
@@ -71,7 +72,7 @@ pm_new_usage() {
   fi
 
   printf "%s\n" "Usage:"
-  printf "  pm new [NAME] [OPTIONS]\n"
+  printf "  pm new NAME [OPTIONS]\n"
   printf "  pm new --help | -h\n"
   echo
 
@@ -83,7 +84,7 @@ pm_new_usage() {
     echo
 
     printf "  %s\n" "--detach, -d"
-    printf "    Don't create a tmux session\n"
+    printf "    Don't attach to the new tmux session\n"
     echo
 
     printf "  %s\n" "--help, -h"
@@ -271,8 +272,9 @@ pm_space_usage() {
   echo
 
   printf "%s\n" "Commands:"
-  printf "  %s   Add new spaces\n" "add "
-  printf "  %s   List registered project spaces\n" "list"
+  printf "  %s   Add new spaces\n" "add   "
+  printf "  %s   List registered spaces\n" "list  "
+  printf "  %s   Remove a space. It does not remove projects for you\n" "remove"
   echo
 
   if [[ -n $long_usage ]]; then
@@ -324,11 +326,11 @@ pm_space_add_usage() {
 
 pm_space_list_usage() {
   if [[ -n $long_usage ]]; then
-    printf "pm space list - List registered project spaces\n"
+    printf "pm space list - List registered spaces\n"
     echo
 
   else
-    printf "pm space list - List registered project spaces\n"
+    printf "pm space list - List registered spaces\n"
     echo
 
   fi
@@ -351,6 +353,76 @@ pm_space_list_usage() {
     printf "%s\n" "Examples:"
     printf "  pm space ls\n"
     printf "  pm space list\n"
+    echo
+
+  fi
+}
+
+pm_space_remove_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm space remove - Remove a space. It does not remove projects for you\n"
+    echo
+
+  else
+    printf "pm space remove - Remove a space. It does not remove projects for you\n"
+    echo
+
+  fi
+
+  printf "Alias: rm\n"
+  echo
+
+  printf "%s\n" "Usage:"
+  printf "  pm space remove [SPACE]\n"
+  printf "  pm space remove --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "SPACE"
+    printf "    Name of the space to remove\n"
+    echo
+
+  fi
+}
+
+pm_list_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm list - List project directories\n"
+    echo
+
+  else
+    printf "pm list - List project directories\n"
+    echo
+
+  fi
+
+  printf "Alias: ls\n"
+  echo
+
+  printf "%s\n" "Usage:"
+  printf "  pm list SPACES...\n"
+  printf "  pm list --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    echo "  SPACES..."
+    printf "    Spaces to list projects from\n"
     echo
 
   fi
@@ -444,8 +516,12 @@ confirm() {
 }
 
 filter_project() {
-    fd --type d --max-depth 1 --base-directory "${PM_ROOT_DIR}" . $(cat "${PM_ROOT_DIR}/spaces") | \
+    command fd --type d --max-depth 1 --base-directory "${PM_ROOT_DIR}" . $(cat "${PM_ROOT_DIR}/spaces") | sort --unique | \
         gum filter --placeholder "Select a project"
+}
+
+filter_space() {
+    command cat "${PM_ROOT_DIR}/spaces" | gum filter --placeholder "${1}"
 }
 
 run_silent() {
@@ -455,41 +531,29 @@ run_silent() {
 pm_new_command() {
   local project="${args[name]}"
 
-  if [[ -z "${project}" ]]; then
-      local prompt="Project name: "
-      project=`gum input --prompt "${prompt}" --placeholder 'awesome-cli'`
+  space="$(filter_space 'Select project space:')"
 
-      [[ -z "${project}" ]] && exit 1
-      echo "${prompt}$(blue ${project})"
-  fi
+  [[ -z "${space}" ]] && exit 1
 
-  if [[ -f "${PM_ROOT_DIR}/spaces" ]] && ! confirm "Use default space?"; then
-      space=`cat "${PM_ROOT_DIR}/spaces" | gum choose --header 'Select a project space:' --header.foreground='7' --cursor.foreground='4'`
-
-      [[ -z "${space}" ]] && exit 1
-
-      project="${space}/${project}"
-      echo "Project space: $(blue ${space})"
-  else
-      echo "Project space: $(blue default)"
-  fi
+  project="${space}/${project}"
+  echo "Project space: $(magenta ${space})"
 
   local path="${PM_ROOT_DIR}/${project}"
 
   if [[ -d "${path}" ]]; then
-      echo "$(red np:) project already exists"
+      echo "$(red pm:) project already exists"
       exit 1
   fi
 
-  command mkdir -p "${path}"
+  \mkdir -p "${path}"
 
   if confirm "Init git repository?"; then
       pushd "${path}" &> /dev/null
-      command git init &> /dev/null
+      \git init &> /dev/null
 
-      echo "Init git repository: $(blue yes)"
+      echo "Init git repository? $(magenta yes)"
   else
-      echo "Init git repository: $(blue no)"
+      echo "Init git repository? $(magenta no)"
   fi
 
   local name=`basename "${path}" | sed 's/\./dot-/'`
@@ -502,6 +566,8 @@ pm_new_command() {
       tmux new-session -c "${path}" -d -s "${name}"
       tmux switch-client -t "${name}"
   fi
+
+  echo -e "\n$(green ✔) Project created"
 
 }
 
@@ -528,8 +594,8 @@ pm_clone_command() {
   [[ ! -d "${project_dir}" ]] && command mkdir -p "${destination_dir}"
   pushd "${destination_dir}" &> /dev/null
 
-  command git clone "${url}" "$project_name"
-  echo "$(green ✔) Added project"
+  command git clone "git@github.com:${url}" "$project_name"
+  echo "$(green ✔) Cloned project in $(magenta ${destination})"
 
 }
 
@@ -619,7 +685,8 @@ pm_space_add_command() {
       echo "${space}" >> "${spaces_index}"
   done
 
-  command sort --unique "${spaces_index}" --output "${spaces_index}"
+  \sort --unique "${spaces_index}" --output "${spaces_index}"
+  echo "$(green ✔) New space(s) added"
 
 }
 
@@ -627,6 +694,22 @@ pm_space_list_command() {
   if [[ -f "${PM_ROOT_DIR}/spaces" ]]; then
       cat "${PM_ROOT_DIR}/spaces"
   fi
+
+}
+
+pm_space_remove_command() {
+  local space="${args[space]:-$(filter_space 'Select a space to remove...')}"
+
+  local new_spaces=`command rg -vN --color=never "${space}" "${PM_ROOT_DIR}/spaces"`
+
+  echo "${new_spaces}" > "${PM_ROOT_DIR}/spaces"
+  echo "$(yellow Note:) pm does not remove projects. Remove them manually"
+  echo "$(green ✔) Space removed from index"
+
+}
+
+pm_list_command() {
+  command fd --type d --max-depth 1 --base-directory "${PM_ROOT_DIR}" . ${other_args[*]} | sort --unique
 
 }
 
@@ -736,6 +819,13 @@ parse_requirements() {
       shift $#
       ;;
 
+    list | ls)
+      action="list"
+      shift
+      pm_list_parse_requirements "$@"
+      shift $#
+      ;;
+
     "")
       pm_usage >&2
       exit 1
@@ -824,6 +914,11 @@ pm_new_parse_requirements() {
 
     esac
   done
+
+  if [[ -z ${args['name']+x} ]]; then
+    printf "missing required argument: NAME\nusage: pm new NAME [OPTIONS]\n" >&2
+    exit 1
+  fi
 
 }
 
@@ -1078,6 +1173,13 @@ pm_space_parse_requirements() {
       shift $#
       ;;
 
+    remove | rm)
+      action="remove"
+      shift
+      pm_space_remove_parse_requirements "$@"
+      shift $#
+      ;;
+
     "")
       pm_space_usage >&2
       exit 1
@@ -1202,6 +1304,103 @@ pm_space_list_parse_requirements() {
 
 }
 
+pm_space_remove_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_space_remove_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="space remove"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        if [[ -z ${args['space']+x} ]]; then
+
+          args['space']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_list_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_list_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="list"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      --)
+        shift
+        other_args+=("$@")
+        break
+        ;;
+
+      -?*)
+        other_args+=("$1")
+        shift
+        ;;
+
+      *)
+
+        other_args+=("$1")
+        shift
+
+        ;;
+
+    esac
+  done
+
+  if [[ ${#other_args[@]} -eq 0 ]]; then
+    printf "missing required argument: SPACES...\nusage: pm list SPACES...\n" >&2
+    exit 1
+  fi
+
+}
+
 initialize() {
   version="1.0.0"
   long_usage=''
@@ -1228,6 +1427,8 @@ run() {
     "space") pm_space_command ;;
     "space add") pm_space_add_command ;;
     "space list") pm_space_list_command ;;
+    "space remove") pm_space_remove_command ;;
+    "list") pm_list_command ;;
   esac
 }
 

@@ -8,3 +8,11 @@
   - ( ) Improve `pm new` command to select between spaces
 
   - (x) rename `pm root` to `pm dir` to stay consistent with `recipe`
+
+  - ( ) Add a `pm space remove` command that removes the space from the spaces index and instruct the user to remove the dir manually if they want
+  - ( ) Add a `pm space move` command to rename a space
+
+  - ( ) Port `doctor` and `update` commands from `recipe` as well as filters (healthy)
+  - ( ) Add a `bindings` command that prints keybings for tmux
+
+  - ( ) Re write the README.md

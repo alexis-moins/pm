@@ -1,40 +1,28 @@
 local project="${args[name]}"
 
-if [[ -z "${project}" ]]; then
-    local prompt="Project name: "
-    project=`gum input --prompt "${prompt}" --placeholder 'awesome-cli'`
+space="$(filter_space 'Select project space:')"
 
-    [[ -z "${project}" ]] && exit 1
-    echo "${prompt}$(blue ${project})"
-fi
+[[ -z "${space}" ]] && exit 1
 
-if [[ -f "${PM_ROOT_DIR}/spaces" ]] && ! confirm "Use default space?"; then
-    space=`cat "${PM_ROOT_DIR}/spaces" | gum choose --header 'Select a project space:' --header.foreground='7' --cursor.foreground='4'`
-
-    [[ -z "${space}" ]] && exit 1
-
-    project="${space}/${project}"
-    echo "Project space: $(blue ${space})"
-else
-    echo "Project space: $(blue default)"
-fi
+project="${space}/${project}"
+echo "Project space: $(magenta ${space})"
 
 local path="${PM_ROOT_DIR}/${project}"
 
 if [[ -d "${path}" ]]; then
-    echo "$(red np:) project already exists"
+    echo "$(red pm:) project already exists"
     exit 1
 fi
 
-command mkdir -p "${path}"
+\mkdir -p "${path}"
 
 if confirm "Init git repository?"; then
     pushd "${path}" &> /dev/null
-    command git init &> /dev/null
+    \git init &> /dev/null
 
-    echo "Init git repository: $(blue yes)"
+    echo "Init git repository? $(magenta yes)"
 else
-    echo "Init git repository: $(blue no)"
+    echo "Init git repository? $(magenta no)"
 fi
 
 local name=`basename "${path}" | sed 's/\./dot-/'`
@@ -47,3 +35,5 @@ else
     tmux new-session -c "${path}" -d -s "${name}"
     tmux switch-client -t "${name}"
 fi
+
+echo -e "\n$(green ✔) Project created"
