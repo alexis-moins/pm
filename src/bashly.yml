@@ -1,6 +1,6 @@
 name: pm
 help: Project manager built on top of tmux
-version: 1.0.0
+version: 0.1.0
 
 environment_variables:
   - name: PM_ROOT_DIR
@@ -46,7 +46,7 @@ commands:
 
     examples:
       - pm new recipe --detach
-      - pm new recipe --no-git --space=tools
+      - pm new recipe --space=tools --no-git
 
   - name: clone
     help: Clone a remote git repository
@@ -85,6 +85,7 @@ commands:
 
   - name: dir
     help: Show projects' root directory
+    group: SCRIPT
 
     examples:
       - pm dir
@@ -134,15 +135,16 @@ commands:
 
   - name: list
     alias: ls
-    help: List project directories
+    help: List projects
+    group: PROJECT
 
-    catch_all:
-      label: spaces
-      help: Spaces to list projects from
-      required: true
+    examples:
+      - pm ls
+      - pm list
 
   - name: link
     help: Create a link to this script
+    group: SCRIPT
 
     args:
       - name: path
@@ -166,6 +168,29 @@ commands:
 
   - name: update
     help: Update to the latest version
+    group: SCRIPT
 
     examples:
       - pm update
+
+  - name: tmux
+    help: Commands for tmux integration
+
+    commands:
+      - name: new
+        help: Create a new empty project
+
+        examples:
+          - pm tmux new
+
+      - name: open
+        help: Open a project in a tmux session
+
+        examples:
+          - pm tmux open
+
+      - name: keybindings
+        help: Print tmux keybindings
+
+        examples:
+          - pm tmux keybindings

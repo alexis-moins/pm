@@ -33,13 +33,16 @@ pm_usage() {
   printf "  %s   Clone a remote git repository\n" "clone "
   printf "  %s   Open a project in a tmux session\n" "open  "
   printf "  %s   Filter projects by name\n" "filter"
+  printf "  %s   List projects\n" "list  "
   echo
-  printf "%s\n" "Commands:"
+  printf "%s\n" "SCRIPT Commands:"
   printf "  %s   Show projects' root directory\n" "dir   "
-  printf "  %s   Create, delete or list spaces\n" "space "
-  printf "  %s   List project directories\n" "list  "
   printf "  %s   Create a link to this script\n" "link  "
   printf "  %s   Update to the latest version\n" "update"
+  echo
+  printf "%s\n" "Commands:"
+  printf "  %s   Create, delete or list spaces\n" "space "
+  printf "  %s   Commands for tmux integration\n" "tmux  "
   echo
 
   if [[ -n $long_usage ]]; then
@@ -111,7 +114,7 @@ pm_new_usage() {
 
     printf "%s\n" "Examples:"
     printf "  pm new recipe --detach\n"
-    printf "  pm new recipe --no-git --space=tools\n"
+    printf "  pm new recipe --space=tools --no-git\n"
     echo
 
   fi
@@ -430,11 +433,11 @@ pm_space_filter_usage() {
 
 pm_list_usage() {
   if [[ -n $long_usage ]]; then
-    printf "pm list - List project directories\n"
+    printf "pm list - List projects\n"
     echo
 
   else
-    printf "pm list - List project directories\n"
+    printf "pm list - List projects\n"
     echo
 
   fi
@@ -443,7 +446,7 @@ pm_list_usage() {
   echo
 
   printf "%s\n" "Usage:"
-  printf "  pm list SPACES...\n"
+  printf "  pm list\n"
   printf "  pm list --help | -h\n"
   echo
 
@@ -454,10 +457,9 @@ pm_list_usage() {
     printf "    Show this help\n"
     echo
 
-    printf "%s\n" "Arguments:"
-
-    echo "  SPACES..."
-    printf "    Spaces to list projects from\n"
+    printf "%s\n" "Examples:"
+    printf "  pm ls\n"
+    printf "  pm list\n"
     echo
 
   fi
@@ -534,6 +536,128 @@ pm_update_usage() {
 
     printf "%s\n" "Examples:"
     printf "  pm update\n"
+    echo
+
+  fi
+}
+
+pm_tmux_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm tmux - Commands for tmux integration\n"
+    echo
+
+  else
+    printf "pm tmux - Commands for tmux integration\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm tmux COMMAND\n"
+  printf "  pm tmux [COMMAND] --help | -h\n"
+  echo
+
+  printf "%s\n" "Commands:"
+  printf "  %s   Create a new empty project\n" "new        "
+  printf "  %s   Open a project in a tmux session\n" "open       "
+  printf "  %s   Print tmux keybindings\n" "keybindings"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+pm_tmux_new_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm tmux new - Create a new empty project\n"
+    echo
+
+  else
+    printf "pm tmux new - Create a new empty project\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm tmux new\n"
+  printf "  pm tmux new --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm tmux new\n"
+    echo
+
+  fi
+}
+
+pm_tmux_open_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm tmux open - Open a project in a tmux session\n"
+    echo
+
+  else
+    printf "pm tmux open - Open a project in a tmux session\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm tmux open\n"
+  printf "  pm tmux open --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm tmux open\n"
+    echo
+
+  fi
+}
+
+pm_tmux_keybindings_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm tmux keybindings - Print tmux keybindings\n"
+    echo
+
+  else
+    printf "pm tmux keybindings - Print tmux keybindings\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm tmux keybindings\n"
+  printf "  pm tmux keybindings --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm tmux keybindings\n"
     echo
 
   fi
@@ -810,7 +934,7 @@ pm_space_filter_command() {
 }
 
 pm_list_command() {
-  command fd --type d --max-depth 1 --base-directory "${PM_ROOT_DIR}" . ${other_args[*]} | sort --unique
+  command fd --type d --max-depth 1 --base-directory "${PM_ROOT_DIR}" . $(cat "${PM_ROOT_DIR}/spaces") | sort --unique
 
 }
 
@@ -858,6 +982,90 @@ pm_update_command() {
   fi
 
   git -C "${PM_INSTALL}" pull
+
+}
+
+pm_tmux_new_command() {
+  local prompt="Project name: "
+  project=`gum input --prompt "${prompt}" --placeholder 'awesome-cli'`
+
+  [[ -z "${project}" ]] && exit 1
+  echo "${prompt}$(blue ${project})"
+
+  space="$(filter_space)"
+  [[ -z "${space}" ]] && exit 1
+
+  project="${space}/${project}"
+  echo "Project space: $(blue ${space})"
+
+  local path="${PM_ROOT_DIR}/${project}"
+
+  if [[ -d "${path}" ]]; then
+      echo "$(red np:) project already exists"
+      exit 1
+  fi
+
+  command mkdir -p "${path}"
+
+  if confirm "Init git repository?"; then
+      pushd "${path}" &> /dev/null
+      command git init &> /dev/null
+      echo "Init git repository: $(blue yes)"
+  else
+      echo "Init git repository: $(blue no)"
+  fi
+
+  local name=`basename "${path}" | sed 's/\./dot-/'`
+
+  if [[ -z "${TMUX}" ]]; then
+      # Outside tmux session
+      tmux new-session -c "${path}" -s "${name}"
+  else
+      # Inside tmux session
+      tmux new-session -c "${path}" -d -s "${name}"
+      tmux switch-client -t "${name}"
+  fi
+
+  echo "$(green ✔) Project $(magenta ${name}) created in $(magenta_underlined ${space}) space"
+
+}
+
+pm_tmux_open_command() {
+  local project="$(filter_project)"
+
+  [[ -z "${project}" ]] && exit 1
+
+  local path="${PM_ROOT_DIR}/${project}"
+  local name=`basename "${path}" | sed 's/\./dot-/'`
+
+  local session=`tmux list-windows -aF '#S: #{pane_current_path}' | \
+      uniq | command rg "${name}: ${path::-1}"`
+
+  if [[ -z "${TMUX}" ]]; then
+      # Outside tmux session
+      if [[ -z "${session}" ]]; then
+          tmux new-session -c $path -s "${name}"
+      else
+          tmux attach -t "${name}"
+      fi
+  else
+      # Inside tmux session
+      if [[ -z "${session}" ]]; then
+          tmux new-session -c $path -d -s "${name}"
+          tmux switch-client -t "${name}"
+      else
+          tmux switch-client -t "${name}"
+      fi
+  fi
+
+}
+
+pm_tmux_keybindings_command() {
+  echo "# Leader + o: open a pm project"
+  echo 'bind-key o display-popup -E "pm tmux open"'
+
+  echo -e "\n# Leader + -: create a new pm project"
+  echo 'bind-key - display-popup -E "pm tmux new"'
 
 }
 
@@ -986,6 +1194,13 @@ parse_requirements() {
       action="update"
       shift
       pm_update_parse_requirements "$@"
+      shift $#
+      ;;
+
+    tmux)
+      action="tmux"
+      shift
+      pm_tmux_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1579,31 +1794,20 @@ pm_list_parse_requirements() {
     key="$1"
     case "$key" in
 
-      --)
-        shift
-        other_args+=("$@")
-        break
-        ;;
-
       -?*)
-        other_args+=("$1")
-        shift
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
         ;;
 
       *)
 
-        other_args+=("$1")
-        shift
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
 
         ;;
 
     esac
   done
-
-  if [[ ${#other_args[@]} -eq 0 ]]; then
-    printf "missing required argument: SPACES...\nusage: pm list SPACES...\n" >&2
-    exit 1
-  fi
 
 }
 
@@ -1717,8 +1921,204 @@ pm_update_parse_requirements() {
 
 }
 
+pm_tmux_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_tmux_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action=${1:-}
+
+  case $action in
+    -*) ;;
+
+    new)
+      action="new"
+      shift
+      pm_tmux_new_parse_requirements "$@"
+      shift $#
+      ;;
+
+    open)
+      action="open"
+      shift
+      pm_tmux_open_parse_requirements "$@"
+      shift $#
+      ;;
+
+    keybindings)
+      action="keybindings"
+      shift
+      pm_tmux_keybindings_parse_requirements "$@"
+      shift $#
+      ;;
+
+    "")
+      pm_tmux_usage >&2
+      exit 1
+      ;;
+
+    *)
+      printf "invalid command: %s\n" "$action" >&2
+      exit 1
+      ;;
+
+  esac
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_tmux_new_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_tmux_new_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="tmux new"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_tmux_open_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_tmux_open_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="tmux open"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_tmux_keybindings_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_tmux_keybindings_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="tmux keybindings"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
 initialize() {
-  version="1.0.0"
+  version="0.1.0"
   long_usage=''
   set -e
 
@@ -1749,6 +2149,10 @@ run() {
     "list") pm_list_command ;;
     "link") pm_link_command ;;
     "update") pm_update_command ;;
+    "tmux") pm_tmux_command ;;
+    "tmux new") pm_tmux_new_command ;;
+    "tmux open") pm_tmux_open_command ;;
+    "tmux keybindings") pm_tmux_keybindings_command ;;
   esac
 }
 

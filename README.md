@@ -19,7 +19,7 @@
 
 `pm` is a bash script allowing users to:
 - Rapidly create new local projects (using `$PM_ROOT_DIR` as the root of all projects)
-- Navigate between these projects using tmux
+- Navigate between these projects using tmux with a set of keybindings
 
 ## Prerequisites
 
@@ -56,32 +56,49 @@ Clone the repository then move the [pm](pm) script to `~/.local/bin/` or anywher
 After installing, you can follow these steps to quickly see how it works:
 
 ```bash
-# Create a new project, you will be taken there automatically
-pm new
+# First initialize your project root (~/dev by default)
+pm init
 
 # You can specify a name right away (sub-directories will be created for you)
 pm new personal/portal
 
 # Fuzzy find a project to open/switch to using tmux
-pm open
+pm open personal/portal
 
 # You can even clone github repositories
 pm clone alexis-moins/recipe tools/recipe
+
+###
+# First initialize a new recipe book
+recipe init
+
+# Or, if you already have a recipe book
+recipe clone git@github.com:awesome-user/recipe-book
+
+# You can add a recipe
+recipe add Dockerfile docker/express-js
+
+# View the list of your recipes
+recipe list
+
+# Check you recipe book at any time
+recipe doctor
+
+# Edit a recipe
+recipe edit docker/express-js
+
+# Even use a recipe in another project
+recipe use docker/express-js Dockerfile
+
+# Optionally, you can add a remote repository to sync your recipe book across devices
+recipe git remote add origin git@github.com:awesome-user/recipe-book
 ```
 
 ## Tmux integration
 
-It is recommended that you place the following configuration inside your `~/.tmux.conf` file.
-```
-# Open a project in a new session
-bind-key o display-popup -E "pm open"
-
-# Create a new project and navigate there
-bind-key - display-popup -E "pm new"
-```
-
+`pm` comes with the following tmux keybindings. You will be asked to add them to your config when running `pm init` but you can also manually add them by running
 ```bash
-pm keybinds >> ~/.tmux.conf
+pm tmux keybindings >> ~/.tmux.conf
 ```
 
 You should now be able to:
@@ -101,14 +118,20 @@ Usage:
   pm --version | -v
 
 PROJECT Commands:
-  new     Create a new empty project
-  clone   Clone a remote git repository
-  open    Open a project in a tmux session
+  new      Create a new empty project
+  clone    Clone a remote git repository
+  open     Open a project in a tmux session
+  filter   Filter projects by name
+  list     List projects
+
+SCRIPT Commands:
+  dir      Show projects' root directory
+  link     Create a link to this script
+  update   Update to the latest version
 
 Commands:
-  link    Create a symbolic link to the pm script
-  dir     Show projects' root directory
-  space   Create, delete or list spaces
+  space    Create, delete or list spaces
+  tmux     Commands for tmux integration
 
 Options:
   --help, -h
@@ -119,7 +142,11 @@ Options:
 
 Environment Variables:
   PM_ROOT_DIR
-    Root directory used to manage projects
+    Directory where the projects will be managed
     Default: ~/dev
+
+  PM_INSTALL
+    Directory where the repository was cloned
+    Default: ~/.pm
 ```
 
