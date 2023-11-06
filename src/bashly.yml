@@ -1,6 +1,6 @@
 name: pm
 help: Project manager built on top of tmux
-version: 0.1.0
+version: 0.2.0
 
 environment_variables:
   - name: PM_INSTALL
@@ -19,6 +19,12 @@ dependencies:
   - rg
 
 commands:
+  - name: help
+    help: Show help about a command
+    args:
+    - name: command
+      help: Help subject
+
   - name: new
     help: Create a new empty project
     group: PROJECT

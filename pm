@@ -28,6 +28,11 @@ pm_usage() {
   printf "  pm --version | -v\n"
   echo
 
+  printf "%s\n" "Commands:"
+  printf "  %s   Show help about a command\n" "help  "
+  printf "  %s   Create, delete or list spaces\n" "space "
+  printf "  %s   Commands for tmux integration\n" "tmux  "
+  echo
   printf "%s\n" "PROJECT Commands:"
   printf "  %s   Create a new empty project\n" "new   "
   printf "  %s   Clone a remote git repository\n" "clone "
@@ -39,10 +44,6 @@ pm_usage() {
   printf "  %s   Show projects' root directory\n" "dir   "
   printf "  %s   Create a link to this script\n" "link  "
   printf "  %s   Update to the latest version\n" "update"
-  echo
-  printf "%s\n" "Commands:"
-  printf "  %s   Create, delete or list spaces\n" "space "
-  printf "  %s   Commands for tmux integration\n" "tmux  "
   echo
 
   if [[ -n $long_usage ]]; then
@@ -65,6 +66,38 @@ pm_usage() {
     printf "  %s\n" "PM_HOME"
     printf "    Directory where the projects will be managed\n"
     printf "    Default: ${HOME}/dev\n"
+    echo
+
+  fi
+}
+
+pm_help_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm help - Show help about a command\n"
+    echo
+
+  else
+    printf "pm help - Show help about a command\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm help [COMMAND]\n"
+  printf "  pm help --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "COMMAND"
+    printf "    Help subject\n"
     echo
 
   fi
@@ -799,6 +832,28 @@ validate_space_is_missing() {
     fi
 }
 
+pm_help_command() {
+  command="${args[command]}"
+  long_usage=yes
+
+  if [[ -z "$command" ]]; then
+    # No command argument, show the global help
+    help_function=pm_usage
+  else
+    # Show the help for the requested command
+    help_function="pm_${command}_usage"
+  fi
+
+  # Call the help function if it exists
+  if [[ $(type -t "$help_function") ]]; then
+    "$help_function"
+  else
+    echo "No help available for this command"
+    exit 1
+  fi
+
+}
+
 pm_new_command() {
   local name="${args[name]}"
   local space="${args[--space]}"
@@ -1140,6 +1195,13 @@ parse_requirements() {
   case $action in
     -*) ;;
 
+    help)
+      action="help"
+      shift
+      pm_help_parse_requirements "$@"
+      shift $#
+      ;;
+
     new)
       action="new"
       shift
@@ -1235,6 +1297,52 @@ parse_requirements() {
 
         printf "invalid argument: %s\n" "$key" >&2
         exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_help_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_help_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="help"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        if [[ -z ${args['command']+x} ]]; then
+
+          args['command']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
 
         ;;
 
@@ -2158,6 +2266,7 @@ run() {
   before_hook
 
   case "$action" in
+    "help") pm_help_command ;;
     "new") pm_new_command ;;
     "clone") pm_clone_command ;;
     "open") pm_open_command ;;

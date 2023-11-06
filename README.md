@@ -11,7 +11,7 @@
  |_|              
 ```
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
 
 </div>
 
@@ -93,6 +93,11 @@ Usage:
   pm [COMMAND] --help | -h
   pm --version | -v
 
+Commands:
+  help     Show help about a command
+  space    Create, delete or list spaces
+  tmux     Commands for tmux integration
+
 PROJECT Commands:
   new      Create a new empty project
   clone    Clone a remote git repository
@@ -104,10 +109,6 @@ SCRIPT Commands:
   dir      Show projects' root directory
   link     Create a link to this script
   update   Update to the latest version
-
-Commands:
-  space    Create, delete or list spaces
-  tmux     Commands for tmux integration
 
 Options:
   --help, -h
