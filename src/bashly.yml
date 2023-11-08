@@ -205,6 +205,11 @@ commands:
       - name: keybindings
         help: Print tmux keybindings
 
+        flags:
+          - short: -s
+            long: --set
+            help: Set the keybindings in ~/.tmux.conf
+
         examples:
           - pm tmux keybindings
 

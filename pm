@@ -738,12 +738,16 @@ pm_tmux_keybindings_usage() {
   fi
 
   printf "%s\n" "Usage:"
-  printf "  pm tmux keybindings\n"
+  printf "  pm tmux keybindings [OPTIONS]\n"
   printf "  pm tmux keybindings --help | -h\n"
   echo
 
   if [[ -n $long_usage ]]; then
     printf "%s\n" "Options:"
+
+    printf "  %s\n" "--set, -s"
+    printf "    Set the keybindings in ~/.tmux.conf\n"
+    echo
 
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
@@ -1256,11 +1260,21 @@ pm_tmux_open_command() {
 }
 
 pm_tmux_keybindings_command() {
-  echo "# Leader + o: open a pm project"
-  echo 'bind-key o display-popup -E "pm tmux open"'
+  local set="${args[--set]}"
 
-  echo -e "\n# Leader + -: create a new pm project"
-  echo 'bind-key - display-popup -E "pm tmux new"'
+  if [[ -z "${set}" ]]; then
+      echo "# Leader + o: open a pm project"
+      echo 'bind-key o display-popup -E "pm tmux open"'
+
+      echo -e "\n# Leader + -: create a new pm project"
+      echo 'bind-key - display-popup -E "pm tmux new"'
+  else
+      echo "# Leader + o: open a pm project" >> ~/.tmux.conf
+      echo 'bind-key o display-popup -E "pm tmux open"' >> ~/.tmux.conf
+
+      echo -e "\n# Leader + -: create a new pm project" >> ~/.tmux.conf
+      echo 'bind-key - display-popup -E "pm tmux new"' >> ~/.tmux.conf
+  fi
 
 }
 
@@ -2468,6 +2482,12 @@ pm_tmux_keybindings_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+
+      --set | -s)
+
+        args['--set']=1
+        shift
+        ;;
 
       -?*)
         printf "invalid option: %s\n" "$key" >&2
