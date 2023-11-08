@@ -30,8 +30,6 @@
 
 ## Installation
 
-### Using pm
-
 ```bash
 # Clone the repository
 git clone git@github.com:alexis-moins/pm.git ~/.pm
@@ -42,7 +40,7 @@ cd ~/.pm && ./pm link
 
 The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory. You can also change the link destination path with the `PM_LINK` environment variable.
 
-If you wish to change the default install location, feel free to do so! Just remember to set the `PM_INSTALL` environment variable to point to the right location.
+> If you wish to change the default install location, feel free to do so! Just remember to set the `PM_INSTALL` environment variable to point to the right location.
 
 ## Quick Start
 
