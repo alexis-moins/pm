@@ -30,8 +30,12 @@ pm_usage() {
 
   printf "%s\n" "Commands:"
   printf "  %s   Show help about a command\n" "help  "
+  printf "  %s   Show projects' root directory\n" "dir   "
   printf "  %s   Create, delete or list spaces\n" "space "
+  printf "  %s   Create a link to this script\n" "link  "
+  printf "  %s   Update to the latest version\n" "update"
   printf "  %s   Commands for tmux integration\n" "tmux  "
+  printf "  %s   Show environment information\n" "env   "
   echo
   printf "%s\n" "PROJECT Commands:"
   printf "  %s   Create a new empty project\n" "new   "
@@ -39,11 +43,6 @@ pm_usage() {
   printf "  %s   Open a project in a tmux session\n" "open  "
   printf "  %s   Filter projects by name\n" "filter"
   printf "  %s   List projects\n" "list  "
-  echo
-  printf "%s\n" "SCRIPT Commands:"
-  printf "  %s   Show projects' root directory\n" "dir   "
-  printf "  %s   Create a link to this script\n" "link  "
-  printf "  %s   Update to the latest version\n" "update"
   echo
 
   if [[ -n $long_usage ]]; then
@@ -66,6 +65,11 @@ pm_usage() {
     printf "  %s\n" "PM_HOME"
     printf "    Directory where the projects will be managed\n"
     printf "    Default: ${HOME}/dev\n"
+    echo
+
+    printf "  %s\n" "PM_LINK"
+    printf "    Directory where the script will be linked\n"
+    printf "    Default: ${HOME}/.local/bin\n"
     echo
 
   fi
@@ -306,6 +310,7 @@ pm_space_usage() {
   echo
 
   printf "%s\n" "Commands:"
+  printf "  %s   Show help about a command\n" "help  "
   printf "  %s   Add a new space\n" "add   "
   printf "  %s   List registered spaces\n" "list  "
   printf "  %s   Remove a space (projects will not be removed)\n" "remove"
@@ -317,6 +322,38 @@ pm_space_usage() {
 
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+pm_space_help_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm space help - Show help about a command\n"
+    echo
+
+  else
+    printf "pm space help - Show help about a command\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm space help [COMMAND]\n"
+  printf "  pm space help --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "COMMAND"
+    printf "    Help subject\n"
     echo
 
   fi
@@ -353,7 +390,6 @@ pm_space_add_usage() {
 
     printf "%s\n" "Examples:"
     printf "  pm space add personal\n"
-    printf "  pm space add school/first-year school/second-year\n"
     echo
 
   fi
@@ -427,7 +463,6 @@ pm_space_remove_usage() {
 
     printf "%s\n" "Examples:"
     printf "  pm space rm personal\n"
-    printf "  pm space remove school/first-year\n"
     echo
 
   fi
@@ -509,7 +544,7 @@ pm_link_usage() {
   fi
 
   printf "%s\n" "Usage:"
-  printf "  pm link [PATH] [OPTIONS]\n"
+  printf "  pm link [OPTIONS]\n"
   printf "  pm link --help | -h\n"
   echo
 
@@ -528,16 +563,9 @@ pm_link_usage() {
     printf "    Show this help\n"
     echo
 
-    printf "%s\n" "Arguments:"
-
-    printf "  %s\n" "PATH"
-    printf "    Path to the link\n"
-    printf "    Default: ${HOME}/.local/bin\n"
-    echo
-
     printf "%s\n" "Examples:"
+    printf "  pm link\n"
     printf "  pm link --remove\n"
-    printf "  pm link /usr/local/bin\n"
     echo
 
   fi
@@ -590,6 +618,7 @@ pm_tmux_usage() {
   echo
 
   printf "%s\n" "Commands:"
+  printf "  %s   Show help about a command\n" "help       "
   printf "  %s   Create a new empty project\n" "new        "
   printf "  %s   Open a project in a tmux session\n" "open       "
   printf "  %s   Print tmux keybindings\n" "keybindings"
@@ -600,6 +629,38 @@ pm_tmux_usage() {
 
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+pm_tmux_help_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm tmux help - Show help about a command\n"
+    echo
+
+  else
+    printf "pm tmux help - Show help about a command\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm tmux help [COMMAND]\n"
+  printf "  pm tmux help --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "COMMAND"
+    printf "    Help subject\n"
     echo
 
   fi
@@ -690,6 +751,36 @@ pm_tmux_keybindings_usage() {
 
     printf "%s\n" "Examples:"
     printf "  pm tmux keybindings\n"
+    echo
+
+  fi
+}
+
+pm_env_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm env - Show environment information\n"
+    echo
+
+  else
+    printf "pm env - Show environment information\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm env\n"
+  printf "  pm env --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm env\n"
     echo
 
   fi
@@ -959,6 +1050,28 @@ pm_dir_command() {
 
 }
 
+pm_space_help_command() {
+  command="${args[command]}"
+  long_usage=yes
+
+  if [[ -z "$command" ]]; then
+    # No command argument, show the global help
+    help_function=pm_space_usage
+  else
+    # Show the help for the requested command
+    help_function="pm_space_${command}_usage"
+  fi
+
+  # Call the help function if it exists
+  if [[ $(type -t "$help_function") ]]; then
+    "$help_function"
+  else
+    echo "No help available for this command"
+    exit 1
+  fi
+
+}
+
 pm_space_add_command() {
   local space="${args[space]}"
   local SPACE_INDEX="${PM_HOME}/spaces"
@@ -1000,21 +1113,20 @@ pm_list_command() {
 }
 
 pm_link_command() {
-  local path="${args[path]}"
   local copy="${args[--copy]}"
   local remove="${args[--remove]}"
 
   if [[ -n "${remove}" ]]; then
-      if [[ -f "${path}/pm" ]]; then
-          run_silent rm -rf "${path}/pm"
-          echo "$(green ✔) Link removed from $(magenta "${path}")"
+      if [[ -f "${PM_LINK}/pm" ]]; then
+          run_silent rm -rf "${PM_LINK}/pm"
+          echo "$(green ✔) Link removed from $(magenta "${PM_LINK}")"
       else
-          echo "No link found in $(magenta "${path}")"
+          echo "No link found in $(magenta "${PM_LINK}")"
           exit 1
       fi
   else
-      if [[ -f "${path}/pm" ]]; then
-          echo "There is already a link in $(magenta "${path}")"
+      if [[ -f "${PM_LINK}/pm" ]]; then
+          echo "There is already a link in $(magenta "${PM_LINK}")"
           exit 1
       fi
 
@@ -1030,8 +1142,8 @@ pm_link_command() {
 
       local executable=`test -n "${copy}" && echo "cp" || echo "ln -s"`
 
-      run_silent ${executable} "${PM_INSTALL}/pm" "${path}/pm"
-      echo "$(green ✔) Link created in $(magenta "${path}")"
+      run_silent ${executable} "${PM_INSTALL}/pm" "${PM_LINK}/pm"
+      echo "$(green ✔) Link created in $(magenta "${PM_LINK}")"
   fi
 
 }
@@ -1043,6 +1155,28 @@ pm_update_command() {
   fi
 
   git -C "${PM_INSTALL}" pull
+
+}
+
+pm_tmux_help_command() {
+  command="${args[command]}"
+  long_usage=yes
+
+  if [[ -z "$command" ]]; then
+    # No command argument, show the global help
+    help_function=pm_tmux_usage
+  else
+    # Show the help for the requested command
+    help_function="pm_tmux_${command}_usage"
+  fi
+
+  # Call the help function if it exists
+  if [[ $(type -t "$help_function") ]]; then
+    "$help_function"
+  else
+    echo "No help available for this command"
+    exit 1
+  fi
 
 }
 
@@ -1130,6 +1264,13 @@ pm_tmux_keybindings_command() {
 
 }
 
+pm_env_command() {
+  echo "PM_INSTALL=${PM_INSTALL}"
+  echo "PM_HOME=${PM_HOME}"
+  echo "PM_LINK=${PM_LINK}"
+
+}
+
 parse_requirements() {
 
   while [[ $# -gt 0 ]]; do
@@ -1154,6 +1295,7 @@ parse_requirements() {
 
   export PM_INSTALL="${PM_INSTALL:-${HOME}/.pm}"
   export PM_HOME="${PM_HOME:-${HOME}/dev}"
+  export PM_LINK="${PM_LINK:-${HOME}/.local/bin}"
 
   if command -v git >/dev/null 2>&1; then
     deps['git']="$(command -v git | head -n1)"
@@ -1269,6 +1411,13 @@ parse_requirements() {
       action="tmux"
       shift
       pm_tmux_parse_requirements "$@"
+      shift $#
+      ;;
+
+    env)
+      action="env"
+      shift
+      pm_env_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1645,6 +1794,13 @@ pm_space_parse_requirements() {
   case $action in
     -*) ;;
 
+    help)
+      action="help"
+      shift
+      pm_space_help_parse_requirements "$@"
+      shift $#
+      ;;
+
     add)
       action="add"
       shift
@@ -1698,6 +1854,52 @@ pm_space_parse_requirements() {
 
         printf "invalid argument: %s\n" "$key" >&2
         exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_space_help_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_space_help_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="space help"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        if [[ -z ${args['command']+x} ]]; then
+
+          args['command']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
 
         ;;
 
@@ -1985,21 +2187,13 @@ pm_link_parse_requirements() {
 
       *)
 
-        if [[ -z ${args['path']+x} ]]; then
-
-          args['path']=$1
-          shift
-        else
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-        fi
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
 
         ;;
 
     esac
   done
-
-  [[ -n ${args['path']:-} ]] || args['path']="${HOME}/.local/bin"
 
 }
 
@@ -2065,6 +2259,13 @@ pm_tmux_parse_requirements() {
   case $action in
     -*) ;;
 
+    help)
+      action="help"
+      shift
+      pm_tmux_help_parse_requirements "$@"
+      shift $#
+      ;;
+
     new)
       action="new"
       shift
@@ -2111,6 +2312,52 @@ pm_tmux_parse_requirements() {
 
         printf "invalid argument: %s\n" "$key" >&2
         exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_tmux_help_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_tmux_help_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="tmux help"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        if [[ -z ${args['command']+x} ]]; then
+
+          args['command']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
 
         ;;
 
@@ -2239,6 +2486,46 @@ pm_tmux_keybindings_parse_requirements() {
 
 }
 
+pm_env_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_env_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="env"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
 before_hook() {
   [[ ! -d "${PM_HOME}" ]] && command mkdir -p "${PM_HOME}/default" || true
   [[ ! -f "${PM_HOME}/spaces" ]] && echo "default" > "${PM_HOME}/spaces" || true
@@ -2246,12 +2533,13 @@ before_hook() {
 }
 
 initialize() {
-  version="0.1.0"
+  version="1.0.0"
   long_usage=''
   set -e
 
   export PM_INSTALL="${PM_INSTALL:-${HOME}/.pm}"
   export PM_HOME="${PM_HOME:-${HOME}/dev}"
+  export PM_LINK="${PM_LINK:-${HOME}/.local/bin}"
 
 
 }
@@ -2273,6 +2561,7 @@ run() {
     "filter") pm_filter_command ;;
     "dir") pm_dir_command ;;
     "space") pm_space_command ;;
+    "space help") pm_space_help_command ;;
     "space add") pm_space_add_command ;;
     "space list") pm_space_list_command ;;
     "space remove") pm_space_remove_command ;;
@@ -2281,9 +2570,11 @@ run() {
     "link") pm_link_command ;;
     "update") pm_update_command ;;
     "tmux") pm_tmux_command ;;
+    "tmux help") pm_tmux_help_command ;;
     "tmux new") pm_tmux_new_command ;;
     "tmux open") pm_tmux_open_command ;;
     "tmux keybindings") pm_tmux_keybindings_command ;;
+    "env") pm_env_command ;;
   esac
 }
 

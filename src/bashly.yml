@@ -1,6 +1,6 @@
 name: pm
 help: Project manager built on top of tmux
-version: 0.2.0
+version: 1.0.0
 
 environment_variables:
   - name: PM_INSTALL
@@ -10,6 +10,10 @@ environment_variables:
   - name: PM_HOME
     help: Directory where the projects will be managed
     default: ${HOME}/dev
+
+  - name: PM_LINK
+    help: Directory where the script will be linked
+    default: ${HOME}/.local/bin
 
 dependencies:
   - git
@@ -91,7 +95,6 @@ commands:
 
   - name: dir
     help: Show projects' root directory
-    group: SCRIPT
 
     examples:
       - pm dir
@@ -100,6 +103,12 @@ commands:
     help: Create, delete or list spaces
 
     commands:
+      - name: help
+        help: Show help about a command
+        args:
+        - name: command
+          help: Help subject
+
       - name: add
         help: Add a new space
 
@@ -110,7 +119,6 @@ commands:
 
         examples:
           - pm space add personal
-          - pm space add school/first-year school/second-year
 
       - name: list
         alias: ls
@@ -132,7 +140,6 @@ commands:
 
         examples:
           - pm space rm personal
-          - pm space remove school/first-year
 
       - name: filter
         help: Filter spaces by name
@@ -151,12 +158,6 @@ commands:
 
   - name: link
     help: Create a link to this script
-    group: SCRIPT
-
-    args:
-      - name: path
-        help: Path to the link
-        default: ${HOME}/.local/bin
 
     flags:
       - short: -c
@@ -170,12 +171,11 @@ commands:
         conflicts: [--copy]
 
     examples:
+      - pm link
       - pm link --remove
-      - pm link /usr/local/bin
 
   - name: update
     help: Update to the latest version
-    group: SCRIPT
 
     examples:
       - pm update
@@ -184,6 +184,12 @@ commands:
     help: Commands for tmux integration
 
     commands:
+      - name: help
+        help: Show help about a command
+        args:
+        - name: command
+          help: Help subject
+
       - name: new
         help: Create a new empty project
 
@@ -201,3 +207,9 @@ commands:
 
         examples:
           - pm tmux keybindings
+
+  - name: env
+    help: Show environment information
+
+    examples:
+      - pm env

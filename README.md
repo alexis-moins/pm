@@ -11,7 +11,7 @@
  |_|              
 ```
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 
 </div>
 
@@ -40,14 +40,9 @@ git clone git@github.com:alexis-moins/pm.git ~/.pm
 cd ~/.pm && ./pm link
 ```
 
-The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory. You can also change the link destination path with the optional `path` argument.
-```bash
-./pm link /usr/local/bin/
-```
+The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory. You can also change the link destination path with the `PM_LINK` environment variable.
 
-### Manually
-
-Clone the repository then move the [pm](pm) script to `~/.local/bin/` or anywhere in your `PATH`, and ensure it is executable!
+If you wish to change the default install location, feel free to do so! Just remember to set the `PM_INSTALL` environment variable to point to the right location.
 
 ## Quick Start
 
@@ -95,8 +90,12 @@ Usage:
 
 Commands:
   help     Show help about a command
+  dir      Show projects' root directory
   space    Create, delete or list spaces
+  link     Create a link to this script
+  update   Update to the latest version
   tmux     Commands for tmux integration
+  env      Show environment information
 
 PROJECT Commands:
   new      Create a new empty project
@@ -104,11 +103,6 @@ PROJECT Commands:
   open     Open a project in a tmux session
   filter   Filter projects by name
   list     List projects
-
-SCRIPT Commands:
-  dir      Show projects' root directory
-  link     Create a link to this script
-  update   Update to the latest version
 
 Options:
   --help, -h
@@ -125,5 +119,9 @@ Environment Variables:
   PM_HOME
     Directory where the projects will be managed
     Default: ~/dev
+
+  PM_LINK
+    Directory where the script will be linked
+    Default: ~/.local/bin
 ```
 
