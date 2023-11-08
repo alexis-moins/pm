@@ -64,14 +64,17 @@ pm clone alexis-moins/portfolio personal/portfolio
 
 `pm` comes with the following interactive tmux keybindings:
 
-| Keybinding   | Command        | Code                                         | Description                                        |
-| ------------ | -------------- | -------------------------------------------- | -------------------------------------------------- |
-| `Leader + o` | `pm tmux open` | `bind-key o display-popup -E 'pm tmux open'` | Select an existing project to navigate to          |
-| `Leader + -` | `pm tmux new`  | `bind-key - display-popup -E 'pm tmux new'`  | Create a new project and create a new tmux session |
+```tmux
+# Leader + o: open a pm project
+bind-key o display-popup -E "pm tmux open"
 
-You can add them to your tmux config by running
+# Leader + -: create a new pm project
+bind-key - display-popup -E "pm tmux new"
+```
+
+You can either add them to your tmux config manally or by running the following command which will append the keybindings to your configuration.
 ```bash
-pm tmux keybindings >> ~/.tmux.conf
+pm tmux keybindings --set
 ```
 
 ## Usage
