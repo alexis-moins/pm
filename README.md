@@ -30,11 +30,13 @@
 
 ## Installation
 
+Clone the repository:
 ```bash
-# Clone the repository
 git clone git@github.com:alexis-moins/pm.git ~/.pm
+```
 
-# Let pm create the symbolic link for you!
+And let pm create the symbolic link for you!
+```bash
 cd ~/.pm && ./pm link
 ```
 
