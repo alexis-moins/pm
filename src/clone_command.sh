@@ -1,20 +1,16 @@
 local repository="${args[repository]}"
-local destination="${args[destination]}"
 
-[[ -z "${destination}" ]] && destination="default/$(basename ${repository})"
+local name="${args[--name]}"
+local space="${args[--space]}"
 
-if [[ -d "${PM_HOME}/${destination}" ]]; then
+[[ -z "${name}" ]] && name=`basename "${repository}"`
+
+if [[ -d "${PM_HOME}/${destination}/${name}" ]]; then
     echo "$(red pm:) destination already contains this project"
     exit 1
 fi
 
-local project_name=`basename "${destination}"`
+local destination="${PM_HOME}/${space}/${name}"
 
-local project_dir=`dirname "${destination}"`
-local destination_dir="${PM_HOME}/${project_dir}"
-
-[[ ! -d "${project_dir}" ]] && command mkdir -p "${destination_dir}"
-pushd "${destination_dir}" &> /dev/null
-
-command git clone "git@github.com:${repository}.git" "$project_name"
-echo "$(green ✔) Cloned project in $(magenta ${destination})"
+command git clone "git@github.com:${repository}.git" "$destination"
+echo "$(green ✔) Cloned project in space $(magenta ${space}) as $(magenta ${name})"

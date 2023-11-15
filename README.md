@@ -11,7 +11,7 @@
  |_|              
 ```
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)
 
 </div>
 
@@ -56,10 +56,10 @@ pm space add personal
 pm new portal --space personal
 
 # Opening the project is even simpler
-pm open personal/portal
+pm open portal --space personal
 
 # You can even clone github repositories
-pm clone alexis-moins/portfolio personal/portfolio
+pm clone alexis-moins/portfolio --space work
 ```
 
 ## Tmux integration

@@ -1,6 +1,6 @@
 name: pm
 help: Project manager built on top of tmux
-version: 1.0.0
+version: 1.2.0
 
 environment_variables:
   - name: PM_INSTALL
@@ -56,7 +56,7 @@ commands:
 
     examples:
       - pm new recipe --detach
-      - pm new recipe --space=tools --no-git
+      - pm new recipe --space tools --no-git
 
   - name: clone
     help: Clone a remote git repository
@@ -67,12 +67,22 @@ commands:
         help: "Remote repository to clone (FORMAT: <username>/<repository>)"
         required: true
 
-      - name: destination
-        help: Where to clone the project (relative to ${PM_HOME})
+    flags:
+      - short: -s
+        long: --space
+        help: Space to clone the project in
+        arg: space
+        default: default
+        validate: space_exists
+
+      - short: -n
+        long: --name
+        help: Name to clone the project as
+        arg: name
 
     examples:
-      - pm clone alexis-moins/portal
-      - pm clone alexis-moins/portal personal/portal
+      - pm clone alexis-moins/recipe
+      - pm clone neovim/neovim --space tools --name editor
 
   - name: open
     help: Open a project in a tmux session
@@ -83,8 +93,17 @@ commands:
         help: Name of the project
         required: true
 
+    flags:
+      - short: -s
+        long: --space
+        help: Space where the project is located
+        arg: space
+        default: default
+        validate: space_exists
+
     examples:
-      - pm open school/elixir-api
+      - pm open recipe
+      - pm open editor --space tools
 
   - name: filter
     help: Filter projects by name
@@ -116,6 +135,7 @@ commands:
           - name: space
             help: Name of the space to add
             required: true
+            validate: space_is_missing
 
         examples:
           - pm space add personal

@@ -1,7 +1,14 @@
-local project="${args[name]}"
+local name="${args[name]}"
+local space="${args[--space]}"
 
-local path="${PM_HOME}/${project}"
-local name=`basename "${path}" | sed 's/\./dot-/'`
+if ! project_exists "${space}" "${name}"; then
+    echo "$(red pm:) no project $(magenta ${name}) in space $(magenta ${space})"
+    exit 1
+fi
+
+local path="${PM_HOME}/${space}/${name}"
+
+name="${name/\./dot-}"
 
 local session=`tmux list-windows -aF '#S: #{pane_current_path}' | \
     uniq | command rg "${name}: ${path::-1}"`

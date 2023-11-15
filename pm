@@ -150,7 +150,7 @@ pm_new_usage() {
 
     printf "%s\n" "Examples:"
     printf "  pm new recipe --detach\n"
-    printf "  pm new recipe --space=tools --no-git\n"
+    printf "  pm new recipe --space tools --no-git\n"
     echo
 
   fi
@@ -168,12 +168,21 @@ pm_clone_usage() {
   fi
 
   printf "%s\n" "Usage:"
-  printf "  pm clone REPOSITORY [DESTINATION]\n"
+  printf "  pm clone REPOSITORY [OPTIONS]\n"
   printf "  pm clone --help | -h\n"
   echo
 
   if [[ -n $long_usage ]]; then
     printf "%s\n" "Options:"
+
+    printf "  %s\n" "--space, -s SPACE"
+    printf "    Space to clone the project in\n"
+    printf "    Default: default\n"
+    echo
+
+    printf "  %s\n" "--name, -n NAME"
+    printf "    Name to clone the project as\n"
+    echo
 
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
@@ -185,13 +194,9 @@ pm_clone_usage() {
     printf "    Remote repository to clone (FORMAT: <username>/<repository>)\n"
     echo
 
-    printf "  %s\n" "DESTINATION"
-    printf "    Where to clone the project (relative to ${PM_HOME})\n"
-    echo
-
     printf "%s\n" "Examples:"
-    printf "  pm clone alexis-moins/portal\n"
-    printf "  pm clone alexis-moins/portal personal/portal\n"
+    printf "  pm clone alexis-moins/recipe\n"
+    printf "  pm clone neovim/neovim --space tools --name editor\n"
     echo
 
   fi
@@ -209,12 +214,17 @@ pm_open_usage() {
   fi
 
   printf "%s\n" "Usage:"
-  printf "  pm open NAME\n"
+  printf "  pm open NAME [OPTIONS]\n"
   printf "  pm open --help | -h\n"
   echo
 
   if [[ -n $long_usage ]]; then
     printf "%s\n" "Options:"
+
+    printf "  %s\n" "--space, -s SPACE"
+    printf "    Space where the project is located\n"
+    printf "    Default: default\n"
+    echo
 
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
@@ -227,7 +237,8 @@ pm_open_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  pm open school/elixir-api\n"
+    printf "  pm open recipe\n"
+    printf "  pm open editor --space tools\n"
     echo
 
   fi
@@ -893,6 +904,10 @@ filter_recipe_book_healthy() {
     fi
 }
 
+project_exists() {
+    [[ -d "${PM_HOME}/${1}/${2}" ]] && return 0 || return 1
+}
+
 run_silent() {
   command ${@} &> /dev/null
 }
@@ -994,33 +1009,36 @@ pm_new_command() {
 
 pm_clone_command() {
   local repository="${args[repository]}"
-  local destination="${args[destination]}"
 
-  [[ -z "${destination}" ]] && destination="default/$(basename ${repository})"
+  local name="${args[--name]}"
+  local space="${args[--space]}"
 
-  if [[ -d "${PM_HOME}/${destination}" ]]; then
+  [[ -z "${name}" ]] && name=`basename "${repository}"`
+
+  if [[ -d "${PM_HOME}/${destination}/${name}" ]]; then
       echo "$(red pm:) destination already contains this project"
       exit 1
   fi
 
-  local project_name=`basename "${destination}"`
+  local destination="${PM_HOME}/${space}/${name}"
 
-  local project_dir=`dirname "${destination}"`
-  local destination_dir="${PM_HOME}/${project_dir}"
-
-  [[ ! -d "${project_dir}" ]] && command mkdir -p "${destination_dir}"
-  pushd "${destination_dir}" &> /dev/null
-
-  command git clone "git@github.com:${repository}.git" "$project_name"
-  echo "$(green ✔) Cloned project in $(magenta ${destination})"
+  command git clone "git@github.com:${repository}.git" "$destination"
+  echo "$(green ✔) Cloned project in space $(magenta ${space}) as $(magenta ${name})"
 
 }
 
 pm_open_command() {
-  local project="${args[name]}"
+  local name="${args[name]}"
+  local space="${args[--space]}"
 
-  local path="${PM_HOME}/${project}"
-  local name=`basename "${path}" | sed 's/\./dot-/'`
+  if ! project_exists "${space}" "${name}"; then
+      echo "$(red pm:) no project $(magenta ${name}) in space $(magenta ${space})"
+      exit 1
+  fi
+
+  local path="${PM_HOME}/${space}/${name}"
+
+  name="${name/\./dot-}"
 
   local session=`tmux list-windows -aF '#S: #{pane_current_path}' | \
       uniq | command rg "${name}: ${path::-1}"`
@@ -1623,6 +1641,37 @@ pm_clone_parse_requirements() {
     key="$1"
     case "$key" in
 
+      --space | -s)
+
+        if [[ -n ${2+x} ]]; then
+
+          if [[ -n $(validate_space_exists "$2") ]]; then
+            printf "validation error in %s:\n%s\n" "--space, -s SPACE" "$(validate_space_exists "$2")" >&2
+            exit 1
+          fi
+
+          args['--space']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--space requires an argument: --space, -s SPACE" >&2
+          exit 1
+        fi
+        ;;
+
+      --name | -n)
+
+        if [[ -n ${2+x} ]]; then
+
+          args['--name']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--name requires an argument: --name, -n NAME" >&2
+          exit 1
+        fi
+        ;;
+
       -?*)
         printf "invalid option: %s\n" "$key" >&2
         exit 1
@@ -1633,10 +1682,6 @@ pm_clone_parse_requirements() {
         if [[ -z ${args['repository']+x} ]]; then
 
           args['repository']=$1
-          shift
-        elif [[ -z ${args['destination']+x} ]]; then
-
-          args['destination']=$1
           shift
         else
           printf "invalid argument: %s\n" "$key" >&2
@@ -1649,9 +1694,11 @@ pm_clone_parse_requirements() {
   done
 
   if [[ -z ${args['repository']+x} ]]; then
-    printf "missing required argument: REPOSITORY\nusage: pm clone REPOSITORY [DESTINATION]\n" >&2
+    printf "missing required argument: REPOSITORY\nusage: pm clone REPOSITORY [OPTIONS]\n" >&2
     exit 1
   fi
+
+  [[ -n ${args['--space']:-} ]] || args['--space']="default"
 
 }
 
@@ -1678,6 +1725,24 @@ pm_open_parse_requirements() {
     key="$1"
     case "$key" in
 
+      --space | -s)
+
+        if [[ -n ${2+x} ]]; then
+
+          if [[ -n $(validate_space_exists "$2") ]]; then
+            printf "validation error in %s:\n%s\n" "--space, -s SPACE" "$(validate_space_exists "$2")" >&2
+            exit 1
+          fi
+
+          args['--space']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--space requires an argument: --space, -s SPACE" >&2
+          exit 1
+        fi
+        ;;
+
       -?*)
         printf "invalid option: %s\n" "$key" >&2
         exit 1
@@ -1700,9 +1765,11 @@ pm_open_parse_requirements() {
   done
 
   if [[ -z ${args['name']+x} ]]; then
-    printf "missing required argument: NAME\nusage: pm open NAME\n" >&2
+    printf "missing required argument: NAME\nusage: pm open NAME [OPTIONS]\n" >&2
     exit 1
   fi
+
+  [[ -n ${args['--space']:-} ]] || args['--space']="default"
 
 }
 
@@ -1953,6 +2020,11 @@ pm_space_add_parse_requirements() {
       *)
 
         if [[ -z ${args['space']+x} ]]; then
+
+          if [[ -n $(validate_space_is_missing "$1") ]]; then
+            printf "validation error in %s:\n%s\n" "SPACE" "$(validate_space_is_missing "$1")" >&2
+            exit 1
+          fi
 
           args['space']=$1
           shift
@@ -2553,7 +2625,7 @@ before_hook() {
 }
 
 initialize() {
-  version="1.0.0"
+  version="1.2.0"
   long_usage=''
   set -e
 
