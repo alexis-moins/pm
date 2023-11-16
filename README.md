@@ -11,7 +11,7 @@
  |_|              
 ```
 
-![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)
 
 </div>
 
@@ -64,19 +64,18 @@ pm clone alexis-moins/portfolio --space work
 
 ## Tmux integration
 
-`pm` comes with the following interactive tmux keybindings:
-
-```tmux
+`pm` comes with the following default tmux keybindings:
+```bash
 # Leader + o: open a pm project
-bind-key o display-popup -E "pm tmux open"
+bind-key o display-popup -E "pm pen"
 
 # Leader + -: create a new pm project
 bind-key - display-popup -E "pm tmux new"
 ```
 
-You can either add them to your tmux config manally or by running the following command which will append the keybindings to your configuration.
+You can either add them to your tmux config manually or by running the following command which will append the keybindings to your configuration.
 ```bash
-pm tmux keybindings --set
+pm keybindings --set
 ```
 
 ## Usage
@@ -127,4 +126,3 @@ Environment Variables:
     Directory where the script will be linked
     Default: ~/.local/bin
 ```
-
