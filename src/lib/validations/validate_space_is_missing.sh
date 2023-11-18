@@ -1,5 +1,5 @@
 validate_space_is_missing() {
-    if [[ -d "${PM_HOME}/${1}" ]]; then
+    if command rg --quiet "${1}" "${PM_HOME}/spaces"; then
         echo "${1} is already a registered space"
         echo -e "\nSee $(yellow_underlined pm space list)"
     fi

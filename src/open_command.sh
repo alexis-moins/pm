@@ -2,11 +2,7 @@ local name="${args[name]}"
 local space="${args[--space]}"
 
 if [[ -z "${name}" ]]; then
-    if [[ -z "${space}" ]]; then
-        project="$(filter_project)"
-    else
-        project=`filter_project_by_space "${space}"`
-    fi
+    project=`filter_project_by_space "${space}"`
 
     name=`basename "${project}"`
     space=`dirname "${project}"`

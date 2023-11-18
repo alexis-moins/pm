@@ -43,7 +43,7 @@ commands:
         long: --space
         help: Space of the new project
         arg: space
-        required: true
+        default: default
         validate: space_exists
 
       - short: -n
@@ -97,6 +97,7 @@ commands:
         long: --space
         help: Space where the project is located
         arg: space
+        default: default
         validate: space_exists
 
     examples:
@@ -107,8 +108,13 @@ commands:
     help: Filter projects by name
     group: PROJECT
 
+    args:
+      - name: value
+        help: Initial filter
+
     examples:
       - pm filter
+      - pm filter neovim
 
   - name: dir
     help: Show projects' root directory
