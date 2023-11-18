@@ -258,12 +258,16 @@ pm_filter_usage() {
   fi
 
   printf "%s\n" "Usage:"
-  printf "  pm filter [VALUE]\n"
+  printf "  pm filter [VALUE] [OPTIONS]\n"
   printf "  pm filter --help | -h\n"
   echo
 
   if [[ -n $long_usage ]]; then
     printf "%s\n" "Options:"
+
+    printf "  %s\n" "--path, -p"
+    printf "    Output the full path to the project\n"
+    echo
 
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
@@ -1054,9 +1058,16 @@ pm_open_command() {
 
 pm_filter_command() {
   local value="${args[value]}"
+  local path="${args[--path]}"
 
-  command fd --type d --max-depth 1 --base-directory "${PM_HOME}" . $(cat "${PM_HOME}/spaces") | sort --unique | \
-      gum filter --placeholder "Select a project" --value "${value}"
+  local project=`command fd --type d --max-depth 1 --base-directory "${PM_HOME}" . $(cat "${PM_HOME}/spaces") | sort --unique | \
+      gum filter --placeholder "Select a project" --value "${value}"`
+
+  [[ -z "${project}" ]] && exit 1
+
+  [[ -n "${path}" ]] && project="${PM_HOME}/${project}"
+
+  echo "${project}"
 
 }
 
@@ -1757,6 +1768,12 @@ pm_filter_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+
+      --path | -p)
+
+        args['--path']=1
+        shift
+        ;;
 
       -?*)
         printf "invalid option: %s\n" "$key" >&2

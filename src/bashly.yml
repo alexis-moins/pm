@@ -112,6 +112,11 @@ commands:
       - name: value
         help: Initial filter
 
+    flags:
+      - short: -p
+        long: --path
+        help: Output the full path to the project
+
     examples:
       - pm filter
       - pm filter neovim
