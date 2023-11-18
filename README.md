@@ -67,7 +67,7 @@ pm clone alexis-moins/portfolio --space work
 `pm` comes with the following default tmux keybindings:
 ```bash
 # Leader + o: open a pm project
-bind-key o display-popup -E "pm pen"
+bind-key o display-popup -E "pm open"
 
 # Leader + -: create a new pm project
 bind-key - display-popup -E "pm tmux new"
