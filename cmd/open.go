@@ -22,60 +22,45 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
 	"os"
-	"path"
 
+	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:     "pm",
-	Short:   "A brief description of your application",
-	Version: "0.0.1",
+var space string
 
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		defaultSpace := viper.GetString("default")
+// openCmd represents the open command
+var openCmd = &cobra.Command{
+	Use:     "open [NAME]",
+	Short:   "Open a project in a tmux session",
+	GroupID: "project",
 
-		if err := os.MkdirAll(defaultSpace, 0750); err != nil {
-			panic(err)
+	Args: cobra.MaximumNArgs(1),
+	Example: `  pm open recipe
+  pm open neovim --space tools`,
+
+	Run: func(cmd *cobra.Command, args []string) {
+		// TODO: Filter projects if args is empty
+
+		if len(space) == 0 {
+			// Use default space if no space is provided
+			space = viper.GetString("default")
+		}
+
+		fmt.Printf("space: %v\n", space)
+
+		if !spaces.SpaceIsValid(space) {
+
+			os.Exit(1)
 		}
 	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
-}
-
 func init() {
-	HOME := os.Getenv("HOME")
+	rootCmd.AddCommand(openCmd)
 
-	viper.SetEnvPrefix("PM")
-	viper.AutomaticEnv()
-
-	viper.SetDefault("HOME", path.Join(HOME, "dev"))
-
-	viper.SetConfigName(".pm-spaces")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("$HOME")
-
-	viper.SetDefault("default", "default")
-	viper.SetDefault("spaces", []string{})
-
-	if err := viper.ReadInConfig(); err != nil {
-		viper.SafeWriteConfig()
-	}
-
-	projectGroup := cobra.Group{
-		ID:    "project",
-		Title: "PROJECT",
-	}
-
-	rootCmd.AddGroup(&projectGroup)
+	openCmd.Flags().StringVarP(&space, "space", "s", "", "space where the project is")
 }
