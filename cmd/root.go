@@ -32,7 +32,7 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:     "pm",
-	Short:   "A brief description of your application",
+	Short:   "Project manager built on top of tmux",
 	Version: "0.0.1",
 
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -61,14 +61,21 @@ func init() {
 
 	viper.SetDefault("HOME", path.Join(HOME, "dev"))
 
-	viper.SetConfigName(".pm-spaces")
+	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("$HOME")
+
+	configPath := path.Join(HOME, ".config/pm")
+
+	viper.AddConfigPath(configPath)
 
 	viper.SetDefault("default", "default")
 	viper.SetDefault("spaces", []string{})
 
 	if err := viper.ReadInConfig(); err != nil {
+		if err := os.MkdirAll(configPath, 0750); err != nil {
+			panic(err)
+		}
+
 		viper.SafeWriteConfig()
 	}
 

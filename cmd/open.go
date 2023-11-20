@@ -24,8 +24,12 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/exec"
+	"path"
+	"strings"
 
 	"github.com/alexis-moins/pm/internal/spaces"
+	"github.com/alexis-moins/pm/internal/tmux"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -43,19 +47,52 @@ var openCmd = &cobra.Command{
   pm open neovim --space tools`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Filter projects if args is empty
+		// TODO: Filter projects if args is empty and before setting default space
+		if len(args) == 0 {
+			os.Exit(1)
+		}
+
+		projectName := args[0]
 
 		if len(space) == 0 {
 			// Use default space if no space is provided
 			space = viper.GetString("default")
 		}
 
-		fmt.Printf("space: %v\n", space)
-
 		if !spaces.SpaceIsValid(space) {
-
+			fmt.Printf("%s is not a valid space.", space)
 			os.Exit(1)
 		}
+
+		projectPath := path.Join(viper.GetString("HOME"), space, projectName)
+
+		output, err := exec.Command("tmux", "list-windows", "-aF", "#S: #{pane_current_path}").Output()
+
+		if err != nil {
+			fmt.Printf("err: %v\n", err)
+			os.Exit(1)
+		}
+
+		windows := strings.Split(string(output), "\n")
+
+		for _, window := range windows {
+			if window == fmt.Sprintf("%s: %s", projectName, projectPath) {
+                println("found")
+				err := tmux.Attach(projectName)
+
+				if err != nil {
+					fmt.Printf("err: %v\n", err)
+					os.Exit(1)
+				}
+
+				os.Exit(0)
+			}
+		}
+
+		fmt.Println("No session was found")
+
+		// No session was found
+		tmux.CreateSession(projectName, projectPath)
 	},
 }
 
