@@ -24,11 +24,11 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"os/exec"
-	"path"
 	"strings"
 
+	"github.com/alexis-moins/pm/internal/projects"
 	"github.com/alexis-moins/pm/internal/spaces"
+	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/alexis-moins/pm/internal/tmux"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -59,14 +59,20 @@ var openCmd = &cobra.Command{
 			space = viper.GetString("default")
 		}
 
-		if !spaces.SpaceIsValid(space) {
-			fmt.Printf("%s is not a valid space.", space)
+		if !spaces.IsRegistered(space) {
+			message := fmt.Sprintf("%s is not a valid space.", space)
+			styles.Error(message)
 			os.Exit(1)
 		}
 
-		projectPath := path.Join(viper.GetString("HOME"), space, projectName)
+		if !projects.Exists(projectName, space) {
+			message := fmt.Sprintf("project %s does not exist in space %s\n", projectName, space)
+			styles.Error(message)
 
-		output, err := exec.Command("tmux", "list-windows", "-aF", "#S: #{pane_current_path}").Output()
+			os.Exit(1)
+		}
+
+		output, err := tmux.Exec("list-windows", "-aF", "#S: #{pane_current_path}")
 
 		if err != nil {
 			fmt.Printf("err: %v\n", err)
@@ -74,11 +80,11 @@ var openCmd = &cobra.Command{
 		}
 
 		windows := strings.Split(string(output), "\n")
+		projectPath := projects.GetPath(projectName, space)
 
 		for _, window := range windows {
 			if window == fmt.Sprintf("%s: %s", projectName, projectPath) {
-                println("found")
-				err := tmux.Attach(projectName)
+				_, err := tmux.Attach(projectName)
 
 				if err != nil {
 					fmt.Printf("err: %v\n", err)
@@ -88,8 +94,6 @@ var openCmd = &cobra.Command{
 				os.Exit(0)
 			}
 		}
-
-		fmt.Println("No session was found")
 
 		// No session was found
 		tmux.CreateSession(projectName, projectPath)

@@ -1,7 +1,6 @@
 package tmux
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 )
@@ -23,27 +22,24 @@ func Exec(arg ...string) (string, error) {
 	return string(output), err
 }
 
-func Attach(session string) error {
+func Attach(session string) (string, error) {
 	if insideTmux() {
-		return Exec("switch-client", "-t", session).Run()
+		return Exec("switch-client", "-t", session)
 	}
 
-	return Exec("attach", "-t", session).Run()
+	return Exec("attach", "-t", session)
 }
 
-func CreateSession(name string, path string) error {
+func CreateSession(name string, path string) (string, error) {
 	if insideTmux() {
-		err := Exec("new-session", "-c", path, "-s", name, "-d").Run()
+		output, err := Exec("new-session", "-c", path, "-s", name, "-d")
 
 		if err != nil {
-			return err
+			return output, err
 		}
 
-		return Exec("switch-client", "-t", name).Run()
+		return Exec("switch-client", "-t", name)
 	}
 
-	out, err := Exec("new-session", "-c", path, "-s", name).CombinedOutput()
-
-	fmt.Printf("out: %v\n", string(out))
-	return err
+	return Exec("new-session", "-c", path, "-s", name)
 }
