@@ -81,7 +81,7 @@ func init() {
 
 	projectGroup := cobra.Group{
 		ID:    "project",
-		Title: "PROJECT",
+        Title: "Project Commands:",
 	}
 
 	RootCmd.AddGroup(&projectGroup)
