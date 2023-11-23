@@ -19,13 +19,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package main
+package space
 
 import (
 	"github.com/alexis-moins/pm/cmd"
-	_ "github.com/alexis-moins/pm/cmd/space"
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	cmd.Execute()
+// spaceCmd represents the space command
+var spaceCmd = &cobra.Command{
+	Use:   "space",
+	Short: "Create, delete and list spaces",
+}
+
+func init() {
+	cmd.RootCmd.AddCommand(spaceCmd)
 }

@@ -34,8 +34,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var space string
-
 // openCmd represents the open command
 var openCmd = &cobra.Command{
 	Use:     "open [NAME]",
@@ -48,11 +46,13 @@ var openCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
-            // Filter projects if args is empty and before setting default space
-            projects.ListProjects()
+			// Filter projects if args is empty and before setting default space
+			projects.ListProjects()
 		}
 
 		projectName := args[0]
+
+		space, _ := cmd.Flags().GetString("space")
 
 		if len(space) == 0 {
 			// Use default space if no space is provided
@@ -65,7 +65,7 @@ var openCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if !projects.Exists(projectName, space) {
+		if !projects.Exists(space, projectName) {
 			message := fmt.Sprintf("project %s does not exist in space %s\n", projectName, space)
 			styles.Error(message)
 
@@ -80,7 +80,7 @@ var openCmd = &cobra.Command{
 		}
 
 		windows := strings.Split(string(output), "\n")
-		projectPath := projects.GetPath(projectName, space)
+		projectPath := projects.GetPath(space, projectName)
 
 		for _, window := range windows {
 			if window == fmt.Sprintf("%s: %s", projectName, projectPath) {
@@ -101,7 +101,7 @@ var openCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(openCmd)
+	RootCmd.AddCommand(openCmd)
 
-	openCmd.Flags().StringVarP(&space, "space", "s", "", "space where the project is")
+	openCmd.Flags().StringP("space", "s", "", "space to search in")
 }

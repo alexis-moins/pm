@@ -2,9 +2,9 @@ package spaces
 
 import (
 	"os"
+	"path"
 	"slices"
 
-	"github.com/alexis-moins/pm/internal/projects"
 	"github.com/spf13/viper"
 )
 
@@ -19,20 +19,34 @@ func IsRegistered(space string) bool {
 	return slices.Contains(spaces, space)
 }
 
-// Return true if the given project exists on the
-// given space (corresponds to an existing directory).
-func Exists(name, space string) bool {
-	projectPath := projects.GetPath(name, space)
-
-	info, err := os.Stat(projectPath)
+// Return true if the given space exists (corresponds
+// to an existing directory).
+func Exists(space string) bool {
+	HOME := viper.GetString("HOME")
+	info, err := os.Stat(path.Join(HOME, space))
 
 	if err != nil {
 		return false
 	}
 
 	if info.IsDir() {
-		return false
+		return true
 	}
 
-	return true
+	return false
+}
+
+// Return true if the space exists on the file system and
+// is registered
+func IsValid(space string) bool {
+    return Exists(space) && IsRegistered(space)
+}
+
+func Add(space string) error {
+    spaceList := viper.GetStringSlice("spaces")
+
+    spaceList = append(spaceList, space)
+    viper.Set("spaces", spaceList)
+
+    return viper.WriteConfig()
 }

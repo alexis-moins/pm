@@ -19,33 +19,51 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package cmd
+package space
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/alexis-moins/pm/internal/spaces"
+	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
 )
 
-var space string
-
 // addCmd represents the add command
 var addCmd = &cobra.Command{
-	Use:   "add",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "add <space>",
+	Short: "Add a new space",
+	Args:  cobra.ExactArgs(1),
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("add called")
+		space := args[0]
+
+		if !spaces.Exists(space) {
+			fmt.Printf("space %s must be a directory", styles.Magenta.Render(space))
+			os.Exit(1)
+		}
+
+        if spaces.IsRegistered(space) {
+			fmt.Printf("space %s has already been added. ", styles.Magenta.Render(space))
+            styles.Suggestion("pm space list")
+			os.Exit(1)
+        }
+
+		err := spaces.Add(space)
+
+		if err != nil {
+			styles.Error(err.Error())
+			os.Exit(1)
+		}
+
+		message := fmt.Sprintf("added space %s",
+			styles.Magenta.Render(space))
+
+		styles.Success(message)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(addCmd)
-
-	addCmd.Flags().StringVar(&space, "space", "s", "", "space of the project")
+	spaceCmd.AddCommand(addCmd)
 }

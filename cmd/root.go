@@ -29,8 +29,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
+// RootCmd represents the base command when called without any subcommands
+var RootCmd = &cobra.Command{
 	Use:     "pm",
 	Short:   "Project manager built on top of tmux",
 	Version: "0.0.1",
@@ -45,9 +45,9 @@ var rootCmd = &cobra.Command{
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute() {
-	err := rootCmd.Execute()
+	err := RootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
@@ -71,8 +71,6 @@ func init() {
 	viper.SetDefault("default", "default")
 	viper.SetDefault("spaces", []string{})
 
-	viper.SetDefault("projects", map[string][]string{})
-
 	if err := viper.ReadInConfig(); err != nil {
 		if err := os.MkdirAll(configPath, 0750); err != nil {
 			panic(err)
@@ -86,5 +84,5 @@ func init() {
 		Title: "PROJECT",
 	}
 
-	rootCmd.AddGroup(&projectGroup)
+	RootCmd.AddGroup(&projectGroup)
 }

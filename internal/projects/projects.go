@@ -13,8 +13,9 @@ import (
 
 // Return true if the given project exists on the
 // given space (corresponds to an existing directory).
-func Exists(name, space string) bool {
-	projectPath := GetPath(name, space)
+func Exists(space, project string) bool {
+	projectPath := GetPath(space, project)
+	fmt.Printf("projectPath: %v\n", projectPath)
 
 	info, err := os.Stat(projectPath)
 
@@ -30,9 +31,9 @@ func Exists(name, space string) bool {
 }
 
 // Return the full path to the project on the given space.
-func GetPath(name, space string) string {
+func GetPath(space, project string) string {
 	HOME := viper.GetString("HOME")
-	return path.Join(HOME, space, name)
+	return path.Join(HOME, space, project)
 }
 
 // Return the list of projects in all registered spaces.
