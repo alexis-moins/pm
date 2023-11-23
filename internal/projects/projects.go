@@ -15,7 +15,6 @@ import (
 // given space (corresponds to an existing directory).
 func Exists(space, project string) bool {
 	projectPath := GetPath(space, project)
-	fmt.Printf("projectPath: %v\n", projectPath)
 
 	info, err := os.Stat(projectPath)
 

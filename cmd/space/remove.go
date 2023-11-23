@@ -42,7 +42,7 @@ var removeCmd = &cobra.Command{
         space := args[0]
 
         if !spaces.IsRegistered(space) {
-			fmt.Printf("space %s is not registered. ", styles.Magenta.Render(space))
+			fmt.Printf("space %s is not valid. ", styles.Magenta.Render(space))
             styles.Suggestion("pm space list")
 			os.Exit(1)
         }

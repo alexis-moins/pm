@@ -36,7 +36,7 @@ import (
 
 // openCmd represents the open command
 var openCmd = &cobra.Command{
-	Use:     "open [NAME]",
+	Use:     "open <project>",
 	Short:   "Open a project in a tmux session",
 	GroupID: "project",
 	Args:    cobra.ExactArgs(1),
@@ -45,24 +45,24 @@ var openCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		projectName := args[0]
-
 		space, _ := cmd.Flags().GetString("space")
 
 		if len(space) == 0 {
-			// Use default space if no space is provided
 			space = viper.GetString("default")
 		}
 
-		if !spaces.IsRegistered(space) {
-			message := fmt.Sprintf("%s is not a valid space.", space)
-			styles.Error(message)
+		if !spaces.IsValid(space) {
+			fmt.Printf("space %s is not valid. ", styles.Magenta.Render(space))
+			styles.Suggestion("pm space list")
 			os.Exit(1)
 		}
 
 		if !projects.Exists(space, projectName) {
-			message := fmt.Sprintf("project %s does not exist in space %s\n", projectName, space)
-			styles.Error(message)
+			fmt.Printf("project %s not found in space %s. ",
+                styles.Magenta.Render(projectName),
+				styles.Magenta.Render(space))
 
+			styles.Suggestion("pm list")
 			os.Exit(1)
 		}
 
