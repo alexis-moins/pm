@@ -39,17 +39,11 @@ var openCmd = &cobra.Command{
 	Use:     "open [NAME]",
 	Short:   "Open a project in a tmux session",
 	GroupID: "project",
-
-	Args: cobra.MaximumNArgs(1),
+	Args:    cobra.ExactArgs(1),
 	Example: `  pm open recipe
   pm open neovim --space tools`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			// Filter projects if args is empty and before setting default space
-			projects.ListProjects()
-		}
-
 		projectName := args[0]
 
 		space, _ := cmd.Flags().GetString("space")

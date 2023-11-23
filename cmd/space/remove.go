@@ -31,40 +31,34 @@ import (
 )
 
 // addCmd represents the add command
-var addCmd = &cobra.Command{
-	Use:     "add <space>",
-	Short:   "Add a new space",
+var removeCmd = &cobra.Command{
+	Use:     "remove",
+	Short:   "Remove a registered spaces",
 	Args:    cobra.ExactArgs(1),
-	Example: "  pm space add personal",
+	Aliases: []string{"rm"},
+	Example: "  pm space remove personal",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		space := args[0]
+        space := args[0]
 
-		if !spaces.Exists(space) {
-			fmt.Printf("space %s must be a directory", styles.Magenta.Render(space))
+        if !spaces.IsRegistered(space) {
+			fmt.Printf("space %s is not registered. ", styles.Magenta.Render(space))
+            styles.Suggestion("pm space list")
 			os.Exit(1)
-		}
+        }
 
-		if spaces.IsRegistered(space) {
-			fmt.Printf("space %s has already been added. ", styles.Magenta.Render(space))
-			styles.Suggestion("pm space list")
-			os.Exit(1)
-		}
-
-		err := spaces.Add(space)
+        err := spaces.Remove(space)
 
 		if err != nil {
 			styles.Error(err.Error())
 			os.Exit(1)
 		}
 
-		message := fmt.Sprintf("added space %s",
-			styles.Magenta.Render(space))
-
-		styles.Success(message)
+        message := fmt.Sprintf("removed space %s", styles.Magenta.Render(space))
+        styles.Success(message)
 	},
 }
 
 func init() {
-	spaceCmd.AddCommand(addCmd)
+	spaceCmd.AddCommand(removeCmd)
 }

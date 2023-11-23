@@ -34,6 +34,7 @@ var listCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List registered spaces",
 	Aliases: []string{"ls"},
+	Example: "  pm space list",
 
 	Run: func(cmd *cobra.Command, args []string) {
 		spaceList := viper.GetStringSlice("spaces")

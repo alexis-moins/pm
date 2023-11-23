@@ -37,16 +37,29 @@ func Exists(space string) bool {
 }
 
 // Return true if the space exists on the file system and
-// is registered
+// is registered.
 func IsValid(space string) bool {
-    return Exists(space) && IsRegistered(space)
+	return Exists(space) && IsRegistered(space)
 }
 
+// Add a space to the registered spaces.
 func Add(space string) error {
-    spaceList := viper.GetStringSlice("spaces")
+	spaceList := viper.GetStringSlice("spaces")
 
-    spaceList = append(spaceList, space)
-    viper.Set("spaces", spaceList)
+	spaceList = append(spaceList, space)
+	viper.Set("spaces", spaceList)
 
-    return viper.WriteConfig()
+	return viper.WriteConfig()
+}
+
+// Remove a space from the registered spaces.
+func Remove(space string) error {
+	spaceList := viper.GetStringSlice("spaces")
+
+	spaceList = slices.DeleteFunc(spaceList, func(_space string) bool {
+		return _space == space
+	})
+
+	viper.Set("spaces", spaceList)
+	return viper.WriteConfig()
 }
