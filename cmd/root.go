@@ -71,6 +71,8 @@ func init() {
 	viper.SetDefault("default", "default")
 	viper.SetDefault("spaces", []string{})
 
+	viper.SetDefault("projects", map[string][]string{})
+
 	if err := viper.ReadInConfig(); err != nil {
 		if err := os.MkdirAll(configPath, 0750); err != nil {
 			panic(err)

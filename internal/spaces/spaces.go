@@ -21,7 +21,7 @@ func IsRegistered(space string) bool {
 
 // Return true if the given project exists on the
 // given space (corresponds to an existing directory).
-func Exists(name string, space string) bool {
+func Exists(name, space string) bool {
 	projectPath := projects.GetPath(name, space)
 
 	info, err := os.Stat(projectPath)

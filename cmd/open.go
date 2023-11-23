@@ -47,9 +47,9 @@ var openCmd = &cobra.Command{
   pm open neovim --space tools`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Filter projects if args is empty and before setting default space
 		if len(args) == 0 {
-			os.Exit(1)
+            // Filter projects if args is empty and before setting default space
+            projects.ListProjects()
 		}
 
 		projectName := args[0]
