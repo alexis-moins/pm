@@ -49,14 +49,27 @@ var openCmd = &cobra.Command{
   pm open neovim --space tools`,
 
 	Args: func(cmd *cobra.Command, args []string) error {
-		shortFormat, _ := cmd.Flags().GetString("short-format")
+		shortFormat, _ := cmd.Flags().GetString("short")
 
 		if len(shortFormat) > 0 {
 			if len(args) > 0 {
-				format := styles.YellowUnderline.Render("--short-format")
-				return errors.New(fmt.Sprintf("cannot use the %s flag with an argument", format))
+				return errors.New("cannot use the --short flag with an argument")
 			}
+		} else if len(args) == 0 {
+			return errors.New("expected argument or --short flag")
 		}
+
+		return nil
+	},
+
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		space, _ := cmd.Flags().GetString("space")
+		shortFormat, _ := cmd.Flags().GetString("short")
+
+		if len(space) > 0 && len(shortFormat) > 0 {
+			return errors.New("cannot use --space and --short flags together")
+		}
+
 		return nil
 	},
 
@@ -64,20 +77,18 @@ var openCmd = &cobra.Command{
 		var projectName string
 
 		space, _ := cmd.Flags().GetString("space")
-		shortFormat, _ := cmd.Flags().GetString("short-format")
+		shortFormat, _ := cmd.Flags().GetString("short")
 
 		if len(shortFormat) > 0 {
 			if !projectRegex.Match([]byte(shortFormat)) {
-				format := styles.YellowUnderline.Render("space/project")
+				format := styles.YellowUnderline.Render("<space>/<project>")
 				return errors.New(fmt.Sprintf("invalid short format. Use %s", format))
 			}
 
 			space = path.Dir(shortFormat)
 			projectName = path.Base(shortFormat)
 		} else {
-			if len(args) == 0 {
-
-			}
+			projectName = args[0]
 
 			if len(space) == 0 {
 				space = viper.GetString("default")
@@ -131,15 +142,13 @@ func init() {
 	RootCmd.AddCommand(openCmd)
 
 	openCmd.Flags().StringP("space", "s", "", "space to search in")
-	openCmd.Flags().StringP("short-format", "S", "", " <space>/<project>")
+	openCmd.Flags().StringP("short", "S", "", "use the <space>/<project> short format")
 
 	openCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
 	})
 
-	openCmd.RegisterFlagCompletionFunc("short-format", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	openCmd.RegisterFlagCompletionFunc("short", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return projects.ListProjectsPorcelain(), cobra.ShellCompDirectiveNoFileComp
 	})
-
-	openCmd.MarkFlagsMutuallyExclusive("space", "short-format")
 }

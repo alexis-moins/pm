@@ -46,6 +46,7 @@ var cloneCmd = &cobra.Command{
 	GroupID: "project",
 	Example: `  pm clone alexis-moins/recipe
   pm clone alexis-moins/recipe --space personal`,
+
 	RunE: func(cmd *cobra.Command, args []string) error {
 		repository := args[0]
 		space, _ := cmd.Flags().GetString("space")
