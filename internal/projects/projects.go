@@ -1,13 +1,11 @@
 package projects
 
 import (
-	"bytes"
-	"fmt"
 	"os"
-	"os/exec"
 	"path"
-	"strings"
+	"slices"
 
+	_spaces "github.com/alexis-moins/pm/internal/spaces"
 	"github.com/spf13/viper"
 )
 
@@ -31,19 +29,34 @@ func Exists(space, project string) bool {
 
 // Return the full path to the project on the given space.
 func GetPath(space, project string) string {
-	HOME := viper.GetString("HOME")
-	return path.Join(HOME, space, project)
+	return path.Join(_spaces.GetPath(space), project)
 }
 
 // Return the list of projects in all registered spaces.
-func ListProjects() error {
-	cmd := exec.Command("gum", "filter", "--placeholder", "Select a project...", "--fuzzy")
+func ListAllProjects() map[string][]string {
+	spaces := viper.GetStringSlice("spaces")
 
-	spaces := strings.Join(viper.GetStringSlice("spaces"), " ")
-	cmd.Stdin = bytes.NewReader([]byte(spaces))
+	spaces = append(spaces, viper.GetString("default"))
 
-	output, err := cmd.CombinedOutput()
+	projects := map[string][]string{}
 
-	fmt.Printf("output: %v\n", output)
-	return err
+	for _, space := range spaces {
+        key := projects[space]
+
+		entries, err := os.ReadDir(_spaces.GetPath(space))
+
+		if err != nil {
+			continue
+		}
+
+		for _, file := range entries {
+			if file.IsDir() && !slices.Contains(spaces, path.Join(space, file.Name())) {
+                key = append(key, file.Name())
+			}
+		}
+
+        projects[space] = key
+	}
+
+	return projects
 }

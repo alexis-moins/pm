@@ -63,3 +63,9 @@ func Remove(space string) error {
 	viper.Set("spaces", spaceList)
 	return viper.WriteConfig()
 }
+
+// Return the full path to the space.
+func GetPath(space string) string {
+	HOME := viper.GetString("HOME")
+	return path.Join(HOME, space)
+}

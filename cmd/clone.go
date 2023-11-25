@@ -25,13 +25,14 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // cloneCmd represents the clone command
 var cloneCmd = &cobra.Command{
-	Use:   "clone <repository>",
-	Short: "Clone a remote git repository",
-	Args:  cobra.ExactArgs(1),
+	Use:     "clone <repository>",
+	Short:   "Clone a remote git repository",
+	Args:    cobra.ExactArgs(1),
 	GroupID: "project",
 	Example: `  pm clone alexis-moins/recipe
   pm clone alexis-moins/recipe --space personal`,
@@ -46,4 +47,8 @@ func init() {
 	RootCmd.AddCommand(cloneCmd)
 
 	cloneCmd.Flags().StringP("space", "s", "", "space to clone in")
+
+	cloneCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
+	})
 }

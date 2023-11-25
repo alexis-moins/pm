@@ -28,6 +28,7 @@ import (
 	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // addCmd represents the add command
@@ -37,25 +38,31 @@ var removeCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	Aliases: []string{"rm"},
 	Example: "  pm space remove personal",
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		if len(args) > 0 {
+			return []string{}, cobra.ShellCompDirectiveNoFileComp
+		}
+		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
+	},
 
 	Run: func(cmd *cobra.Command, args []string) {
-        space := args[0]
+		space := args[0]
 
-        if !spaces.IsRegistered(space) {
+		if !spaces.IsRegistered(space) {
 			fmt.Printf("space %s is not valid. ", styles.Magenta.Render(space))
-            styles.Suggestion("pm space list")
+			styles.Suggestion("pm space list")
 			os.Exit(1)
-        }
+		}
 
-        err := spaces.Remove(space)
+		err := spaces.Remove(space)
 
 		if err != nil {
 			styles.Error(err.Error())
 			os.Exit(1)
 		}
 
-        message := fmt.Sprintf("removed space %s", styles.Magenta.Render(space))
-        styles.Success(message)
+		message := fmt.Sprintf("removed space %s", styles.Magenta.Render(space))
+		styles.Success(message)
 	},
 }
 

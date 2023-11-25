@@ -19,32 +19,51 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package space
+package cmd
 
 import (
 	"fmt"
-	"strings"
 
+	_projects "github.com/alexis-moins/pm/internal/projects"
 	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// addCmd represents the add command
+// listCmd represents the list command
 var listCmd = &cobra.Command{
-	Use:     "list",
-	Short:   "List registered spaces",
+	Use:   "list",
+	Short: "List projects",
 	Aliases: []string{"ls"},
-	Example: "  pm space list",
-
+	Example: `  pm list
+  pm list --porcelain`,
 	Run: func(cmd *cobra.Command, args []string) {
-		spaceList := viper.GetStringSlice("spaces")
-        spaceList = append(spaceList, fmt.Sprintf("%s %s", viper.GetString("default"), styles.Green.Render("(default)")))
+		spaces := _projects.ListAllProjects()
 
-		fmt.Println(strings.Join(spaceList, "\n"))
+		porcelain, _ := cmd.Flags().GetBool("porcelain")
+
+		for space, projects := range spaces {
+			if !porcelain && len(projects) > 0 {
+				header := styles.Yellow.Render(fmt.Sprintf("[%s]", space))
+				fmt.Println(header)
+			}
+
+			for _, project := range projects {
+				var format string
+
+				if !porcelain {
+					format = fmt.Sprintf("%s", project)
+				} else {
+					format = fmt.Sprintf("%s/%s", space, project)
+				}
+
+				fmt.Println(format)
+			}
+		}
 	},
 }
 
 func init() {
-	spaceCmd.AddCommand(listCmd)
+	RootCmd.AddCommand(listCmd)
+
+	listCmd.Flags().BoolP("porcelain", "p", false, "Give the output in a stable, easy-to-parse format")
 }

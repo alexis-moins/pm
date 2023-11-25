@@ -10,6 +10,7 @@ var Red = lipgloss.NewStyle().Foreground(lipgloss.Color("1"))
 var Green = lipgloss.NewStyle().Foreground(lipgloss.Color("2"))
 var Magenta = lipgloss.NewStyle().Foreground(lipgloss.Color("5"))
 var Underline = lipgloss.NewStyle().Underline(true)
+var Yellow = lipgloss.NewStyle().Foreground(lipgloss.Color("3"))
 
 func YellowUnderline(message string) lipgloss.Style {
 	return lipgloss.NewStyle().Foreground(lipgloss.Color("#eed49f")).Underline(true).SetString(message)

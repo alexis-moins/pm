@@ -59,7 +59,7 @@ var openCmd = &cobra.Command{
 
 		if !projects.Exists(space, projectName) {
 			fmt.Printf("project %s not found in space %s. ",
-                styles.Magenta.Render(projectName),
+				styles.Magenta.Render(projectName),
 				styles.Magenta.Render(space))
 
 			styles.Suggestion("pm list")
