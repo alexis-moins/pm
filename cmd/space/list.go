@@ -23,7 +23,6 @@ package space
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
@@ -39,9 +38,15 @@ var listCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		spaceList := viper.GetStringSlice("spaces")
-        spaceList = append(spaceList, fmt.Sprintf("%s %s", viper.GetString("default"), styles.Green.Render("(default)")))
+		defaultSpace := viper.GetString("default")
 
-		fmt.Println(strings.Join(spaceList, "\n"))
+		for _, space := range spaceList {
+			if space == defaultSpace {
+				fmt.Printf("%s %s\n", styles.Green.Render("D"), space)
+			} else {
+				fmt.Printf("  %s\n", space)
+			}
+		}
 	},
 }
 

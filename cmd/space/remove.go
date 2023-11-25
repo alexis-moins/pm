@@ -22,6 +22,7 @@ THE SOFTWARE.
 package space
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -45,13 +46,14 @@ var removeCmd = &cobra.Command{
 		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
 	},
 
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		space := args[0]
 
 		if !spaces.IsRegistered(space) {
-			fmt.Printf("space %s is not valid. ", styles.Magenta.Render(space))
-			styles.Suggestion("pm space list")
-			os.Exit(1)
+			message := fmt.Sprintf("%s is not found a valid space. See %s", space,
+				styles.YellowUnderline.Render("pm space list"))
+
+			return errors.New(message)
 		}
 
 		err := spaces.Remove(space)
@@ -61,11 +63,17 @@ var removeCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		message := fmt.Sprintf("removed space %s", styles.Magenta.Render(space))
+		message := fmt.Sprintf("removed space %s", space)
 		styles.Success(message)
+
+		return nil
 	},
 }
 
 func init() {
 	spaceCmd.AddCommand(removeCmd)
+
+	removeCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
+	})
 }

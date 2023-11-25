@@ -1,6 +1,7 @@
 package projects
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"slices"
@@ -35,9 +36,6 @@ func GetPath(space, project string) string {
 // Return the list of projects in all registered spaces.
 func ListAllProjects() map[string][]string {
 	spaces := viper.GetStringSlice("spaces")
-
-	spaces = append(spaces, viper.GetString("default"))
-
 	projects := map[string][]string{}
 
 	for _, space := range spaces {
@@ -56,6 +54,27 @@ func ListAllProjects() map[string][]string {
 		}
 
         projects[space] = key
+	}
+
+	return projects
+}
+
+func ListProjectsPorcelain() []string {
+	spaces := viper.GetStringSlice("spaces")
+	projects := []string{}
+
+	for _, space := range spaces {
+		entries, err := os.ReadDir(_spaces.GetPath(space))
+
+		if err != nil {
+			continue
+		}
+
+		for _, file := range entries {
+			if file.IsDir() && !slices.Contains(spaces, path.Join(space, file.Name())) {
+                projects = append(projects, fmt.Sprintf("%s/%s", space, file.Name()))
+			}
+		}
 	}
 
 	return projects

@@ -31,8 +31,9 @@ import (
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List projects",
+	Use:     "list",
+	Short:   "List projects in all spaces",
+	GroupID: "project",
 	Aliases: []string{"ls"},
 	Example: `  pm list
   pm list --porcelain`,
@@ -40,6 +41,7 @@ var listCmd = &cobra.Command{
 		spaces := _projects.ListAllProjects()
 
 		porcelain, _ := cmd.Flags().GetBool("porcelain")
+		// filter, _ := cmd.Flags().GetBool("filter")
 
 		for space, projects := range spaces {
 			if !porcelain && len(projects) > 0 {
@@ -58,6 +60,10 @@ var listCmd = &cobra.Command{
 
 				fmt.Println(format)
 			}
+
+            if !porcelain {
+                fmt.Println()
+            }
 		}
 	},
 }
@@ -66,4 +72,5 @@ func init() {
 	RootCmd.AddCommand(listCmd)
 
 	listCmd.Flags().BoolP("porcelain", "p", false, "Give the output in a stable, easy-to-parse format")
+	listCmd.Flags().StringP("filter", "f", "", "Filter output by project name")
 }

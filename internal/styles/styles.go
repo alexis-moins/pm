@@ -11,17 +11,14 @@ var Green = lipgloss.NewStyle().Foreground(lipgloss.Color("2"))
 var Magenta = lipgloss.NewStyle().Foreground(lipgloss.Color("5"))
 var Underline = lipgloss.NewStyle().Underline(true)
 var Yellow = lipgloss.NewStyle().Foreground(lipgloss.Color("3"))
-
-func YellowUnderline(message string) lipgloss.Style {
-	return lipgloss.NewStyle().Foreground(lipgloss.Color("#eed49f")).Underline(true).SetString(message)
-}
+var YellowUnderline = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Underline(true)
 
 func Error(error string) {
 	fmt.Printf("%s %s\n", Red.Render("pm:"), error)
 }
 
 func Suggestion(message string) {
-	fmt.Printf("see %s.\n", YellowUnderline(message))
+	fmt.Printf("see %s.\n", YellowUnderline.Render(message))
 }
 
 func Success(message string) {

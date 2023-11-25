@@ -25,22 +25,27 @@ import (
 	"os"
 	"path"
 
+	"github.com/alexis-moins/pm/internal/spaces"
+	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:     "pm",
-	Short:   "Project manager built on top of tmux",
-	Version: "0.0.1",
+	Use:          "pm",
+	Short:        "Project manager built on top of tmux",
+	Version:      "0.0.1",
+	SilenceUsage: true,
 
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		defaultSpace := viper.GetString("default")
 
-		if err := os.MkdirAll(defaultSpace, 0750); err != nil {
-			panic(err)
+		if err := os.MkdirAll(spaces.GetPath(defaultSpace), 0750); err != nil {
+			return err
 		}
+
+        return nil
 	},
 }
 
@@ -69,7 +74,7 @@ func init() {
 	viper.AddConfigPath(configPath)
 
 	viper.SetDefault("default", "default")
-	viper.SetDefault("spaces", []string{})
+	viper.SetDefault("spaces", []string{"default"})
 
 	if err := viper.ReadInConfig(); err != nil {
 		if err := os.MkdirAll(configPath, 0750); err != nil {
@@ -81,8 +86,9 @@ func init() {
 
 	projectGroup := cobra.Group{
 		ID:    "project",
-        Title: "Project Commands:",
+		Title: "Project Commands:",
 	}
 
 	RootCmd.AddGroup(&projectGroup)
+	RootCmd.SetErrPrefix(styles.Red.Render("pm:"))
 }

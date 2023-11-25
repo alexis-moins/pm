@@ -22,11 +22,21 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"os/exec"
+	"path"
+	"regexp"
 
+	_projects "github.com/alexis-moins/pm/internal/projects"
+	"github.com/alexis-moins/pm/internal/spaces"
+	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+var repositoryRegex = regexp.MustCompile(`^[^/]+/[^/]+$`)
 
 // cloneCmd represents the clone command
 var cloneCmd = &cobra.Command{
@@ -36,10 +46,46 @@ var cloneCmd = &cobra.Command{
 	GroupID: "project",
 	Example: `  pm clone alexis-moins/recipe
   pm clone alexis-moins/recipe --space personal`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		repository := args[0]
+		space, _ := cmd.Flags().GetString("space")
 
-		fmt.Printf("%v\n", repository)
+		if len(space) == 0 {
+			space = viper.GetString("default")
+		}
+
+		if !repositoryRegex.Match([]byte(repository)) {
+			format := styles.YellowUnderline.Render("<username>/<project>")
+			return errors.New(fmt.Sprintf("invalid repository format. Use %s", format))
+		}
+
+		if !spaces.IsValid(space) {
+			message := fmt.Sprintf("%s is not a valid space. See %s", space,
+				styles.YellowUnderline.Render("pm space list"))
+
+			return errors.New(message)
+
+		}
+
+		projectName := path.Base(repository)
+
+		if _projects.Exists(space, projectName) {
+			return errors.New(fmt.Sprintf("project %s already exists in space %s", projectName, space))
+		}
+
+		command := exec.Command("git", "clone", fmt.Sprintf("git@github.com:%s.git", repository),
+			_projects.GetPath(space, projectName))
+
+		command.Stdout = os.Stdout
+
+		if err := command.Run(); err != nil {
+			return err
+		}
+
+		message := fmt.Sprintf("Cloned project %s in space %s", projectName, space)
+		styles.Success(message)
+
+		return nil
 	},
 }
 

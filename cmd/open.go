@@ -22,8 +22,11 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"path"
+	"regexp"
 	"strings"
 
 	"github.com/alexis-moins/pm/internal/projects"
@@ -34,36 +37,65 @@ import (
 	"github.com/spf13/viper"
 )
 
+var projectRegex = regexp.MustCompile(`^.+/.+$`)
+
 // openCmd represents the open command
 var openCmd = &cobra.Command{
 	Use:     "open <project>",
 	Short:   "Open a project in a tmux session",
 	GroupID: "project",
-	Args:    cobra.ExactArgs(1),
 	Example: `  pm open recipe
+  pm open -S tools/neovim
   pm open neovim --space tools`,
 
-	Run: func(cmd *cobra.Command, args []string) {
-		projectName := args[0]
-		space, _ := cmd.Flags().GetString("space")
+	Args: func(cmd *cobra.Command, args []string) error {
+		shortFormat, _ := cmd.Flags().GetString("short-format")
 
-		if len(space) == 0 {
-			space = viper.GetString("default")
+		if len(shortFormat) > 0 {
+			if len(args) > 0 {
+				format := styles.YellowUnderline.Render("--short-format")
+				return errors.New(fmt.Sprintf("cannot use the %s flag with an argument", format))
+			}
+		}
+		return nil
+	},
+
+	RunE: func(cmd *cobra.Command, args []string) error {
+		var projectName string
+
+		space, _ := cmd.Flags().GetString("space")
+		shortFormat, _ := cmd.Flags().GetString("short-format")
+
+		if len(shortFormat) > 0 {
+			if !projectRegex.Match([]byte(shortFormat)) {
+				format := styles.YellowUnderline.Render("space/project")
+				return errors.New(fmt.Sprintf("invalid short format. Use %s", format))
+			}
+
+			space = path.Dir(shortFormat)
+			projectName = path.Base(shortFormat)
+		} else {
+			if len(args) == 0 {
+
+			}
+
+			if len(space) == 0 {
+				space = viper.GetString("default")
+			}
 		}
 
 		if !spaces.IsValid(space) {
-			fmt.Printf("space %s is not valid. ", styles.Magenta.Render(space))
-			styles.Suggestion("pm space list")
-			os.Exit(1)
+			message := fmt.Sprintf("%s is not a valid space. See %s", space,
+				styles.YellowUnderline.Render("pm space list"))
+
+			return errors.New(message)
 		}
 
 		if !projects.Exists(space, projectName) {
-			fmt.Printf("project %s not found in space %s. ",
-				styles.Magenta.Render(projectName),
-				styles.Magenta.Render(space))
+			message := fmt.Sprintf("project %s not found in space %s. See %s", projectName, space,
+				styles.YellowUnderline.Render("pm space list"))
 
-			styles.Suggestion("pm list")
-			os.Exit(1)
+			return errors.New(message)
 		}
 
 		output, err := tmux.Exec("list-windows", "-aF", "#S: #{pane_current_path}")
@@ -91,6 +123,7 @@ var openCmd = &cobra.Command{
 
 		// No session was found
 		tmux.CreateSession(projectName, projectPath)
+		return nil
 	},
 }
 
@@ -98,4 +131,15 @@ func init() {
 	RootCmd.AddCommand(openCmd)
 
 	openCmd.Flags().StringP("space", "s", "", "space to search in")
+	openCmd.Flags().StringP("short-format", "S", "", " <space>/<project>")
+
+	openCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
+	})
+
+	openCmd.RegisterFlagCompletionFunc("short-format", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return projects.ListProjectsPorcelain(), cobra.ShellCompDirectiveNoFileComp
+	})
+
+	openCmd.MarkFlagsMutuallyExclusive("space", "short-format")
 }

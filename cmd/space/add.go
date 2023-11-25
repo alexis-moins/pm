@@ -22,6 +22,7 @@ THE SOFTWARE.
 package space
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -32,39 +33,50 @@ import (
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
-	Use:     "add <space>",
-	Short:   "Add a new space",
-	Args:    cobra.ExactArgs(1),
-	Example: "  pm space add personal",
+	Use:   "add <space>",
+	Short: "Add a new space",
+	Args:  cobra.ExactArgs(1),
+	Example: `  pm space add personal
+  pm space add tools -c`,
 
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		space := args[0]
 
+		create, _ := cmd.Flags().GetBool("create")
+
 		if !spaces.Exists(space) {
-			fmt.Printf("space %s must be a directory", styles.Magenta.Render(space))
-			os.Exit(1)
+			if create {
+				if err := os.MkdirAll(spaces.GetPath(space), 0750); err != nil {
+					return err
+				}
+			} else {
+				message := fmt.Sprintf("directory not found. Did you forget the %s flag?",
+					styles.YellowUnderline.Render("--create"))
+
+				return errors.New(message)
+			}
 		}
 
 		if spaces.IsRegistered(space) {
-			fmt.Printf("space %s has already been added. ", styles.Magenta.Render(space))
-			styles.Suggestion("pm space list")
-			os.Exit(1)
+			message := fmt.Sprintf("space %s has already been added", space)
+			return errors.New(message)
 		}
 
 		err := spaces.Add(space)
 
 		if err != nil {
-			styles.Error(err.Error())
-			os.Exit(1)
+			return err
 		}
 
-		message := fmt.Sprintf("added space %s",
-			styles.Magenta.Render(space))
-
+		message := fmt.Sprintf("added space %s", space)
 		styles.Success(message)
+
+		return nil
 	},
 }
 
 func init() {
 	spaceCmd.AddCommand(addCmd)
+
+	addCmd.Flags().BoolP("create", "c", false, "Create the space if it does not exist")
 }
