@@ -17,32 +17,19 @@
 
 ---
 
-`pm` is a bash script allowing users to rapidly create new projects. It integrate with tmux to allow for a seemless navigation.
+`pm` is a go cli allowing users to rapidly create new projects. It integrate with tmux to allow for a seemless navigation.
 
 ## Prerequisites
 
-- bash 4.0 or higher
-- [gum](https://github.com/charmbracelet/gum)
-- [fd](https://github.com/sharkdp/fd)
+- go 1.21 or higher
 - tmux
 - git
 
 
 ## Installation
-
-Clone the repository:
 ```bash
-git clone git@github.com:alexis-moins/pm.git ~/.pm
+go install github.com/alexis-moins/pm@latest
 ```
-
-And let pm create the symbolic link for you!
-```bash
-cd ~/.pm && ./pm link
-```
-
-The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory. You can also change the link destination path with the `PM_LINK` environment variable.
-
-> If you wish to change the default install location, feel free to do so! Just remember to set the `PM_INSTALL` environment variable to point to the right location.
 
 ## Quick Start
 
@@ -57,6 +44,9 @@ pm new portal --space personal
 
 # Opening the project is even simpler
 pm open portal --space personal
+
+# You can also specify a short format
+pm open personal/portal
 
 # You can even clone github repositories
 pm clone alexis-moins/portfolio --space work
@@ -83,46 +73,24 @@ pm keybindings --set
 ```
 $ pm
 
-pm - Project manager built on top of tmux
+Project manager built on top of tmux
 
 Usage:
-  pm COMMAND
-  pm [COMMAND] --help | -h
-  pm --version | -v
+  pm [command]
 
-Commands:
-  help     Show help about a command
-  dir      Show projects' root directory
-  space    Create, delete or list spaces
-  link     Create a link to this script
-  update   Update to the latest version
-  tmux     Commands for tmux integration
-  env      Show environment information
+Project Commands:
+  clone       Clone a remote git repository
+  list        List projects in all spaces
+  open        Open a project in a tmux session
 
-PROJECT Commands:
-  new      Create a new empty project
-  clone    Clone a remote git repository
-  open     Open a project in a tmux session
-  filter   Filter projects by name
-  list     List projects
+Additional Commands:
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  home        Show the pm home directory
+  new         Create a new empty project
+  space       Create, delete and list spaces
 
-Options:
-  --help, -h
-    Show this help
-
-  --version, -v
-    Show version number
-
-Environment Variables:
-  PM_INSTALL
-    Directory where the repository was cloned
-    Default: ~/.pm
-
-  PM_HOME
-    Directory where the projects will be managed
-    Default: ~/dev
-
-  PM_LINK
-    Directory where the script will be linked
-    Default: ~/.local/bin
+Flags:
+  -h, --help      help for pm
+  -v, --version   version for pm
 ```
