@@ -52,22 +52,6 @@ pm open personal/portal
 pm clone alexis-moins/portfolio --space work
 ```
 
-## Tmux integration
-
-`pm` comes with the following default tmux keybindings:
-```bash
-# Leader + o: open a pm project
-bind-key o display-popup -E "pm open"
-
-# Leader + -: create a new pm project
-bind-key - display-popup -E "pm tmux new"
-```
-
-You can either add them to your tmux config manually or by running the following command which will append the keybindings to your configuration.
-```bash
-pm keybindings --set
-```
-
 ## Usage
 
 ```
