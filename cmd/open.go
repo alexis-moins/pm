@@ -45,51 +45,30 @@ var openCmd = &cobra.Command{
 	Short:   "Open a project in a tmux session",
 	GroupID: "project",
 	Example: `  pm open recipe
-  pm open -S tools/neovim
+  pm open tools/neovim
   pm open neovim --space tools`,
+	Args: cobra.ExactArgs(1),
 
-	Args: func(cmd *cobra.Command, args []string) error {
-		shortFormat, _ := cmd.Flags().GetString("short")
-
-		if len(shortFormat) > 0 {
-			if len(args) > 0 {
-				return errors.New("cannot use the --short flag with an argument")
-			}
-		} else if len(args) == 0 {
-			return errors.New("expected argument or --short flag")
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		if len(args) == 0 {
+			return projects.ListProjectsPorcelain(), cobra.ShellCompDirectiveNoFileComp
 		}
 
-		return nil
-	},
-
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		space, _ := cmd.Flags().GetString("space")
-		shortFormat, _ := cmd.Flags().GetString("short")
-
-		if len(space) > 0 && len(shortFormat) > 0 {
-			return errors.New("cannot use --space and --short flags together")
-		}
-
-		return nil
+		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	},
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var projectName string
-
+		projectName := args[0]
 		space, _ := cmd.Flags().GetString("space")
-		shortFormat, _ := cmd.Flags().GetString("short")
 
-		if len(shortFormat) > 0 {
-			if !projectRegex.Match([]byte(shortFormat)) {
-				format := styles.YellowUnderline.Render("<space>/<project>")
-				return errors.New(fmt.Sprintf("invalid short format. Use %s", format))
+		if projectRegex.Match([]byte(projectName)) {
+			if len(space) > 0 {
+				return errors.New("cannot use short format with the --space flag")
 			}
 
-			space = path.Dir(shortFormat)
-			projectName = path.Base(shortFormat)
+			space = path.Dir(projectName)
+			projectName = path.Base(projectName)
 		} else {
-			projectName = args[0]
-
 			if len(space) == 0 {
 				space = viper.GetString("default")
 			}
@@ -142,13 +121,8 @@ func init() {
 	RootCmd.AddCommand(openCmd)
 
 	openCmd.Flags().StringP("space", "s", "", "space to search in")
-	openCmd.Flags().StringP("short", "S", "", "use the <space>/<project> short format")
 
 	openCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
-	})
-
-	openCmd.RegisterFlagCompletionFunc("short", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return projects.ListProjectsPorcelain(), cobra.ShellCompDirectiveNoFileComp
 	})
 }

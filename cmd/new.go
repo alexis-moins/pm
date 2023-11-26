@@ -24,53 +24,23 @@ package cmd
 import (
 	"fmt"
 
-	_projects "github.com/alexis-moins/pm/internal/projects"
-	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
 )
 
-// listCmd represents the list command
-var listCmd = &cobra.Command{
-	Use:     "list",
-	Short:   "List projects in all spaces",
-	GroupID: "project",
-	Aliases: []string{"ls"},
-	Example: `  pm list
-  pm list --short`,
+// newCmd represents the new command
+var newCmd = &cobra.Command{
+	Use:   "new <name>",
+	Short: "Create a new empty project",
+	Args:  cobra.ExactArgs(1),
+
 	Run: func(cmd *cobra.Command, args []string) {
-		spaces := _projects.ListAllProjects()
-
-		short, _ := cmd.Flags().GetBool("short")
-		// filter, _ := cmd.Flags().GetBool("filter")
-
-		for space, projects := range spaces {
-			if !short && len(projects) > 0 {
-				header := styles.Yellow.Render(fmt.Sprintf("[%s]", space))
-				fmt.Println(header)
-			}
-
-			for _, project := range projects {
-				var format string
-
-				if !short {
-					format = fmt.Sprintf("%s", project)
-				} else {
-					format = fmt.Sprintf("%s/%s", space, project)
-				}
-
-				fmt.Println(format)
-			}
-
-			if !short {
-				fmt.Println()
-			}
-		}
+		fmt.Println("new called")
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(listCmd)
+	RootCmd.AddCommand(newCmd)
 
-	listCmd.Flags().BoolP("short", "S", false, "Give the output in a stable, easy-to-parse format")
-	listCmd.Flags().StringP("filter", "f", "", "Filter output by project name")
+	newCmd.Flags().StringP("space", "s", "", "space to create the project in (REQUIRED)")
+	newCmd.MarkFlagRequired("space")
 }
