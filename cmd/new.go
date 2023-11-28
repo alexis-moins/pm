@@ -22,9 +22,15 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"path"
 
+	"github.com/alexis-moins/pm/internal/projects"
+	"github.com/alexis-moins/pm/internal/spaces"
+	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // newCmd represents the new command
@@ -33,14 +39,45 @@ var newCmd = &cobra.Command{
 	Short: "Create a new empty project",
 	Args:  cobra.ExactArgs(1),
 
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("new called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		projectName := args[0]
+		space, _ := cmd.Flags().GetString("space")
+
+		if projectRegex.Match([]byte(projectName)) {
+			if len(space) > 0 {
+				return errors.New("cannot use short format with the --space flag")
+			}
+
+			space = path.Dir(projectName)
+			projectName = path.Base(projectName)
+		} else {
+			if len(space) == 0 {
+				space = viper.GetString("default")
+			}
+		}
+
+		if !spaces.IsValid(space) {
+			message := fmt.Sprintf("%s is not a valid space. See %s", space,
+				styles.YellowUnderline.Render("pm space list"))
+
+			return errors.New(message)
+		}
+
+		if projects.Exists(space, projectName) {
+			return errors.New(fmt.Sprintf("project %s already exists in space %s", projectName, space))
+		}
+
+		println("run called")
+		return nil
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(newCmd)
 
-	newCmd.Flags().StringP("space", "s", "", "space to create the project in (REQUIRED)")
-	newCmd.MarkFlagRequired("space")
+	newCmd.Flags().StringP("space", "s", "", "space to create the project in")
+
+	newCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
+	})
 }
