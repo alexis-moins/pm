@@ -41,7 +41,9 @@ var newCmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		projectName := args[0]
+
 		space, _ := cmd.Flags().GetString("space")
+		git, _ := cmd.Flags().GetBool("git")
 
 		if projectRegex.Match([]byte(projectName)) {
 			if len(space) > 0 {
@@ -67,7 +69,17 @@ var newCmd = &cobra.Command{
 			return errors.New(fmt.Sprintf("project %s already exists in space %s", projectName, space))
 		}
 
-		println("run called")
+		if err := projects.Create(space, projectName); err != nil {
+			return err
+		}
+
+		styles.Success(fmt.Sprintf("Created project %s in space %s", projectName, space))
+
+		if git {
+			if output, err := projects.InitGitRepository(projects.GetPath(space, projectName)); err != nil {
+				return errors.New(output)
+			}
+		}
 		return nil
 	},
 }
@@ -80,4 +92,6 @@ func init() {
 	newCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
 	})
+
+	newCmd.Flags().BoolP("git", "g", false, "init a git repository")
 }

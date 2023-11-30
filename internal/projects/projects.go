@@ -3,6 +3,7 @@ package projects
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"slices"
 
@@ -39,7 +40,7 @@ func ListAllProjects() map[string][]string {
 	projects := map[string][]string{}
 
 	for _, space := range spaces {
-        key := projects[space]
+		key := projects[space]
 
 		entries, err := os.ReadDir(_spaces.GetPath(space))
 
@@ -49,11 +50,11 @@ func ListAllProjects() map[string][]string {
 
 		for _, file := range entries {
 			if file.IsDir() && !slices.Contains(spaces, path.Join(space, file.Name())) {
-                key = append(key, file.Name())
+				key = append(key, file.Name())
 			}
 		}
 
-        projects[space] = key
+		projects[space] = key
 	}
 
 	return projects
@@ -72,10 +73,26 @@ func ListProjectsPorcelain() []string {
 
 		for _, file := range entries {
 			if file.IsDir() && !slices.Contains(spaces, path.Join(space, file.Name())) {
-                projects = append(projects, fmt.Sprintf("%s/%s", space, file.Name()))
+				projects = append(projects, fmt.Sprintf("%s/%s", space, file.Name()))
 			}
 		}
 	}
 
 	return projects
+}
+
+func Create(space, project string) error {
+	path := GetPath(space, project)
+
+	if err := os.Mkdir(path, 0750); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Initialize a new empty git repository in the recipe book.
+func InitGitRepository(path string) (string, error) {
+	output, err := exec.Command("git", "-C", path, "init").CombinedOutput()
+	return string(output), err
 }
