@@ -11,7 +11,7 @@ import (
 // Return true if the given space is registred in the
 // pm configuration file.
 func IsRegistered(space string) bool {
-	if space == viper.GetString("default") {
+	if space == viper.GetString("default_space") {
 		return true
 	}
 

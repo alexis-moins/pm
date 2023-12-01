@@ -52,7 +52,7 @@ var cloneCmd = &cobra.Command{
 		nameFlag, _ := cmd.Flags().GetString("name")
 
 		if len(space) == 0 {
-			space = viper.GetString("default")
+			space = viper.GetString("default_space")
 		}
 
 		if !repositoryRegex.Match([]byte(repository)) {

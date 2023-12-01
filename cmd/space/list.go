@@ -38,7 +38,7 @@ var listCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		spaceList := viper.GetStringSlice("spaces")
-		defaultSpace := viper.GetString("default")
+		defaultSpace := viper.GetString("default_space")
 
 		for _, space := range spaceList {
 			if space == defaultSpace {

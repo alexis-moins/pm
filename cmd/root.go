@@ -22,6 +22,7 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"path"
 
@@ -39,13 +40,13 @@ var RootCmd = &cobra.Command{
 	SilenceUsage: true,
 
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		defaultSpace := viper.GetString("default")
+		defaultSpace := viper.GetString("default_space")
 
 		if err := os.MkdirAll(spaces.GetPath(defaultSpace), 0750); err != nil {
 			return err
 		}
 
-        return nil
+		return nil
 	},
 }
 
@@ -59,21 +60,28 @@ func Execute() {
 }
 
 func init() {
-	HOME := os.Getenv("HOME")
+	home, err := os.UserHomeDir()
+
+	if err != nil {
+		fmt.Println(fmt.Sprintf("%s unable to retrieve home directory", styles.Red.Render("pm:")))
+		os.Exit(1)
+	}
 
 	viper.SetEnvPrefix("PM")
-	viper.AutomaticEnv()
 
-	viper.SetDefault("HOME", path.Join(HOME, "dev"))
+	viper.BindEnv("HOME")
+	viper.BindEnv("DEFAULT_SPACE")
+
+	viper.SetDefault("home", path.Join(home, "dev"))
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 
-	configPath := path.Join(HOME, ".config/pm")
+	configPath := path.Join(home, ".config/pm")
 
 	viper.AddConfigPath(configPath)
 
-	viper.SetDefault("default", "default")
+	viper.SetDefault("default_space", "default")
 	viper.SetDefault("spaces", []string{"default"})
 
 	if err := viper.ReadInConfig(); err != nil {

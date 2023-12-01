@@ -54,7 +54,7 @@ var newCmd = &cobra.Command{
 			projectName = path.Base(projectName)
 		} else {
 			if len(space) == 0 {
-				space = viper.GetString("default")
+				space = viper.GetString("default_space")
 			}
 		}
 

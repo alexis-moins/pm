@@ -64,7 +64,7 @@ Usage:
 
 Project Commands:
   clone       Clone a remote git repository
-  list        List projects in all spaces
+  list        List projects
   open        Open a project in a tmux session
 
 Additional Commands:
