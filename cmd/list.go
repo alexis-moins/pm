@@ -41,8 +41,7 @@ var listCmd = &cobra.Command{
 	GroupID: "project",
 	Aliases: []string{"ls"},
 	Example: `  pm list
-  pm list --space personal
-  pm list --filter recipe`,
+  pm list -s personal -f recipe`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		space, _ := cmd.Flags().GetString("space")

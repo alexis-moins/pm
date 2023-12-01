@@ -98,11 +98,11 @@ var openCmd = &cobra.Command{
 		windows := strings.Split(string(output), "\n")
 		projectPath := projects.GetPath(space, projectName)
 
-		shortFormat := fmt.Sprintf("%s/%s", space, projectName)
+		tmuxFormat := fmt.Sprintf("%s|%s", space, projectName)
 
 		for _, window := range windows {
 			if window == fmt.Sprintf("%s: %s", projectName, projectPath) {
-				_, err := tmux.Attach(shortFormat)
+				_, err := tmux.Attach(tmuxFormat)
 
 				if err != nil {
 					fmt.Printf("err: %v\n", err)
@@ -114,7 +114,7 @@ var openCmd = &cobra.Command{
 		}
 
 		// No session was found
-		tmux.CreateSession(shortFormat, projectPath)
+		tmux.CreateSession(tmuxFormat, projectPath)
 		return nil
 	},
 }

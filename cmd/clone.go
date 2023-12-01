@@ -43,8 +43,7 @@ var cloneCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	GroupID: "project",
 	Example: `  pm clone alexis-moins/recipe
-  pm clone neovim/neovim --name nvim
-  pm clone alexis-moins/recipe --space personal`,
+  pm clone neovim/neovim -n nvim -s tools`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		repository := args[0]
