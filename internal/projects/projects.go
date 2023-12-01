@@ -34,33 +34,26 @@ func GetPath(space, project string) string {
 	return path.Join(_spaces.GetPath(space), project)
 }
 
-// Return the list of projects in all registered spaces.
-func ListAllProjects() map[string][]string {
+func ListProjectsInSpace(space string) []string {
 	spaces := viper.GetStringSlice("spaces")
-	projects := map[string][]string{}
 
-	for _, space := range spaces {
-		key := projects[space]
+	projects := []string{}
+    entries, err := os.ReadDir(_spaces.GetPath(space))
 
-		entries, err := os.ReadDir(_spaces.GetPath(space))
+    if err != nil {
+        return []string{}
+    }
 
-		if err != nil {
-			continue
-		}
-
-		for _, file := range entries {
-			if file.IsDir() && !slices.Contains(spaces, path.Join(space, file.Name())) {
-				key = append(key, file.Name())
-			}
-		}
-
-		projects[space] = key
-	}
+    for _, file := range entries {
+        if file.IsDir() && !slices.Contains(spaces, path.Join(space, file.Name())) {
+            projects = append(projects, fmt.Sprintf("%s/%s", space, file.Name()))
+        }
+    }
 
 	return projects
 }
 
-func ListProjectsPorcelain() []string {
+func ListProjects() []string {
 	spaces := viper.GetStringSlice("spaces")
 	projects := []string{}
 
@@ -94,5 +87,13 @@ func Create(space, project string) error {
 // Initialize a new empty git repository in the recipe book.
 func InitGitRepository(path string) (string, error) {
 	output, err := exec.Command("git", "-C", path, "init").CombinedOutput()
+	return string(output), err
+}
+
+// Clone the repository in the given space, using the given project name.
+func Clone(repository, space, projectName string) (string, error) {
+	command := exec.Command("git", "clone", fmt.Sprintf("git@github.com:%s.git", repository), GetPath(space, projectName))
+
+	output, err := command.CombinedOutput()
 	return string(output), err
 }

@@ -24,8 +24,6 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"os"
-	"os/exec"
 	"path"
 	"regexp"
 
@@ -45,11 +43,14 @@ var cloneCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	GroupID: "project",
 	Example: `  pm clone alexis-moins/recipe
+  pm clone neovim/neovim --name nvim
   pm clone alexis-moins/recipe --space personal`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		repository := args[0]
+
 		space, _ := cmd.Flags().GetString("space")
+		nameFlag, _ := cmd.Flags().GetString("name")
 
 		if len(space) == 0 {
 			space = viper.GetString("default")
@@ -68,19 +69,20 @@ var cloneCmd = &cobra.Command{
 
 		}
 
-		projectName := path.Base(repository)
+		var projectName string
+
+		if len(nameFlag) > 0 {
+			projectName = nameFlag
+		} else {
+			projectName = path.Base(repository)
+		}
 
 		if _projects.Exists(space, projectName) {
 			return errors.New(fmt.Sprintf("project %s already exists in space %s", projectName, space))
 		}
 
-		command := exec.Command("git", "clone", fmt.Sprintf("git@github.com:%s.git", repository),
-			_projects.GetPath(space, projectName))
-
-		command.Stdout = os.Stdout
-
-		if err := command.Run(); err != nil {
-			return err
+		if output, err := _projects.Clone(repository, space, projectName); err != nil {
+			return errors.New(output)
 		}
 
 		message := fmt.Sprintf("Cloned project %s in space %s", projectName, space)
@@ -94,6 +96,7 @@ func init() {
 	RootCmd.AddCommand(cloneCmd)
 
 	cloneCmd.Flags().StringP("space", "s", "", "space to clone in")
+	cloneCmd.Flags().StringP("name", "n", "", "name of the project")
 
 	cloneCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp

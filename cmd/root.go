@@ -35,7 +35,7 @@ import (
 var RootCmd = &cobra.Command{
 	Use:          "pm",
 	Short:        "Project manager built on top of tmux",
-	Version:      "0.0.1",
+	Version:      "0.2.0",
 	SilenceUsage: true,
 
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {

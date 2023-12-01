@@ -51,7 +51,7 @@ var openCmd = &cobra.Command{
 
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		if len(args) == 0 {
-			return projects.ListProjectsPorcelain(), cobra.ShellCompDirectiveNoFileComp
+			return projects.ListProjects(), cobra.ShellCompDirectiveNoFileComp
 		}
 
 		return []string{}, cobra.ShellCompDirectiveNoFileComp

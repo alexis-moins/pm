@@ -22,55 +22,65 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"slices"
+	"strings"
 
 	_projects "github.com/alexis-moins/pm/internal/projects"
+	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:     "list",
-	Short:   "List projects in all spaces",
+	Short:   "List projects",
 	GroupID: "project",
 	Aliases: []string{"ls"},
 	Example: `  pm list
-  pm list --short`,
-	Run: func(cmd *cobra.Command, args []string) {
-		spaces := _projects.ListAllProjects()
+  pm list --space personal
+  pm list --filter recipe`,
 
-		short, _ := cmd.Flags().GetBool("short")
-		// filter, _ := cmd.Flags().GetBool("filter")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		space, _ := cmd.Flags().GetString("space")
+		filter, _ := cmd.Flags().GetString("filter")
 
-		for space, projects := range spaces {
-			if !short && len(projects) > 0 {
-				header := styles.Yellow.Render(fmt.Sprintf("[%s]", space))
-				fmt.Println(header)
+		var projects []string
+
+		if len(space) > 0 {
+			if !spaces.IsValid(space) {
+				message := fmt.Sprintf("%s is not a valid space. See %s", space,
+					styles.YellowUnderline.Render("pm space list"))
+
+				return errors.New(message)
 			}
 
-			for _, project := range projects {
-				var format string
-
-				if !short {
-					format = fmt.Sprintf("%s", project)
-				} else {
-					format = fmt.Sprintf("%s/%s", space, project)
-				}
-
-				fmt.Println(format)
-			}
-
-			if !short {
-				fmt.Println()
-			}
+			projects = _projects.ListProjectsInSpace(space)
+		} else {
+			projects = _projects.ListProjects()
 		}
+
+		if len(filter) > 0 {
+			projects = slices.DeleteFunc(projects, func(project string) bool {
+				return !strings.Contains(project, filter)
+			})
+		}
+
+		fmt.Println(strings.Join(projects, "\n"))
+		return nil
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(listCmd)
 
-	listCmd.Flags().BoolP("short", "S", false, "Give the output in a stable, easy-to-parse format")
 	listCmd.Flags().StringP("filter", "f", "", "Filter output by project name")
+	listCmd.Flags().StringP("space", "s", "", "space to list pojects in")
+
+	listCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
+	})
 }
