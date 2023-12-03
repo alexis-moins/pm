@@ -24,6 +24,7 @@ package space
 import (
 	"fmt"
 
+	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -41,7 +42,9 @@ var listCmd = &cobra.Command{
 		defaultSpace := viper.GetString("default_space")
 
 		for _, space := range spaceList {
-			if space == defaultSpace {
+			if !spaces.Exists(space) {
+				fmt.Printf("%s %s\n", styles.Red.Render("M"), space)
+			} else if space == defaultSpace {
 				fmt.Printf("%s %s\n", styles.Green.Render("D"), space)
 			} else {
 				fmt.Printf("  %s\n", space)

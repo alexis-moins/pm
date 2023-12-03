@@ -22,49 +22,65 @@ THE SOFTWARE.
 package space
 
 import (
-	"errors"
 	"fmt"
-	"os"
+	"slices"
 
 	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-// addCmd represents the add command
-var addCmd = &cobra.Command{
-	Use:     "add <space>",
-	Short:   "Add a new space",
-	Args:    cobra.ExactArgs(1),
-	Example: "  pm space add personal",
+// fixCmd represents the fix command
+var fixCmd = &cobra.Command{
+	Use:   "fix",
+	Short: "Fix registered spaces",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		space := args[0]
+		spaceList := viper.GetStringSlice("spaces")
+		force, _ := cmd.Flags().GetBool("force")
 
-		if !spaces.Exists(space) {
-			if err := os.MkdirAll(spaces.GetPath(space), 0750); err != nil {
-				return err
+		removedSpaces := []string{}
+
+		for _, space := range spaceList {
+			if !spaces.Exists(space) {
+				removedSpaces = append(removedSpaces, space)
 			}
 		}
 
-		if spaces.IsRegistered(space) {
-			message := fmt.Sprintf("space %s has already been added", space)
-			return errors.New(message)
+		if len(removedSpaces) == 0 {
+			styles.Success("No spaces to fix")
+			return nil
 		}
 
-		err := spaces.Add(space)
+		message := fmt.Sprintf("This operation would remove %d space(s)", len(removedSpaces))
+		fmt.Println(message)
 
-		if err != nil {
-			return err
+		for _, space := range removedSpaces {
+			fmt.Printf("%s %s\n", styles.Red.Render("*"), space)
+
+			if force {
+				spaceList = slices.DeleteFunc(spaceList, func(s string) bool {
+					return s == space
+				})
+			}
 		}
 
-		message := fmt.Sprintf("added space %s", space)
-		styles.Success(message)
+		if force && len(removedSpaces) > 0 {
+			viper.Set("spaces", spaceList)
+			println("hello")
+
+			if err := viper.WriteConfig(); err != nil {
+				return err
+			}
+		}
 
 		return nil
 	},
 }
 
 func init() {
-	spaceCmd.AddCommand(addCmd)
+	spaceCmd.AddCommand(fixCmd)
+
+	fixCmd.Flags().BoolP("force", "f", false, "force fixes to happen")
 }
