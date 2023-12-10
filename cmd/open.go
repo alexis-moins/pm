@@ -71,20 +71,22 @@ var openCmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		projectName := args[0]
+
 		space, _ := cmd.Flags().GetString("space")
+		short, _ := cmd.Flags().GetBool("short")
 
-		if projectRegex.Match([]byte(projectName)) {
-			if len(space) > 0 {
-				return errors.New("cannot use short format with the --space flag")
-			}
-
-			space = path.Dir(projectName)
-			projectName = path.Base(projectName)
-		} else {
-			if len(space) == 0 {
-				space = viper.GetString("default_space")
-			}
+		if short {
+            if projectRegex.Match([]byte(projectName)) {
+                space = path.Dir(projectName)
+                projectName = path.Base(projectName)
+            } else {
+                return errors.New("unable to parse short format. Use <space>/<project>")
+            }
 		}
+
+        if len(space) == 0 {
+            space = viper.GetString("default_space")
+        }
 
 		if !spaces.IsValid(space) {
 			message := fmt.Sprintf("%s is not a valid space. See %s", space,
@@ -110,7 +112,7 @@ var openCmd = &cobra.Command{
 		windows := strings.Split(string(output), "\n")
 		projectPath := projects.GetPath(space, projectName)
 
-		tmuxFormat := fmt.Sprintf("%s|%s", space, projectName)
+		tmuxFormat := fmt.Sprintf("%s/%s", space, projectName)
 
 		for _, window := range windows {
 			if window == fmt.Sprintf("%s: %s", projectName, projectPath) {

@@ -44,7 +44,7 @@ var newCmd = &cobra.Command{
 		projectName := args[0]
 
 		space, _ := cmd.Flags().GetString("space")
-		git, _ := cmd.Flags().GetBool("git")
+		noGit, _ := cmd.Flags().GetBool("no-git")
 
 		if projectRegex.Match([]byte(projectName)) {
 			if len(space) > 0 {
@@ -76,12 +76,15 @@ var newCmd = &cobra.Command{
 
 		styles.Success(fmt.Sprintf("Created project %s in space %s", projectName, space))
 
-		if git {
-			if output, err := projects.InitGitRepository(projects.GetPath(space, projectName)); err != nil {
-				return errors.New(output)
-			}
-		}
-		return nil
+		if noGit {
+            return nil
+        }
+
+        if output, err := projects.InitGitRepository(projects.GetPath(space, projectName)); err != nil {
+            return errors.New(output)
+        }
+
+        return nil
 	},
 }
 
@@ -94,5 +97,5 @@ func init() {
 		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
 	})
 
-	newCmd.Flags().BoolP("git", "g", false, "init a git repository")
+	newCmd.Flags().BoolP("no-git", "n", false, "don't initialize a git repository")
 }
