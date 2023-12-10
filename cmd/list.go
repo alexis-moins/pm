@@ -57,7 +57,7 @@ var listCmd = &cobra.Command{
 				return errors.New(message)
 			}
 
-			projects = _projects.ListProjectsInSpace(space)
+			projects = _projects.ListProjectsInSpace(space, true)
 		} else {
 			projects = _projects.ListProjects()
 		}

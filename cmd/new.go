@@ -35,9 +35,10 @@ import (
 
 // newCmd represents the new command
 var newCmd = &cobra.Command{
-	Use:   "new <name>",
-	Short: "Create a new empty project",
-	Args:  cobra.ExactArgs(1),
+	Use:     "new <name>",
+	Short:   "Create a new empty project",
+	GroupID: "project",
+	Args:    cobra.ExactArgs(1),
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		projectName := args[0]

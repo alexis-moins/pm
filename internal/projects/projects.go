@@ -34,21 +34,27 @@ func GetPath(space, project string) string {
 	return path.Join(_spaces.GetPath(space), project)
 }
 
-func ListProjectsInSpace(space string) []string {
+func ListProjectsInSpace(space string, addPrefix bool) []string {
 	spaces := viper.GetStringSlice("spaces")
 
 	projects := []string{}
-    entries, err := os.ReadDir(_spaces.GetPath(space))
+	entries, err := os.ReadDir(_spaces.GetPath(space))
 
-    if err != nil {
-        return []string{}
-    }
+	if err != nil {
+		return []string{}
+	}
 
-    for _, file := range entries {
-        if file.IsDir() && !slices.Contains(spaces, path.Join(space, file.Name())) {
-            projects = append(projects, fmt.Sprintf("%s/%s", space, file.Name()))
-        }
-    }
+	for _, file := range entries {
+		if file.IsDir() && !slices.Contains(spaces, path.Join(space, file.Name())) {
+			entry := file.Name()
+
+			if addPrefix {
+				entry = space + "/" + entry
+			}
+
+			projects = append(projects, entry)
+		}
+	}
 
 	return projects
 }
