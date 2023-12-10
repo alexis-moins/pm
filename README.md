@@ -65,13 +65,13 @@ Usage:
 Project Commands:
   clone       Clone a remote git repository
   list        List projects
+  new         Create a new empty project
   open        Open a project in a tmux session
 
 Additional Commands:
   completion  Generate the autocompletion script for the specified shell
+  dir         Show the path to the directory managed by pm
   help        Help about any command
-  home        Show the pm home directory
-  new         Create a new empty project
   space       Create, delete and list spaces
 
 Flags:
