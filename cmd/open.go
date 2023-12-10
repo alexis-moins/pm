@@ -45,16 +45,28 @@ var openCmd = &cobra.Command{
 	Short:   "Open a project in a tmux session",
 	GroupID: "project",
 	Example: `  pm open recipe
-  pm open tools/neovim
+  pm open -S tools/neovim
   pm open neovim --space tools`,
 	Args: cobra.ExactArgs(1),
 
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		if len(args) == 0 {
+		if len(args) > 0 {
+			return []string{}, cobra.ShellCompDirectiveNoFileComp
+		}
+
+		short, _ := cmd.Flags().GetBool("short")
+
+		if short {
 			return projects.ListProjects(), cobra.ShellCompDirectiveNoFileComp
 		}
 
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
+		space, _ := cmd.Flags().GetString("space")
+
+		if len(space) > 0 {
+			return projects.ListProjectsInSpace(space, false), cobra.ShellCompDirectiveNoFileComp
+		}
+
+		return projects.ListProjectsInSpace(viper.GetString("default_space"), false), cobra.ShellCompDirectiveNoFileComp
 	},
 
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -127,4 +139,7 @@ func init() {
 	openCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
 	})
+
+	openCmd.Flags().BoolP("short", "S", false, "use <space>/<project> short format")
+    openCmd.MarkFlagsMutuallyExclusive("space", "short")
 }

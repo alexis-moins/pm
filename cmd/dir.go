@@ -28,10 +28,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// homeCmd represents the home command
-var homeCmd = &cobra.Command{
-	Use:   "home",
-	Short: "Show the pm home directory",
+// dirCmd represents the home command
+var dirCmd = &cobra.Command{
+	Use:   "dir",
+	Short: "Show the path to the directory managed by pm",
 
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(viper.GetString("HOME"))
@@ -39,5 +39,5 @@ var homeCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(homeCmd)
+	RootCmd.AddCommand(dirCmd)
 }
