@@ -1,0 +1,9 @@
+* TODO
+  - ( ) enable multiple spaces in *space add* and *space remove* commands
+
+  - ( ) add a *template* sub command:
+  -- ( ) add a *template list* command
+  -- ( ) add a *template add* command
+  -- ( ) add a *template remove* command
+  -- ( ) add a *template show* command
+  -- ( ) add a *template edit* command

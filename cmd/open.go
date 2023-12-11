@@ -24,10 +24,6 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path"
-	"regexp"
-	"strings"
 
 	"github.com/alexis-moins/pm/internal/projects"
 	"github.com/alexis-moins/pm/internal/spaces"
@@ -36,8 +32,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-var projectRegex = regexp.MustCompile(`^.+/.+$`)
 
 // openCmd represents the open command
 var openCmd = &cobra.Command{
@@ -76,17 +70,16 @@ var openCmd = &cobra.Command{
 		short, _ := cmd.Flags().GetBool("short")
 
 		if short {
-            if projectRegex.Match([]byte(projectName)) {
-                space = path.Dir(projectName)
-                projectName = path.Base(projectName)
-            } else {
-                return errors.New("unable to parse short format. Use <space>/<project>")
-            }
+			if !projects.IsInShortFormat(projectName) {
+				return errors.New("unable to parse short format. Use <space>/<project>")
+			}
+
+			space, projectName = projects.ParseShortFormat(projectName)
 		}
 
-        if len(space) == 0 {
-            space = viper.GetString("default_space")
-        }
+		if len(space) == 0 {
+			space = viper.GetString("default_space")
+		}
 
 		if !spaces.IsValid(space) {
 			message := fmt.Sprintf("%s is not a valid space. See %s", space,
@@ -102,33 +95,36 @@ var openCmd = &cobra.Command{
 			return errors.New(message)
 		}
 
-		output, err := tmux.Exec("list-windows", "-aF", "#S: #{pane_current_path}")
-
-		if err != nil {
-			fmt.Printf("err: %v\n", err)
-			os.Exit(1)
-		}
-
-		windows := strings.Split(string(output), "\n")
 		projectPath := projects.GetPath(space, projectName)
-
 		tmuxFormat := fmt.Sprintf("%s/%s", space, projectName)
 
-		for _, window := range windows {
-			if window == fmt.Sprintf("%s: %s", projectName, projectPath) {
-				_, err := tmux.Attach(tmuxFormat)
+		if tmux.IsRunning() {
+			windows, err := tmux.ListWindows()
 
-				if err != nil {
-					fmt.Printf("err: %v\n", err)
-					os.Exit(1)
+			if err != nil {
+				return err
+			}
+
+			for _, window := range windows {
+				if window == fmt.Sprintf("%s/%s: %s", space, projectName, projectPath) {
+					_, err := tmux.Attach(tmuxFormat)
+
+					if err != nil {
+						return err
+					}
+
+					return nil
 				}
-
-				os.Exit(0)
 			}
 		}
 
 		// No session was found
-		tmux.CreateSession(tmuxFormat, projectPath)
+		output, err := tmux.CreateSession(tmuxFormat, projectPath)
+
+		if err != nil {
+			return errors.New(output)
+		}
+
 		return nil
 	},
 }
@@ -143,5 +139,5 @@ func init() {
 	})
 
 	openCmd.Flags().BoolP("short", "S", false, "use <space>/<project> short format")
-    openCmd.MarkFlagsMutuallyExclusive("space", "short")
+	openCmd.MarkFlagsMutuallyExclusive("space", "short")
 }

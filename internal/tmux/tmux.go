@@ -1,14 +1,21 @@
 package tmux
 
 import (
+	"errors"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 var tmuxSocket = os.Getenv("TMUX")
 
 func insideTmux() bool {
 	return len(tmuxSocket) > 0
+}
+
+func IsRunning() bool {
+    _, err := Exec("info")
+    return err == nil
 }
 
 func Exec(arg ...string) (string, error) {
@@ -42,4 +49,16 @@ func CreateSession(name string, path string) (string, error) {
 	}
 
 	return Exec("new-session", "-c", path, "-s", name)
+}
+
+// ListWindows return the list of the windows present in the current tmux
+// server. Each windows has the format 'sessionName: panePath'.
+func ListWindows() ([]string, error) {
+	output, err := Exec("list-windows", "-aF", "#S: #{pane_current_path}")
+
+	if err != nil {
+		return []string{}, errors.New(output)
+	}
+
+	return strings.Split(string(output), "\n"), nil
 }

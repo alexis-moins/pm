@@ -5,11 +5,23 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 	"slices"
 
 	_spaces "github.com/alexis-moins/pm/internal/spaces"
 	"github.com/spf13/viper"
 )
+
+var shortFormatRegex = regexp.MustCompile(`^.+/.+$`)
+
+func IsInShortFormat(format string) bool {
+    return shortFormatRegex.Match([]byte(format))
+}
+
+// ParseShortFormat parses the given short format and return the space and the project name.
+func ParseShortFormat(format string) (string, string) {
+    return path.Dir(format), path.Base(format)
+}
 
 // Return true if the given project exists on the
 // given space (corresponds to an existing directory).

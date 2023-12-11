@@ -24,7 +24,6 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"path"
 
 	"github.com/alexis-moins/pm/internal/projects"
 	"github.com/alexis-moins/pm/internal/spaces"
@@ -46,13 +45,12 @@ var newCmd = &cobra.Command{
 		space, _ := cmd.Flags().GetString("space")
 		noGit, _ := cmd.Flags().GetBool("no-git")
 
-		if projectRegex.Match([]byte(projectName)) {
+		if projects.IsInShortFormat(projectName) {
 			if len(space) > 0 {
 				return errors.New("cannot use short format with the --space flag")
 			}
 
-			space = path.Dir(projectName)
-			projectName = path.Base(projectName)
+			space, projectName = projects.ParseShortFormat(projectName)
 		} else {
 			if len(space) == 0 {
 				space = viper.GetString("default_space")
@@ -77,14 +75,14 @@ var newCmd = &cobra.Command{
 		styles.Success(fmt.Sprintf("Created project %s in space %s", projectName, space))
 
 		if noGit {
-            return nil
-        }
+			return nil
+		}
 
-        if output, err := projects.InitGitRepository(projects.GetPath(space, projectName)); err != nil {
-            return errors.New(output)
-        }
+		if output, err := projects.InitGitRepository(projects.GetPath(space, projectName)); err != nil {
+			return errors.New(output)
+		}
 
-        return nil
+		return nil
 	},
 }
 
