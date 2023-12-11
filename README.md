@@ -26,12 +26,12 @@
 - git
 
 
-## Installation
+## 🧰 Installation
 ```bash
 go install github.com/alexis-moins/pm@latest
 ```
 
-## Quick Start
+## 🌱 Quick Start
 
 After installing, you can follow these steps to quickly see how it works:
 
@@ -52,7 +52,7 @@ pm open -S personal/portal
 pm clone alexis-moins/portfolio --space work
 ```
 
-## Usage
+## 🚦 Usage
 
 ```
 $ pm
