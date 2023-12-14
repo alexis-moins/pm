@@ -37,6 +37,9 @@ var newCmd = &cobra.Command{
 	Use:     "new <name>",
 	Short:   "Create a new empty project",
 	GroupID: "project",
+    Example: `  pm new portfolio
+  pm new portfolio -s personal --no-git
+  pm new portfolio -t cargo-new -t recipe-use`,
 	Args:    cobra.ExactArgs(1),
 
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -44,6 +47,11 @@ var newCmd = &cobra.Command{
 
 		space, _ := cmd.Flags().GetString("space")
 		noGit, _ := cmd.Flags().GetBool("no-git")
+
+		templates, _ := cmd.Flags().GetStringSlice("templates")
+        fmt.Printf("templates: %v\n", templates)
+
+        return nil
 
 		if projects.IsInShortFormat(projectName) {
 			if len(space) > 0 {
@@ -96,4 +104,5 @@ func init() {
 	})
 
 	newCmd.Flags().BoolP("no-git", "n", false, "don't initialize a git repository")
+	newCmd.Flags().StringSliceP("templates", "t", []string{"make-dir", "git-init"}, "templates used to create the project")
 }

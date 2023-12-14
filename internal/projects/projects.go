@@ -14,6 +14,8 @@ import (
 
 var shortFormatRegex = regexp.MustCompile(`^.+/.+$`)
 
+// IsInShortFormat returns true if the given format follows the short format
+// convention which is 'spaceName/projectName'.
 func IsInShortFormat(format string) bool {
     return shortFormatRegex.Match([]byte(format))
 }

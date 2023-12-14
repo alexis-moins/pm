@@ -19,14 +19,51 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package main
+package template
 
 import (
-	"github.com/alexis-moins/pm/cmd"
-	_ "github.com/alexis-moins/pm/cmd/space"
-	_ "github.com/alexis-moins/pm/cmd/template"
+	"fmt"
+	"strings"
+
+	_templates "github.com/alexis-moins/pm/internal/templates"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-func main() {
-	cmd.Execute()
+// addCmd represents the add command
+var addCmd = &cobra.Command{
+	Use:     "add <name> [template]",
+	Short:   "Add a new template",
+	Args:    cobra.MinimumNArgs(1),
+	Example: `  pm template add cargo-new "cargo new PATH"`,
+
+	RunE: func(cmd *cobra.Command, args []string) error {
+		fmt.Println("add called")
+
+        templates, err := _templates.ListTemplates()
+
+        if err != nil {
+            return err
+        }
+
+        fmt.Printf("templates: %v\n", templates)
+
+        newTemplate := _templates.Template{
+            Commands: []string{strings.Join(args[1:], " ")},
+            FromInside: false,
+        }
+
+        templates[args[0]] = newTemplate
+
+        viper.Set("templates", templates)
+        viper.WriteConfig()
+
+		return nil
+	},
+}
+
+func init() {
+	templateCmd.AddCommand(addCmd)
+
+    addCmd.Flags().BoolP("from-inside", "f", false, "the template must be run inside the project")
 }

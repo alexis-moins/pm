@@ -72,6 +72,8 @@ func init() {
 	viper.BindEnv("HOME")
 	viper.BindEnv("DEFAULT_SPACE")
 
+    viper.RegisterAlias("default_space", "defaultSpace")
+
 	viper.SetDefault("home", path.Join(home, "dev"))
 
 	viper.SetConfigName("config")
@@ -81,7 +83,7 @@ func init() {
 
 	viper.AddConfigPath(configPath)
 
-	viper.SetDefault("default_space", "default")
+	viper.SetDefault("defaultSpace", "default")
 	viper.SetDefault("spaces", []string{"default"})
 
 	if err := viper.ReadInConfig(); err != nil {
