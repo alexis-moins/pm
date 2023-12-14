@@ -22,26 +22,45 @@ THE SOFTWARE.
 package script
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 
 	scriptsLib "github.com/alexis-moins/pm/internal/scripts"
+	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
-	Use:     "add <name> [template]",
-	Short:   "Add a new template",
-	Args:    cobra.MinimumNArgs(1),
-	Example: `  pm template add cargo-new "cargo new PATH"`,
+	Use:     "add <name> [command]",
+	Short:   "Add a new script",
+	Args:    cobra.MinimumNArgs(2),
+	Example: `  pm script add cargo-new cargo new PATH`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-        init, _ := cmd.Flags().GetBool("init")
+		init, _ := cmd.Flags().GetBool("init")
 
-        script := scriptsLib.New([]string{strings.Join(args[1:], " ")}, init)
+		scriptName := args[0]
+		commands := strings.Join(args[1:], " ")
 
-		viper.Set("scripts." + args[0], script)
+		scripts, err := scriptsLib.ListScripts()
+
+		if err != nil {
+			return err
+		}
+
+		if _, ok := scripts[scriptName]; ok {
+			message := fmt.Sprintf("script %s already exists. See %s",
+				scriptName, styles.YellowUnderline.Render("pm script list"))
+
+			return errors.New(message)
+		}
+
+		script := scriptsLib.New([]string{commands}, init)
+
+		viper.Set("scripts."+scriptName, script)
 		viper.WriteConfig()
 
 		return nil

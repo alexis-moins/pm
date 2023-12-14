@@ -19,40 +19,41 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package space
+package script
 
 import (
 	"fmt"
 
-	"github.com/alexis-moins/pm/internal/spaces"
+	scriptsLib "github.com/alexis-moins/pm/internal/scripts"
 	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// addCmd represents the add command
+// listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:     "list",
-	Short:   "List registered spaces",
 	Aliases: []string{"ls"},
-	Example: "  pm space list",
+	Short:   "List scripts",
 
-	Run: func(cmd *cobra.Command, args []string) {
-		spaceList := viper.GetStringSlice("spaces.list")
-		defaultSpace := viper.GetString("spaces.default")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		scripts, err := scriptsLib.ListScripts()
 
-		for _, space := range spaceList {
-			if !spaces.Exists(space) {
-				fmt.Printf("%s  %s\n", styles.Red.Render("M"), space)
-			} else if space == defaultSpace {
-				fmt.Printf("%s  %s\n", styles.Green.Render("D"), space)
+		if err != nil {
+			return err
+		}
+
+		for name, script := range scripts {
+			if script.Init {
+				fmt.Printf("%s  %s\n", styles.Green.Render("I"), name)
 			} else {
-				fmt.Printf("   %s\n", space)
+				fmt.Printf("   %s\n", name)
 			}
 		}
+
+		return nil
 	},
 }
 
 func init() {
-	spaceCmd.AddCommand(listCmd)
+	scriptCmd.AddCommand(listCmd)
 }
