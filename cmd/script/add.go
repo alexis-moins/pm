@@ -61,8 +61,11 @@ var addCmd = &cobra.Command{
 		script := scriptsLib.New([]string{commands}, init)
 
 		viper.Set("scripts."+scriptName, script)
-		viper.WriteConfig()
+		if err := viper.WriteConfig(); err != nil {
+			return err
+		}
 
+		styles.Success("Added script " + scriptName)
 		return nil
 	},
 }

@@ -22,11 +22,13 @@ THE SOFTWARE.
 package script
 
 import (
+	"errors"
 	"fmt"
 
 	scriptsLib "github.com/alexis-moins/pm/internal/scripts"
 	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // removeCmd represents the remove command
@@ -41,14 +43,24 @@ var removeCmd = &cobra.Command{
 			return err
 		}
 
-		for name, script := range scripts {
-			if script.Init {
-				fmt.Printf("%s  %s\n", styles.Green.Render("I"), name)
-			} else {
-				fmt.Printf("   %s\n", name)
-			}
+		scriptName := args[0]
+		_, ok := scripts[scriptName]
+
+		if !ok {
+			message := fmt.Sprintf("script %s not found. See %s", scriptName,
+				styles.YellowUnderline.Render("pm script list"))
+
+			return errors.New(message)
 		}
 
+		delete(scripts, scriptName)
+
+		viper.Set("scripts", scripts)
+		if err := viper.WriteConfig(); err != nil {
+			return err
+		}
+
+		styles.Success("Removed script " + scriptName)
 		return nil
 	},
 }
