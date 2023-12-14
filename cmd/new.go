@@ -61,7 +61,7 @@ var newCmd = &cobra.Command{
 			space, projectName = projects.ParseShortFormat(projectName)
 		} else {
 			if len(space) == 0 {
-				space = viper.GetString("default_space")
+				space = viper.GetString("spaces.list")
 			}
 		}
 
@@ -100,7 +100,7 @@ func init() {
 	newCmd.Flags().StringP("space", "s", "", "space to create the project in")
 
 	newCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
+		return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
 	})
 
 	newCmd.Flags().BoolP("no-git", "n", false, "don't initialize a git repository")

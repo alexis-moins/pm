@@ -11,18 +11,18 @@ import (
 // Return true if the given space is registred in the
 // pm configuration file.
 func IsRegistered(space string) bool {
-	if space == viper.GetString("default_space") {
+	if space == viper.GetString("spaces.default") {
 		return true
 	}
 
-	spaces := viper.GetStringSlice("spaces")
+	spaces := viper.GetStringSlice("spaces.list")
 	return slices.Contains(spaces, space)
 }
 
 // Return true if the given space exists (corresponds
 // to an existing directory).
 func Exists(space string) bool {
-	HOME := viper.GetString("HOME")
+	HOME := viper.GetString("global.home")
 	info, err := os.Stat(path.Join(HOME, space))
 
 	if err != nil {
@@ -44,7 +44,7 @@ func IsValid(space string) bool {
 
 // Add a space to the registered spaces.
 func Add(space string) error {
-	spaceList := viper.GetStringSlice("spaces")
+	spaceList := viper.GetStringSlice("spaces.list")
 
 	spaceList = append(spaceList, space)
 	viper.Set("spaces", spaceList)
@@ -54,7 +54,7 @@ func Add(space string) error {
 
 // Remove a space from the registered spaces.
 func Remove(space string) error {
-	spaceList := viper.GetStringSlice("spaces")
+	spaceList := viper.GetStringSlice("spaces.list")
 
 	spaceList = slices.DeleteFunc(spaceList, func(_space string) bool {
 		return _space == space
@@ -66,6 +66,6 @@ func Remove(space string) error {
 
 // Return the full path to the space.
 func GetPath(space string) string {
-	HOME := viper.GetString("HOME")
+	HOME := viper.GetString("global.home")
 	return path.Join(HOME, space)
 }

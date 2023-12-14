@@ -43,7 +43,7 @@ var removeCmd = &cobra.Command{
 		if len(args) > 0 {
 			return []string{}, cobra.ShellCompDirectiveNoFileComp
 		}
-		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
+		return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
 	},
 
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -74,6 +74,6 @@ func init() {
 	spaceCmd.AddCommand(removeCmd)
 
 	removeCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
+		return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
 	})
 }

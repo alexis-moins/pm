@@ -24,7 +24,7 @@ package main
 import (
 	"github.com/alexis-moins/pm/cmd"
 	_ "github.com/alexis-moins/pm/cmd/space"
-	_ "github.com/alexis-moins/pm/cmd/template"
+	_ "github.com/alexis-moins/pm/cmd/script"
 )
 
 func main() {

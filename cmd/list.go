@@ -80,6 +80,6 @@ func init() {
 	listCmd.Flags().StringP("space", "s", "", "space to list pojects in")
 
 	listCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
+		return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
 	})
 }

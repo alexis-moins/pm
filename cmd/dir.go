@@ -34,7 +34,7 @@ var dirCmd = &cobra.Command{
 	Short: "Show the path to the directory managed by pm",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(viper.GetString("HOME"))
+		fmt.Println(viper.GetString("global.home"))
 	},
 }
 

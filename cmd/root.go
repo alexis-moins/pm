@@ -40,7 +40,7 @@ var RootCmd = &cobra.Command{
 	SilenceUsage: true,
 
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		defaultSpace := viper.GetString("default_space")
+		defaultSpace := viper.GetString("spaces.default")
 
 		if err := os.MkdirAll(spaces.GetPath(defaultSpace), 0750); err != nil {
 			return err
@@ -72,19 +72,17 @@ func init() {
 	viper.BindEnv("HOME")
 	viper.BindEnv("DEFAULT_SPACE")
 
-    viper.RegisterAlias("default_space", "defaultSpace")
-
-	viper.SetDefault("home", path.Join(home, "dev"))
+	viper.SetDefault("global.home", path.Join(home, "dev"))
 
 	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
+    viper.SetConfigType("json")
 
 	configPath := path.Join(home, ".config/pm")
 
 	viper.AddConfigPath(configPath)
 
-	viper.SetDefault("defaultSpace", "default")
-	viper.SetDefault("spaces", []string{"default"})
+	viper.SetDefault("spaces.default", "default")
+	viper.SetDefault("spaces.list", []string{"default"})
 
 	if err := viper.ReadInConfig(); err != nil {
 		if err := os.MkdirAll(configPath, 0750); err != nil {

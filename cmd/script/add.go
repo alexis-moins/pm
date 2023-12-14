@@ -19,13 +19,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package template
+package script
 
 import (
-	"fmt"
 	"strings"
 
-	_templates "github.com/alexis-moins/pm/internal/templates"
+	scriptsLib "github.com/alexis-moins/pm/internal/scripts"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -38,32 +37,19 @@ var addCmd = &cobra.Command{
 	Example: `  pm template add cargo-new "cargo new PATH"`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("add called")
+        init, _ := cmd.Flags().GetBool("init")
 
-        templates, err := _templates.ListTemplates()
+        script := scriptsLib.New([]string{strings.Join(args[1:], " ")}, init)
 
-        if err != nil {
-            return err
-        }
-
-        fmt.Printf("templates: %v\n", templates)
-
-        newTemplate := _templates.Template{
-            Commands: []string{strings.Join(args[1:], " ")},
-            FromInside: false,
-        }
-
-        templates[args[0]] = newTemplate
-
-        viper.Set("templates", templates)
-        viper.WriteConfig()
+		viper.Set("scripts." + args[0], script)
+		viper.WriteConfig()
 
 		return nil
 	},
 }
 
 func init() {
-	templateCmd.AddCommand(addCmd)
+	scriptCmd.AddCommand(addCmd)
 
-    addCmd.Flags().BoolP("from-inside", "f", false, "the template must be run inside the project")
+	addCmd.Flags().BoolP("init", "i", false, "the script creates the directory itself")
 }

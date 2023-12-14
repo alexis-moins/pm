@@ -49,7 +49,7 @@ func GetPath(space, project string) string {
 }
 
 func ListProjectsInSpace(space string, addPrefix bool) []string {
-	spaces := viper.GetStringSlice("spaces")
+	spaces := viper.GetStringSlice("spaces.list")
 
 	projects := []string{}
 	entries, err := os.ReadDir(_spaces.GetPath(space))
@@ -74,7 +74,7 @@ func ListProjectsInSpace(space string, addPrefix bool) []string {
 }
 
 func ListProjects() []string {
-	spaces := viper.GetStringSlice("spaces")
+	spaces := viper.GetStringSlice("spaces.list")
 	projects := []string{}
 
 	for _, space := range spaces {

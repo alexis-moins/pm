@@ -37,7 +37,7 @@ var fixCmd = &cobra.Command{
 	Short: "Fix registered spaces",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		spaceList := viper.GetStringSlice("spaces")
+		spaceList := viper.GetStringSlice("spaces.list")
 		force, _ := cmd.Flags().GetBool("force")
 
 		removedSpaces := []string{}

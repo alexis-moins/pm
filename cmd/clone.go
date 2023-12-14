@@ -52,7 +52,7 @@ var cloneCmd = &cobra.Command{
 		nameFlag, _ := cmd.Flags().GetString("name")
 
 		if len(space) == 0 {
-			space = viper.GetString("default_space")
+			space = viper.GetString("spaces.default")
 		}
 
 		if !repositoryRegex.Match([]byte(repository)) {
@@ -98,6 +98,6 @@ func init() {
 	cloneCmd.Flags().StringP("name", "n", "", "name of the project")
 
 	cloneCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
+		return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
 	})
 }

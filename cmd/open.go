@@ -60,7 +60,7 @@ var openCmd = &cobra.Command{
 			return projects.ListProjectsInSpace(space, false), cobra.ShellCompDirectiveNoFileComp
 		}
 
-		return projects.ListProjectsInSpace(viper.GetString("default_space"), false), cobra.ShellCompDirectiveNoFileComp
+		return projects.ListProjectsInSpace(viper.GetString("spaces.default"), false), cobra.ShellCompDirectiveNoFileComp
 	},
 
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -78,7 +78,7 @@ var openCmd = &cobra.Command{
 		}
 
 		if len(space) == 0 {
-			space = viper.GetString("default_space")
+			space = viper.GetString("spaces.default")
 		}
 
 		if !spaces.IsValid(space) {
@@ -135,7 +135,7 @@ func init() {
 	openCmd.Flags().StringP("space", "s", "", "space to search in")
 
 	openCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return viper.GetStringSlice("spaces"), cobra.ShellCompDirectiveNoFileComp
+		return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
 	})
 
 	openCmd.Flags().BoolP("short", "S", false, "use <space>/<project> short format")

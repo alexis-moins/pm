@@ -19,19 +19,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package template
+package script
 
 import (
 	"github.com/alexis-moins/pm/cmd"
 	"github.com/spf13/cobra"
 )
 
-// templateCmd represents the space command
-var templateCmd = &cobra.Command{
-	Use:   "template",
-	Short: "Create, delete and list templates",
+// scriptCmd represents the script command
+var scriptCmd = &cobra.Command{
+	Use:   "script",
+	Short: "Create, delete and list scripts",
 }
 
 func init() {
-	cmd.RootCmd.AddCommand(templateCmd)
+	cmd.RootCmd.AddCommand(scriptCmd)
 }
