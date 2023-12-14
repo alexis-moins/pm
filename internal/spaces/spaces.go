@@ -47,7 +47,7 @@ func Add(space string) error {
 	spaceList := viper.GetStringSlice("spaces.list")
 
 	spaceList = append(spaceList, space)
-	viper.Set("spaces", spaceList)
+	viper.Set("spaces.list", spaceList)
 
 	return viper.WriteConfig()
 }
@@ -60,7 +60,7 @@ func Remove(space string) error {
 		return _space == space
 	})
 
-	viper.Set("spaces", spaceList)
+	viper.Set("spaces.list", spaceList)
 	return viper.WriteConfig()
 }
 
