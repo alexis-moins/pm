@@ -24,27 +24,18 @@ package space
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// addCmd represents the add command
-var removeCmd = &cobra.Command{
-	Use:     "remove",
-	Short:   "Remove a registered spaces",
+// defaultCmd represents the default command
+var defaultCmd = &cobra.Command{
+	Use:     "default <space>",
+	Short:   "Set the default space",
 	Args:    cobra.ExactArgs(1),
-	Aliases: []string{"rm"},
-	Example: "  pm space remove personal",
-	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		if len(args) > 0 {
-			return []string{}, cobra.ShellCompDirectiveNoFileComp
-		}
-		return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
-	},
+	Example: "  pm space default personal",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		space := args[0]
@@ -56,14 +47,13 @@ var removeCmd = &cobra.Command{
 			return errors.New(message)
 		}
 
-		err := spaces.Remove(space)
+		err := spaces.SetDefaultSpace(space)
 
 		if err != nil {
-			styles.Error(err.Error())
-			os.Exit(1)
+			return errors.New("unable to set default space")
 		}
 
-		message := fmt.Sprintf("removed space %s", space)
+		message := fmt.Sprintf("set default space to %s", space)
 		styles.Success(message)
 
 		return nil
@@ -71,9 +61,5 @@ var removeCmd = &cobra.Command{
 }
 
 func init() {
-	spaceCmd.AddCommand(removeCmd)
-
-	removeCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
-	})
+	spaceCmd.AddCommand(defaultCmd)
 }

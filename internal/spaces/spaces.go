@@ -69,3 +69,8 @@ func GetPath(space string) string {
 	HOME := viper.GetString("global.home")
 	return path.Join(HOME, space)
 }
+
+func SetDefaultSpace(space string) error {
+	viper.Set("spaces.default", space)
+	return viper.WriteConfig()
+}

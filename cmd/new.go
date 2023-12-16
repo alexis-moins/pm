@@ -28,6 +28,7 @@ import (
 	"github.com/alexis-moins/pm/internal/projects"
 	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
+	templatesLib "github.com/alexis-moins/pm/internal/templates"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -41,7 +42,7 @@ var newCmd = &cobra.Command{
   pm new cargo portfolio -s personal`,
 	Args: cobra.RangeArgs(1, 2),
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		if len(args) > 1 {
+		if len(args) >= 1 {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
 
@@ -58,17 +59,16 @@ var newCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var templateName, projectName string
 
-		fmt.Printf("templateName: %v\n", templateName)
-
 		if len(args) == 1 {
 			projectName = args[0]
 			templateName = "default"
 		} else {
-			projectName = args[0]
-			templateName = args[1]
+			projectName = args[1]
+			templateName = args[0]
 		}
 
 		space, _ := cmd.Flags().GetString("space")
+		verbose, _ := cmd.Flags().GetBool("verbose")
 
 		if projects.IsInShortFormat(projectName) {
 			if len(space) > 0 {
@@ -93,27 +93,20 @@ var newCmd = &cobra.Command{
 			return errors.New(fmt.Sprintf("project %s already exists in space %s", projectName, space))
 		}
 
-		templates := viper.GetStringMapStringSlice("templates")
+		commands, ok := templatesLib.FindTemplate(templateName)
 
-        templateCommands, ok := templates[templateName]
+		if !ok {
+			message := fmt.Sprintf("%s is not a valid template. See %s", templateName,
+				styles.YellowUnderline.Render("pm template list"))
 
-        if !ok {
-            message := fmt.Sprintf("%s is not a valid template. See %s", space,
-            	styles.YellowUnderline.Render("pm template list"))
+			return errors.New(message)
+		}
 
-            return errors.New(message)
-        }
-
-		if err := projects.Create(space, projectName, templateCommands); err != nil {
+		if err := projects.Create(space, projectName, commands, verbose); err != nil {
 			return err
 		}
 
-		styles.Success(fmt.Sprintf("Created project %s in space %s", projectName, space))
-
-		if output, err := projects.InitGitRepository(projects.GetPath(space, projectName)); err != nil {
-			return errors.New(output)
-		}
-
+		styles.Success(fmt.Sprintf("created project %s in space %s", projectName, space))
 		return nil
 	},
 }
@@ -125,4 +118,6 @@ func init() {
 	newCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
 	})
+
+	newCmd.Flags().BoolP("verbose", "v", false, "show template execution output")
 }

@@ -1,12 +1,14 @@
 package projects
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path"
 	"regexp"
 	"slices"
+	"strings"
 
 	_spaces "github.com/alexis-moins/pm/internal/spaces"
 	"github.com/spf13/viper"
@@ -17,12 +19,12 @@ var shortFormatRegex = regexp.MustCompile(`^.+/.+$`)
 // IsInShortFormat returns true if the given format follows the short format
 // convention which is 'spaceName/projectName'.
 func IsInShortFormat(format string) bool {
-    return shortFormatRegex.Match([]byte(format))
+	return shortFormatRegex.Match([]byte(format))
 }
 
 // ParseShortFormat parses the given short format and return the space and the project name.
 func ParseShortFormat(format string) (string, string) {
-    return path.Dir(format), path.Base(format)
+	return path.Dir(format), path.Base(format)
 }
 
 // Return true if the given project exists on the
@@ -94,9 +96,26 @@ func ListProjects() []string {
 	return projects
 }
 
-func Create(space, project string, template []string) error {
-	// path := GetPath(space, project)
-    fmt.Printf("template: %v\n", template)
+func Create(space, project string, template []string, verbose bool) error {
+	path := GetPath(space, project)
+
+	for _, command := range template {
+		command = strings.ReplaceAll(command, "NAME", project)
+		command = strings.ReplaceAll(command, "PATH", path)
+
+		args := strings.Split(command, " ")
+        cmd := exec.Command(args[0], strings.Join(args[1:], " "))
+
+		if Exists(space, project) {
+			cmd.Dir = path
+		}
+
+		if output, err := cmd.CombinedOutput(); err != nil {
+			return errors.New(string(output))
+		} else if len(output) > 0 && verbose {
+			fmt.Print(string(output))
+		}
+	}
 
 	return nil
 }
