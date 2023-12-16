@@ -94,12 +94,9 @@ func ListProjects() []string {
 	return projects
 }
 
-func Create(space, project string) error {
-	path := GetPath(space, project)
-
-	if err := os.Mkdir(path, 0750); err != nil {
-		return err
-	}
+func Create(space, project string, template []string) error {
+	// path := GetPath(space, project)
+    fmt.Printf("template: %v\n", template)
 
 	return nil
 }

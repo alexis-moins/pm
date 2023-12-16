@@ -75,7 +75,7 @@ func init() {
 	viper.SetDefault("global.home", path.Join(home, "dev"))
 
 	viper.SetConfigName("config")
-    viper.SetConfigType("json")
+	viper.SetConfigType("json")
 
 	configPath := path.Join(home, ".config/pm")
 
@@ -83,6 +83,8 @@ func init() {
 
 	viper.SetDefault("spaces.default", "default")
 	viper.SetDefault("spaces.list", []string{"default"})
+
+	viper.SetDefault("templates.default", []string{"mkdir PATH", "git init -C PATH"})
 
 	if err := viper.ReadInConfig(); err != nil {
 		if err := os.MkdirAll(configPath, 0750); err != nil {

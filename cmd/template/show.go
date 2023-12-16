@@ -19,35 +19,35 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package script
+package template
 
 import (
+	"errors"
 	"fmt"
 
-	scriptsLib "github.com/alexis-moins/pm/internal/scripts"
 	"github.com/alexis-moins/pm/internal/styles"
+	templatesLib "github.com/alexis-moins/pm/internal/templates"
 	"github.com/spf13/cobra"
 )
 
-// listCmd represents the list command
-var listCmd = &cobra.Command{
-	Use:     "list",
-	Aliases: []string{"ls"},
-	Short:   "List scripts",
+// showCmd represents the show command
+var showCmd = &cobra.Command{
+	Use:   "show <template>",
+	Short: "Show a template",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		scripts, err := scriptsLib.ListScripts()
+		templateName := args[0]
+		template, ok := templatesLib.FindTemplate(templateName)
 
-		if err != nil {
-			return err
+		if !ok {
+			message := fmt.Sprintf("template %s not found. See %s", templateName,
+				styles.YellowUnderline.Render("pm template list"))
+
+			return errors.New(message)
 		}
 
-		for name, script := range scripts {
-			if script.Init {
-				fmt.Printf("%s  %s\n", styles.Green.Render("I"), name)
-			} else {
-				fmt.Printf("   %s\n", name)
-			}
+		for _, command := range template {
+			fmt.Printf("%s %s\n", styles.Red.Render("*"), command)
 		}
 
 		return nil
@@ -55,5 +55,5 @@ var listCmd = &cobra.Command{
 }
 
 func init() {
-	scriptCmd.AddCommand(listCmd)
+	templateCmd.AddCommand(showCmd)
 }

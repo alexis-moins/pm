@@ -19,47 +19,52 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package script
+package template
 
 import (
 	"errors"
 	"fmt"
 
-	scriptsLib "github.com/alexis-moins/pm/internal/scripts"
 	"github.com/alexis-moins/pm/internal/styles"
+	templatesLib "github.com/alexis-moins/pm/internal/templates"
 	"github.com/spf13/cobra"
 )
 
-// showCmd represents the show command
-var showCmd = &cobra.Command{
-	Use:   "show <script>",
-	Short: "Show a script",
+// addCmd represents the add command
+var addCmd = &cobra.Command{
+	Use:     "add <name>",
+	Short:   "Add a new template",
+	Args:    cobra.ExactArgs(1),
+	Example: `  pm template add cargo -e "cargo new PATH"
+  pm template add go -e "mkdir PATH" -e "go mod init github.com/alexis-moins/NAME"`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		scripts, err := scriptsLib.ListScripts()
+		templateName := args[0]
+		commands, _ := cmd.Flags().GetStringSlice("exec")
 
-		if err != nil {
-			return err
-		}
+		_, ok := templatesLib.FindTemplate(templateName)
 
-		scriptName := args[0]
-		script, ok := scripts[scriptName]
-
-		if !ok {
-			message := fmt.Sprintf("script %s not found. See %s", scriptName,
-				styles.YellowUnderline.Render("pm script list"))
+		if ok {
+			message := fmt.Sprintf("template %s already exists. See %s",
+				templateName, styles.YellowUnderline.Render("pm template list"))
 
 			return errors.New(message)
 		}
 
-		for _, command := range script.Exec {
-			fmt.Printf("%s %s\n", styles.Red.Render("*"), command)
+		err := templatesLib.AddTemplate(templateName, commands)
+
+		if err != nil {
+			return errors.New("unable to save template")
 		}
 
+		styles.Success("Added template " + templateName)
 		return nil
 	},
 }
 
 func init() {
-	scriptCmd.AddCommand(showCmd)
+	templateCmd.AddCommand(addCmd)
+
+	addCmd.Flags().StringSliceP("exec", "e", []string{}, "list of commands to execute")
+	addCmd.MarkFlagRequired("exec")
 }

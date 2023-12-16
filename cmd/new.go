@@ -34,24 +34,41 @@ import (
 
 // newCmd represents the new command
 var newCmd = &cobra.Command{
-	Use:     "new <name>",
+	Use:     "new [template] <project>",
 	Short:   "Create a new empty project",
 	GroupID: "project",
-    Example: `  pm new portfolio
-  pm new portfolio -s personal --no-git
-  pm new portfolio -t cargo-new -t recipe-use`,
-	Args:    cobra.ExactArgs(1),
+	Example: `  pm new portfolio
+  pm new cargo portfolio -s personal`,
+	Args: cobra.RangeArgs(1, 2),
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		if len(args) > 1 {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		}
+
+		templates := viper.GetStringMapStringSlice("templates")
+		templateNames := []string{}
+
+		for name := range templates {
+			templateNames = append(templateNames, name)
+		}
+
+		return templateNames, cobra.ShellCompDirectiveNoFileComp
+	},
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		projectName := args[0]
+		var templateName, projectName string
+
+		fmt.Printf("templateName: %v\n", templateName)
+
+		if len(args) == 1 {
+			projectName = args[0]
+			templateName = "default"
+		} else {
+			projectName = args[0]
+			templateName = args[1]
+		}
 
 		space, _ := cmd.Flags().GetString("space")
-		noGit, _ := cmd.Flags().GetBool("no-git")
-
-		templates, _ := cmd.Flags().GetStringSlice("templates")
-        fmt.Printf("templates: %v\n", templates)
-
-        return nil
 
 		if projects.IsInShortFormat(projectName) {
 			if len(space) > 0 {
@@ -61,7 +78,7 @@ var newCmd = &cobra.Command{
 			space, projectName = projects.ParseShortFormat(projectName)
 		} else {
 			if len(space) == 0 {
-				space = viper.GetString("spaces.list")
+				space = viper.GetString("spaces.default")
 			}
 		}
 
@@ -76,15 +93,22 @@ var newCmd = &cobra.Command{
 			return errors.New(fmt.Sprintf("project %s already exists in space %s", projectName, space))
 		}
 
-		if err := projects.Create(space, projectName); err != nil {
+		templates := viper.GetStringMapStringSlice("templates")
+
+        templateCommands, ok := templates[templateName]
+
+        if !ok {
+            message := fmt.Sprintf("%s is not a valid template. See %s", space,
+            	styles.YellowUnderline.Render("pm template list"))
+
+            return errors.New(message)
+        }
+
+		if err := projects.Create(space, projectName, templateCommands); err != nil {
 			return err
 		}
 
 		styles.Success(fmt.Sprintf("Created project %s in space %s", projectName, space))
-
-		if noGit {
-			return nil
-		}
 
 		if output, err := projects.InitGitRepository(projects.GetPath(space, projectName)); err != nil {
 			return errors.New(output)
@@ -96,13 +120,9 @@ var newCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(newCmd)
-
 	newCmd.Flags().StringP("space", "s", "", "space to create the project in")
 
 	newCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
 	})
-
-	newCmd.Flags().BoolP("no-git", "n", false, "don't initialize a git repository")
-	newCmd.Flags().StringSliceP("templates", "t", []string{"make-dir", "git-init"}, "templates used to create the project")
 }

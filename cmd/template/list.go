@@ -19,19 +19,34 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package script
+package template
 
 import (
-	"github.com/alexis-moins/pm/cmd"
+	"fmt"
+
+	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-// scriptCmd represents the script command
-var scriptCmd = &cobra.Command{
-	Use:   "script",
-	Short: "Create, delete and list scripts",
+// listCmd represents the list command
+var listCmd = &cobra.Command{
+	Use:     "list",
+	Aliases: []string{"ls"},
+	Short:   "List templates",
+
+	RunE: func(cmd *cobra.Command, args []string) error {
+		templates := viper.GetStringMapStringSlice("templates")
+
+		for name, template := range templates {
+			indicator := fmt.Sprintf("(%d)", len(template))
+			fmt.Printf("%s %s\n", styles.Green.Render(indicator), name)
+		}
+
+		return nil
+	},
 }
 
 func init() {
-	cmd.RootCmd.AddCommand(scriptCmd)
+	templateCmd.AddCommand(listCmd)
 }

@@ -19,59 +19,42 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package script
+package template
 
 import (
 	"errors"
 	"fmt"
-	"strings"
 
-	scriptsLib "github.com/alexis-moins/pm/internal/scripts"
 	"github.com/alexis-moins/pm/internal/styles"
+	templatesLib "github.com/alexis-moins/pm/internal/templates"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// addCmd represents the add command
-var addCmd = &cobra.Command{
-	Use:     "add <name> [command]",
-	Short:   "Add a new script",
-	Args:    cobra.MinimumNArgs(2),
-	Example: `  pm script add cargo-new cargo new PATH`,
+// removeCmd represents the remove command
+var removeCmd = &cobra.Command{
+	Use:     "remove <template>",
+	Short:   "Remove a template",
+	Aliases: []string{"delete", "rm"},
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		init, _ := cmd.Flags().GetBool("init")
+		templateName := args[0]
 
-		scriptName := args[0]
-		commands := strings.Join(args[1:], " ")
-
-		scripts, err := scriptsLib.ListScripts()
-
-		if err != nil {
-			return err
-		}
-
-		if _, ok := scripts[scriptName]; ok {
-			message := fmt.Sprintf("script %s already exists. See %s",
-				scriptName, styles.YellowUnderline.Render("pm script list"))
+		if _, ok := templatesLib.FindTemplate(templateName); !ok {
+			message := fmt.Sprintf("template %s not found. See %s", templateName,
+				styles.YellowUnderline.Render("pm template list"))
 
 			return errors.New(message)
 		}
 
-		script := scriptsLib.New([]string{commands}, init)
-
-		viper.Set("scripts."+scriptName, script)
-		if err := viper.WriteConfig(); err != nil {
-			return err
+		if err := templatesLib.RemoveTemplate(templateName); err != nil {
+			return errors.New("unable to remove template")
 		}
 
-		styles.Success("Added script " + scriptName)
+		styles.Success("removed template " + templateName)
 		return nil
 	},
 }
 
 func init() {
-	scriptCmd.AddCommand(addCmd)
-
-	addCmd.Flags().BoolP("init", "i", false, "the script creates the directory itself")
+	templateCmd.AddCommand(removeCmd)
 }
