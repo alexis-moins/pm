@@ -1,0 +1,10 @@
+[
+	{
+		"command": ["mkdir", "{project}"],
+		"dir": "SPACE"
+	},
+	{
+		"command": ["git", "init"],
+		"dir": "PROJECT"
+	}
+]

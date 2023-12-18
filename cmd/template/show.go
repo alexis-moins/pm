@@ -24,6 +24,7 @@ package template
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/alexis-moins/pm/internal/styles"
 	templatesLib "github.com/alexis-moins/pm/internal/templates"
@@ -34,6 +35,21 @@ import (
 var showCmd = &cobra.Command{
 	Use:   "show <template>",
 	Short: "Show a template",
+	Args:  cobra.ExactArgs(1),
+
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		if len(args) == 0 {
+			templateNames := []string{}
+
+			for name := range templatesLib.ListTemplates() {
+				templateNames = append(templateNames, name)
+			}
+
+			return templateNames, cobra.ShellCompDirectiveNoFileComp
+		}
+
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	},
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		templateName := args[0]
@@ -46,8 +62,8 @@ var showCmd = &cobra.Command{
 			return errors.New(message)
 		}
 
-		for _, command := range template {
-			fmt.Printf("%s %s\n", styles.Red.Render("*"), command)
+		for _, step := range template {
+			fmt.Printf("%s %s\n", styles.Red.Render("*"), strings.Join(step.Command, " "))
 		}
 
 		return nil

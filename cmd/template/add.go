@@ -24,36 +24,72 @@ package template
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/alexis-moins/pm/internal/styles"
-	templatesLib "github.com/alexis-moins/pm/internal/templates"
+	"github.com/alexis-moins/pm/internal/templates"
 	"github.com/spf13/cobra"
 )
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
-	Use:     "add <name>",
-	Short:   "Add a new template",
-	Args:    cobra.ExactArgs(1),
-	Example: `  pm template add cargo -e "cargo new PATH"
-  pm template add go -e "mkdir PATH" -e "go mod init github.com/alexis-moins/NAME"`,
+	Use:     "add <name> <path>",
+	Short:   "Add a template",
+	Args:    cobra.ExactArgs(2),
+	Example: `  pm template add golang template.json`,
+
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		if len(args) == 0 {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		}
+
+		if len(args) == 1 {
+			return nil, cobra.ShellCompDirectiveDefault
+		}
+
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	},
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		templateName := args[0]
-		commands, _ := cmd.Flags().GetStringSlice("exec")
+		templateName, filePath := args[0], args[1]
 
-		_, ok := templatesLib.FindTemplate(templateName)
+		force, _ := cmd.Flags().GetBool("force")
+		_, ok := templates.FindTemplate(templateName)
 
-		if ok {
+		if ok && !force {
 			message := fmt.Sprintf("template %s already exists. See %s",
 				templateName, styles.YellowUnderline.Render("pm template list"))
 
 			return errors.New(message)
 		}
 
-		err := templatesLib.AddTemplate(templateName, commands)
+		path, err := filepath.Abs(filePath)
 
 		if err != nil {
+			return err
+		}
+
+		file, err := os.Open(path)
+
+		if err != nil {
+			return err
+			// return errors.New(fmt.Sprintf("%s: no such file", path))
+		}
+
+		defer file.Close()
+
+		if info, err := file.Stat(); err != nil || info.IsDir() {
+			return errors.New(fmt.Sprintf("%s: unable to open file", path))
+		}
+
+		template, err := templates.ParseTemplate(file)
+
+		if err != nil {
+			return err
+		}
+
+		if err = templates.AddTemplate(templateName, template); err != nil {
 			return errors.New("unable to save template")
 		}
 
@@ -65,6 +101,5 @@ var addCmd = &cobra.Command{
 func init() {
 	templateCmd.AddCommand(addCmd)
 
-	addCmd.Flags().StringSliceP("exec", "e", []string{}, "list of commands to execute")
-	addCmd.MarkFlagRequired("exec")
+	addCmd.Flags().BoolP("force", "f", false, "overwrite existing template")
 }

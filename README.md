@@ -11,7 +11,7 @@
  |_|              
 ```
 
-![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.6.0-blue.svg)
 
 </div>
 
@@ -73,6 +73,7 @@ Additional Commands:
   dir         Show the path to the directory managed by pm
   help        Help about any command
   space       Create, delete and list spaces
+  template    Create, delete and list templates
 
 Flags:
   -h, --help      help for pm

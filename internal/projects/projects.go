@@ -8,9 +8,9 @@ import (
 	"path"
 	"regexp"
 	"slices"
-	"strings"
 
 	_spaces "github.com/alexis-moins/pm/internal/spaces"
+	"github.com/alexis-moins/pm/internal/templates"
 	"github.com/spf13/viper"
 )
 
@@ -96,19 +96,12 @@ func ListProjects() []string {
 	return projects
 }
 
-func Create(space, project string, template []string, verbose bool) error {
+func Create(space, project string, template []templates.Step, verbose bool) error {
 	path := GetPath(space, project)
 
-	for _, command := range template {
-		command = strings.ReplaceAll(command, "NAME", project)
-		command = strings.ReplaceAll(command, "PATH", path)
-
-		args := strings.Split(command, " ")
-        cmd := exec.Command(args[0], strings.Join(args[1:], " "))
-
-		if Exists(space, project) {
-			cmd.Dir = path
-		}
+	for _, step := range template {
+		step.Subsitute(space, project, path)
+		cmd := step.GetCommand(space, path)
 
 		if output, err := cmd.CombinedOutput(); err != nil {
 			return errors.New(string(output))
@@ -118,12 +111,6 @@ func Create(space, project string, template []string, verbose bool) error {
 	}
 
 	return nil
-}
-
-// Initialize a new empty git repository in the recipe book.
-func InitGitRepository(path string) (string, error) {
-	output, err := exec.Command("git", "-C", path, "init").CombinedOutput()
-	return string(output), err
 }
 
 // Clone the repository in the given space, using the given project name.

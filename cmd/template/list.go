@@ -24,9 +24,9 @@ package template
 import (
 	"fmt"
 
-	"github.com/alexis-moins/pm/internal/styles"
+	"github.com/alexis-moins/pm/internal/templates"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // listCmd represents the list command
@@ -36,11 +36,14 @@ var listCmd = &cobra.Command{
 	Short:   "List templates",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		templates := viper.GetStringMapStringSlice("templates")
+		templates := templates.ListTemplates()
+
+		column := lipgloss.NewStyle().Width(10).Align(lipgloss.Left)
+		green := column.Copy().Foreground(lipgloss.Color("2"))
 
 		for name, template := range templates {
-			indicator := fmt.Sprintf("(%d)", len(template))
-			fmt.Printf("%s %s\n", styles.Green.Render(indicator), name)
+			indicator := fmt.Sprintf("%d step(s)", len(template))
+			fmt.Println(column.Render(name), green.Render(indicator))
 		}
 
 		return nil

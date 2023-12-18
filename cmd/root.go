@@ -28,6 +28,7 @@ import (
 
 	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
+	"github.com/alexis-moins/pm/internal/templates"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -36,7 +37,7 @@ import (
 var RootCmd = &cobra.Command{
 	Use:          "pm",
 	Short:        "Project manager built on top of tmux",
-	Version:      "0.5.0",
+	Version:      "0.6.0",
 	SilenceUsage: true,
 
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -84,7 +85,7 @@ func init() {
 	viper.SetDefault("spaces.default", "default")
 	viper.SetDefault("spaces.list", []string{"default"})
 
-	viper.SetDefault("templates.default", []string{"mkdir PATH", "git init -C PATH"})
+	viper.SetDefault("templates.default", templates.DefaultTemplate())
 
 	if err := viper.ReadInConfig(); err != nil {
 		if err := os.MkdirAll(configPath, 0750); err != nil {
