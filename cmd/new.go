@@ -29,6 +29,7 @@ import (
 	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
 	templatesLib "github.com/alexis-moins/pm/internal/templates"
+	"github.com/alexis-moins/pm/internal/tmux"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -104,6 +105,13 @@ var newCmd = &cobra.Command{
 
 		if err := projects.Create(space, projectName, commands, verbose); err != nil {
 			return err
+		}
+
+		tmuxFormat := fmt.Sprintf("%s/%s", space, projectName)
+		output, err := tmux.CreateSession(tmuxFormat, projects.GetPath(space, projectName))
+
+		if err != nil {
+			return errors.New(output)
 		}
 
 		styles.Success(fmt.Sprintf("created project %s in space %s", projectName, space))

@@ -33,33 +33,34 @@ import (
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
-	Use:     "add <space>",
-	Short:   "Add a new space",
-	Args:    cobra.ExactArgs(1),
-	Example: "  pm space add personal",
+	Use:     "add <space...>",
+	Short:   "Add new spaces",
+	Args:    cobra.MinimumNArgs(1),
+	Example: "  pm space add personal work school",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		space := args[0]
+		for _, space := range args {
 
-		if !spaces.Exists(space) {
-			if err := os.MkdirAll(spaces.GetPath(space), 0750); err != nil {
+			if !spaces.Exists(space) {
+				if err := os.MkdirAll(spaces.GetPath(space), 0750); err != nil {
+					return err
+				}
+			}
+
+			if spaces.IsRegistered(space) {
+				message := fmt.Sprintf("space %s has already been added", space)
+				return errors.New(message)
+			}
+
+			err := spaces.Add(space)
+
+			if err != nil {
 				return err
 			}
+
+			message := fmt.Sprintf("added space %s", space)
+			styles.Success(message)
 		}
-
-		if spaces.IsRegistered(space) {
-			message := fmt.Sprintf("space %s has already been added", space)
-			return errors.New(message)
-		}
-
-		err := spaces.Add(space)
-
-		if err != nil {
-			return err
-		}
-
-		message := fmt.Sprintf("added space %s", space)
-		styles.Success(message)
 
 		return nil
 	},
