@@ -67,8 +67,7 @@ var fixCmd = &cobra.Command{
 		}
 
 		if force && len(removedSpaces) > 0 {
-			viper.Set("spaces", spaceList)
-			println("hello")
+			viper.Set("spaces.list", spaceList)
 
 			if err := viper.WriteConfig(); err != nil {
 				return err

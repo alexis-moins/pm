@@ -2,6 +2,7 @@ package templates
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -66,7 +67,7 @@ func GetTemplateNames(templates map[string][]Step) []string {
 		templateNames = append(templateNames, name)
 	}
 
-    return templateNames
+	return templateNames
 }
 
 func ListTemplates() map[string][]Step {
@@ -126,6 +127,12 @@ func ParseTemplate(file *os.File) ([]Step, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	for index, step := range steps {
+		if len(step.Command) == 0 {
+			return nil, errors.New(fmt.Sprintf("unable to parse step %d: step must contain the 'command' key", index+1))
+		}
 	}
 
 	return steps, nil

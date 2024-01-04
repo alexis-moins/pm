@@ -1,0 +1,33 @@
+* TODO
+** Templates
+   - ( ) make it possible to add all templates from a given directory at once
+   - ( ) if no path is given to the `add` command, try to curl the template from github
+         This can be done by {https://stackoverflow.com/questions/29379156/golang-json-http-request-like-curl}[fetching] using
+         this {https://github.com/downloads/user/repository/filename}[format]
+
+** Bundle
+   This command allows user to add spaces, templates and clone projects using a single command.
+   To do so, a bundle.json file must be written that has the following format:
+@code json
+{
+    "spaces": [
+        "work/php" 
+    ],
+    "templates": { 
+        "laravel": [
+            {
+                "command": ["composer", "create-project", "laravel/laravel", "{project}"],
+                "dir": "SPACE"
+            }
+        ]
+    },
+    "projects": [
+        {
+            "name": "php-backend",
+            "url": "serious-company/backend",
+            "space": "work/php"
+        }
+    ]
+}
+@end
+   Upon using the `pm bundle` command, pm will look for a bundle.json file in the current directory and try to parse it. Optionally, users may specify the path to a different bundle file as the first argument to the command.

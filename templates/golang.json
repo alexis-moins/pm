@@ -1,14 +1,14 @@
 [
-	{
-		"command": ["mkdir", "{project}"],
-		"dir": "SPACE"
-	},
-	{
-		"command": ["go", "mod", "init", "github.com/alexis-moins/{project}"],
-		"dir": "PROJECT"
-	},
-	{
-		"command": ["git", "init"],
-		"dir": "PROJECT"
-	}
+  {
+    "command": ["mkdir", "{project}"],
+    "dir": "SPACE"
+  },
+  {
+    "command": ["go", "mod", "init", "github.com/alexis-moins/{project}"],
+    "dir": "PROJECT"
+  },
+  {
+    "command": ["git", "init"],
+    "dir": "PROJECT"
+  }
 ]

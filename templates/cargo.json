@@ -1,6 +1,6 @@
 [
-	{
-		"command": ["cargo", "new", "{project}"],
-		"dir": "SPACE"
-	}
+  {
+    "command": ["cargo", "new", "{project}"],
+    "dir": "SPACE"
+  }
 ]

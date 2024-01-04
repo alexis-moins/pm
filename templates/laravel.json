@@ -1,0 +1,6 @@
+[
+  {
+    "command": ["composer", "create-project", "laravel/laravel", "{project}"],
+    "dir": "SPACE"
+  }
+]
