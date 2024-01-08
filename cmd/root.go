@@ -67,6 +67,11 @@ func init() {
 		os.Exit(1)
 	}
 
+	viper.SetEnvPrefix("PM")
+
+	viper.BindEnv("HOME")
+	viper.BindEnv("DEFAULT_SPACE")
+
 	viper.SetDefault("global.home", path.Join(home, "dev"))
 
 	viper.SetConfigName("config")
@@ -79,10 +84,10 @@ func init() {
 	viper.SetDefault("spaces.default", "default")
 	viper.SetDefault("spaces.list", []string{"default"})
 
-	var defaultColors = map[string]string{
+	defaultColors := map[string]string{
 		"comment":    "#6e738d",
-		"success":    "#a6da95",
 		"error":      "#ed8796",
+		"success":    "#a6da95",
 		"suggestion": "#eed49f",
 	}
 

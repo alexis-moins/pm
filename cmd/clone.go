@@ -56,8 +56,8 @@ var cloneCmd = &cobra.Command{
 		}
 
 		if !repositoryRegex.Match([]byte(repository)) {
-			return errors.New(fmt.Sprintf("invalid repository format. %s",
-				styles.Suggestion("<username>/<project>")))
+			format := styles.Suggestion("<username>/<project>")
+			return errors.New(fmt.Sprintf("invalid repository format. Use %s", format))
 		}
 
 		if !spaces.IsValid(space) {
