@@ -58,8 +58,8 @@ var addCmd = &cobra.Command{
 		_, ok := templates.FindTemplate(templateName)
 
 		if ok && !force {
-			message := fmt.Sprintf("template %s already exists. See %s",
-				templateName, styles.YellowUnderline.Render("pm template list"))
+			message := fmt.Sprintf("template %s already exists. %s",
+				templateName, styles.Suggestion("pm template list"))
 
 			return errors.New(message)
 		}

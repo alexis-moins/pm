@@ -105,12 +105,12 @@ func Create(space, project string, template []templates.Step) error {
 		step.Subsitute(space, project, path)
 		cmd := step.GetCommand(space, path)
 
-		fmt.Printf("%s %s\n", styles.Red.Render("*"), strings.Join(step.Command, " "))
+		fmt.Printf("%s %s\n", styles.Get("error").Render("*"), strings.Join(step.Command, " "))
 
 		if output, err := cmd.CombinedOutput(); err != nil {
 			return errors.New(string(output))
 		} else if len(output) > 0 {
-			fmt.Println(styles.Grey.Render(string(output)[:]))
+			fmt.Println(styles.Get("comment").Render(string(output)[:]))
 		}
 	}
 

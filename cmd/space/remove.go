@@ -24,7 +24,6 @@ package space
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
@@ -50,8 +49,8 @@ var removeCmd = &cobra.Command{
 		space := args[0]
 
 		if !spaces.IsRegistered(space) {
-			message := fmt.Sprintf("%s is not a valid space. See %s", space,
-				styles.YellowUnderline.Render("pm space list"))
+			message := fmt.Sprintf("%s is not a valid space. %s", space,
+				styles.Suggestion("pm space list"))
 
 			return errors.New(message)
 		}
@@ -59,8 +58,7 @@ var removeCmd = &cobra.Command{
 		err := spaces.Remove(space)
 
 		if err != nil {
-			styles.Error(err.Error())
-			os.Exit(1)
+			return err
 		}
 
 		message := fmt.Sprintf("removed space %s", space)

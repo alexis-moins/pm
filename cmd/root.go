@@ -22,7 +22,6 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"path"
 
@@ -64,14 +63,9 @@ func init() {
 	home, err := os.UserHomeDir()
 
 	if err != nil {
-		fmt.Println(fmt.Sprintf("%s unable to retrieve home directory", styles.Red.Render("pm:")))
+		styles.Fatal("unable to retrieve home directory")
 		os.Exit(1)
 	}
-
-	viper.SetEnvPrefix("PM")
-
-	viper.BindEnv("HOME")
-	viper.BindEnv("DEFAULT_SPACE")
 
 	viper.SetDefault("global.home", path.Join(home, "dev"))
 
@@ -85,6 +79,14 @@ func init() {
 	viper.SetDefault("spaces.default", "default")
 	viper.SetDefault("spaces.list", []string{"default"})
 
+	var defaultColors = map[string]string{
+		"comment":    "#6e738d",
+		"success":    "#a6da95",
+		"error":      "#ed8796",
+		"suggestion": "#eed49f",
+	}
+
+	viper.SetDefault("global.colors", defaultColors)
 	viper.SetDefault("templates.default", templates.DefaultTemplate())
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -101,5 +103,5 @@ func init() {
 	}
 
 	RootCmd.AddGroup(&projectGroup)
-	RootCmd.SetErrPrefix(styles.Red.Render("pm:"))
+	RootCmd.SetErrPrefix(styles.Get("error").Render("pm:"))
 }

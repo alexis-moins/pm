@@ -50,8 +50,8 @@ var removeCmd = &cobra.Command{
 		templateName := args[0]
 
 		if _, ok := templates.FindTemplate(templateName); !ok {
-			message := fmt.Sprintf("template %s not found. See %s", templateName,
-				styles.YellowUnderline.Render("pm template list"))
+			message := fmt.Sprintf("template %s not found. %s", templateName,
+				styles.Suggestion("pm template list"))
 
 			return errors.New(message)
 		}

@@ -56,13 +56,13 @@ var cloneCmd = &cobra.Command{
 		}
 
 		if !repositoryRegex.Match([]byte(repository)) {
-			format := styles.YellowUnderline.Render("<username>/<project>")
-			return errors.New(fmt.Sprintf("invalid repository format. Use %s", format))
+			return errors.New(fmt.Sprintf("invalid repository format. %s",
+				styles.Suggestion("<username>/<project>")))
 		}
 
 		if !spaces.IsValid(space) {
-			message := fmt.Sprintf("%s is not a valid space. See %s", space,
-				styles.YellowUnderline.Render("pm space list"))
+			message := fmt.Sprintf("%s is not a valid space. %s", space,
+				styles.Suggestion("pm space list"))
 
 			return errors.New(message)
 

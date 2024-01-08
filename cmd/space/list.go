@@ -43,9 +43,9 @@ var listCmd = &cobra.Command{
 
 		for _, space := range spaceList {
 			if !spaces.Exists(space) {
-				fmt.Printf("%s %s\n", styles.Red.Render("M"), space)
+				fmt.Printf("%s %s\n", styles.Get("error").Render("M"), space)
 			} else if space == defaultSpace {
-				fmt.Printf("%s %s\n", styles.Green.Render("D"), space)
+				fmt.Printf("%s %s\n", styles.Get("success").Render("D"), space)
 			} else {
 				fmt.Printf("  %s\n", space)
 			}

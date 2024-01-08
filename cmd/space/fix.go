@@ -57,7 +57,7 @@ var fixCmd = &cobra.Command{
 		fmt.Println(message)
 
 		for _, space := range removedSpaces {
-			fmt.Printf("%s %s\n", styles.Red.Render("*"), space)
+			fmt.Printf("%s %s\n", styles.Get("error").Render("*"), space)
 
 			if force {
 				spaceList = slices.DeleteFunc(spaceList, func(s string) bool {

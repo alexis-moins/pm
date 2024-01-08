@@ -93,8 +93,8 @@ var newCmd = &cobra.Command{
 		commands, ok := templatesLib.FindTemplate(templateName)
 
 		if !ok {
-			message := fmt.Sprintf("%s is not a valid template. See %s", templateName,
-				styles.YellowUnderline.Render("pm template list"))
+			message := fmt.Sprintf("%s is not a valid template. %s", templateName,
+				styles.Suggestion("pm template list"))
 
 			return errors.New(message)
 		}

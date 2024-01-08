@@ -2,26 +2,35 @@ package styles
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/spf13/viper"
 )
 
-var Red = lipgloss.NewStyle().Foreground(lipgloss.Color("1"))
-var Green = lipgloss.NewStyle().Foreground(lipgloss.Color("2"))
-var Magenta = lipgloss.NewStyle().Foreground(lipgloss.Color("5"))
-var Underline = lipgloss.NewStyle().Underline(true)
-var Yellow = lipgloss.NewStyle().Foreground(lipgloss.Color("3"))
-var YellowUnderline = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Underline(true)
-var Grey = lipgloss.NewStyle().Foreground(lipgloss.Color("#6e738d"))
+func Get(key string) lipgloss.Style {
+	colors := viper.GetStringMapString("global.colors")
 
-func Error(error string) {
-	fmt.Printf("%s %s\n", Red.Render("pm:"), error)
+	colorCode, ok := colors[strings.ToLower(key)]
+	if !ok {
+		colorCode = "7"
+	}
+
+	color := lipgloss.Color(colorCode)
+	return lipgloss.NewStyle().Foreground(lipgloss.Color(color))
 }
 
-func Suggestion(message string) {
-	fmt.Printf("see %s.\n", YellowUnderline.Render(message))
+var Underline = lipgloss.NewStyle().Underline(true)
+var Yellow = lipgloss.NewStyle().Foreground(lipgloss.Color("3"))
+
+func Fatal(error string) {
+	fmt.Printf("%s %s\n", Get("error").Render("pm:"), error)
+}
+
+func Suggestion(message string) string {
+	return fmt.Sprintf("See %s", Get("suggestion").Underline(true).Render(message))
 }
 
 func Success(message string) {
-	fmt.Printf("%s %s\n", Green.Render("✔"), message)
+	fmt.Printf("%s %s\n", Get("success").Render("✔"), message)
 }

@@ -56,14 +56,14 @@ var showCmd = &cobra.Command{
 		template, ok := templatesLib.FindTemplate(templateName)
 
 		if !ok {
-			message := fmt.Sprintf("template %s not found. See %s", templateName,
-				styles.YellowUnderline.Render("pm template list"))
+			message := fmt.Sprintf("template %s not found. %s", templateName,
+				styles.Suggestion("pm template list"))
 
 			return errors.New(message)
 		}
 
 		for _, step := range template {
-			fmt.Printf("%s %s\n", styles.Red.Render("*"), strings.Join(step.Command, " "))
+			fmt.Printf("%s %s\n", styles.Get("error").Render("*"), strings.Join(step.Command, " "))
 		}
 
 		return nil

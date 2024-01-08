@@ -41,8 +41,8 @@ var defaultCmd = &cobra.Command{
 		space := args[0]
 
 		if !spaces.IsRegistered(space) {
-			message := fmt.Sprintf("%s is not a valid space. See %s", space,
-				styles.YellowUnderline.Render("pm space list"))
+			message := fmt.Sprintf("%s is not a valid space. %s", space,
+				styles.Suggestion("pm space list"))
 
 			return errors.New(message)
 		}

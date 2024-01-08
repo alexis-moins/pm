@@ -75,8 +75,8 @@ var openCmd = &cobra.Command{
 		}
 
 		if !projects.Exists(space, projectName) {
-			message := fmt.Sprintf("project %s not found in space %s. See %s", projectName, space,
-				styles.YellowUnderline.Render("pm space list"))
+			message := fmt.Sprintf("project %s not found in space %s. %s", projectName, space,
+				styles.Suggestion("pm space list"))
 
 			return errors.New(message)
 		}
