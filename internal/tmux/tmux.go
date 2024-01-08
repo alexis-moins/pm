@@ -2,6 +2,7 @@ package tmux
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -14,8 +15,8 @@ func insideTmux() bool {
 }
 
 func IsRunning() bool {
-    _, err := Exec("info")
-    return err == nil
+	_, err := Exec("info")
+	return err == nil
 }
 
 func Exec(arg ...string) (string, error) {
@@ -27,14 +28,6 @@ func Exec(arg ...string) (string, error) {
 	output, err := cmd.CombinedOutput()
 
 	return string(output), err
-}
-
-func Attach(session string) (string, error) {
-	if insideTmux() {
-		return Exec("switch-client", "-t", session)
-	}
-
-	return Exec("attach", "-t", session)
 }
 
 func CreateSession(name string, path string) (string, error) {
@@ -54,11 +47,15 @@ func CreateSession(name string, path string) (string, error) {
 // ListWindows return the list of the windows present in the current tmux
 // server. Each windows has the format 'sessionName: panePath'.
 func ListWindows() ([]string, error) {
-	output, err := Exec("list-windows", "-aF", "#S: #{pane_current_path}")
+	output, err := Exec("list-windows", "-aF", "#S")
 
 	if err != nil {
 		return []string{}, errors.New(output)
 	}
 
 	return strings.Split(string(output), "\n"), nil
+}
+
+func GetSessionName(space, project string) string {
+	return fmt.Sprintf("%s|%s", space, project)
 }

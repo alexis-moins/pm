@@ -1,12 +1,20 @@
 package spaces
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path"
 	"slices"
 
+	"github.com/alexis-moins/pm/internal/styles"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+func SpaceFlagCompletionFunc(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
+}
 
 // Return true if the given space is registred in the
 // pm configuration file.
@@ -40,6 +48,13 @@ func Exists(space string) bool {
 // is registered.
 func IsValid(space string) bool {
 	return Exists(space) && IsRegistered(space)
+}
+
+func InvalidSpaceError(space string) error {
+	message := fmt.Sprintf("%s is not a valid space. See %s", space,
+		styles.YellowUnderline.Render("pm space list"))
+
+	return errors.New(message)
 }
 
 // Add a space to the registered spaces.

@@ -12,6 +12,7 @@ var Magenta = lipgloss.NewStyle().Foreground(lipgloss.Color("5"))
 var Underline = lipgloss.NewStyle().Underline(true)
 var Yellow = lipgloss.NewStyle().Foreground(lipgloss.Color("3"))
 var YellowUnderline = lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Underline(true)
+var Grey = lipgloss.NewStyle().Foreground(lipgloss.Color("#6e738d"))
 
 func Error(error string) {
 	fmt.Printf("%s %s\n", Red.Render("pm:"), error)

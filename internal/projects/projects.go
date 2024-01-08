@@ -8,8 +8,10 @@ import (
 	"path"
 	"regexp"
 	"slices"
+	"strings"
 
 	_spaces "github.com/alexis-moins/pm/internal/spaces"
+	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/alexis-moins/pm/internal/templates"
 	"github.com/spf13/viper"
 )
@@ -96,17 +98,19 @@ func ListProjects() []string {
 	return projects
 }
 
-func Create(space, project string, template []templates.Step, verbose bool) error {
+func Create(space, project string, template []templates.Step) error {
 	path := GetPath(space, project)
 
 	for _, step := range template {
 		step.Subsitute(space, project, path)
 		cmd := step.GetCommand(space, path)
 
+		fmt.Printf("%s %s\n", styles.Red.Render("*"), strings.Join(step.Command, " "))
+
 		if output, err := cmd.CombinedOutput(); err != nil {
 			return errors.New(string(output))
-		} else if len(output) > 0 && verbose {
-			fmt.Print(string(output))
+		} else if len(output) > 0 {
+			fmt.Println(styles.Grey.Render(string(output)[:]))
 		}
 	}
 

@@ -46,7 +46,7 @@ pm new portal --space personal
 pm open portal --space personal
 
 # You can also specify a short format
-pm open -S personal/portal
+pm open personal/portal
 
 # You can even clone github repositories
 pm clone alexis-moins/portfolio --space work

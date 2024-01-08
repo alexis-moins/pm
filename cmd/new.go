@@ -69,7 +69,6 @@ var newCmd = &cobra.Command{
 		}
 
 		space, _ := cmd.Flags().GetString("space")
-		verbose, _ := cmd.Flags().GetBool("verbose")
 
 		if projects.IsInShortFormat(projectName) {
 			if len(space) > 0 {
@@ -84,10 +83,7 @@ var newCmd = &cobra.Command{
 		}
 
 		if !spaces.IsValid(space) {
-			message := fmt.Sprintf("%s is not a valid space. See %s", space,
-				styles.YellowUnderline.Render("pm space list"))
-
-			return errors.New(message)
+			return spaces.InvalidSpaceError(space)
 		}
 
 		if projects.Exists(space, projectName) {
@@ -103,15 +99,16 @@ var newCmd = &cobra.Command{
 			return errors.New(message)
 		}
 
-		if err := projects.Create(space, projectName, commands, verbose); err != nil {
+		if err := projects.Create(space, projectName, commands); err != nil {
 			return err
 		}
 
-		tmuxFormat := fmt.Sprintf("%s/%s", space, projectName)
-		output, err := tmux.CreateSession(tmuxFormat, projects.GetPath(space, projectName))
+		if detach, _ := cmd.Flags().GetBool("detach"); !detach {
+			output, err := tmux.CreateSession(tmux.GetSessionName(space, projectName), projects.GetPath(space, projectName))
 
-		if err != nil {
-			return errors.New(output)
+			if err != nil {
+				return errors.New(output)
+			}
 		}
 
 		styles.Success(fmt.Sprintf("created project %s in space %s", projectName, space))
@@ -121,11 +118,9 @@ var newCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(newCmd)
+
 	newCmd.Flags().StringP("space", "s", "", "space to create the project in")
+	newCmd.RegisterFlagCompletionFunc("space", spaces.SpaceFlagCompletionFunc)
 
-	newCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
-	})
-
-	newCmd.Flags().BoolP("verbose", "v", false, "show template execution output")
+	newCmd.Flags().BoolP("detach", "d", false, "do not create a new tmux session")
 }
