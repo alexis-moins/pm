@@ -67,11 +67,6 @@ func init() {
 		os.Exit(1)
 	}
 
-	viper.SetEnvPrefix("PM")
-
-	viper.BindEnv("HOME")
-	viper.BindEnv("DEFAULT_SPACE")
-
 	viper.SetDefault("global.home", path.Join(home, "dev"))
 
 	viper.SetConfigName("config")

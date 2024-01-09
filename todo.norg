@@ -31,3 +31,30 @@
 }
 @end
    Upon using the `pm bundle` command, pm will look for a bundle.json file in the current directory and try to parse it. Optionally, users may specify the path to a different bundle file as the first argument to the command.
+
+** Open
+   If a *pm-session.json* json file is found on the project directory, and if no flag is passed to tell pm not to parse it, then the open command should parse and prepare the
+   tmux session accordingly (creating the specified session, in the specified directories, launching the given commands, etc...)
+
+   @code json
+   [
+     {
+       "name": "main"
+     },
+     {
+       "name": "front-editor",
+       "command": "nvim .",
+       "dir": "{PROJECT}/front"
+     },
+     {
+       "name": "back-editor",
+       "command": "nvim .",
+       "dir": "{PROJECT}/back"
+     }
+   ]
+   @end
+
+   @code bash
+   tmux send-keys -t "personal|pm:3.1" "nvim ." Enter
+   tmux select-window -t "personal|pm:3"
+   @end
