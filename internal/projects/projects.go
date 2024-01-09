@@ -118,9 +118,18 @@ func Create(space, project string, template []templates.Step) error {
 }
 
 // Clone the repository in the given space, using the given project name.
-func Clone(repository, space, projectName string) (string, error) {
+func Clone(repository, space, projectName string) error {
 	command := exec.Command("git", "clone", fmt.Sprintf("git@github.com:%s.git", repository), GetPath(space, projectName))
 
+	fmt.Printf("%s %s %s\n", styles.Get("success").Render("*"),
+		strings.Join(command.Args, " "), styles.Get("comment").Render("(this may take a while)"))
+
 	output, err := command.CombinedOutput()
-	return string(output), err
+
+	if err != nil {
+		return errors.New(string(output))
+	}
+
+	fmt.Println(styles.Get("comment").Render(string(output)))
+	return nil
 }

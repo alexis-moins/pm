@@ -80,11 +80,11 @@ var cloneCmd = &cobra.Command{
 			return errors.New(fmt.Sprintf("project %s already exists in space %s", projectName, space))
 		}
 
-		if output, err := _projects.Clone(repository, space, projectName); err != nil {
-			return errors.New(output)
+		if err := _projects.Clone(repository, space, projectName); err != nil {
+			return err
 		}
 
-		message := fmt.Sprintf("Cloned project %s in space %s", projectName, space)
+		message := fmt.Sprintf("cloned project %s in space %s", projectName, space)
 		styles.Success(message)
 
 		return nil
@@ -97,7 +97,5 @@ func init() {
 	cloneCmd.Flags().StringP("space", "s", "", "space to clone in")
 	cloneCmd.Flags().StringP("name", "n", "", "name of the project")
 
-	cloneCmd.RegisterFlagCompletionFunc("space", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return viper.GetStringSlice("spaces.list"), cobra.ShellCompDirectiveNoFileComp
-	})
+	cloneCmd.RegisterFlagCompletionFunc("space", spaces.SpaceFlagCompletionFunc)
 }
