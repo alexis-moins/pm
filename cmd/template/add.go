@@ -83,13 +83,13 @@ var addCmd = &cobra.Command{
 			return errors.New(fmt.Sprintf("%s: unable to open file", path))
 		}
 
-		template, err := templates.ParseTemplate(file)
+		template, err := templates.FromFile(file)
 
 		if err != nil {
 			return err
 		}
 
-		if err = templates.AddTemplate(templateName, template); err != nil {
+		if err = templates.Add(templateName, template); err != nil {
 			return errors.New("unable to save template")
 		}
 

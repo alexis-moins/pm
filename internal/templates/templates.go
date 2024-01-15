@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/alexis-moins/pm/internal/spaces"
+	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/spf13/viper"
 )
 
@@ -17,23 +18,72 @@ const PATH_TOKEN = "{path}"
 const SPACE_TOKEN = "{space}"
 const PROJECT_TOKEN = "{project}"
 
+type Template = []Step
+
+// Run goes over each steps of the template and execute them.
+func Run(template Template, space, project, path string) error {
+	for index, step := range template {
+		output, err := step.run(space, project, path)
+
+		if err != nil {
+			output = fmt.Sprintf("unable to run step %d\n%s", index+1,
+				styles.Get("comment").Render(output))
+
+			return errors.New(output)
+		}
+
+		if len(output) > 0 {
+			fmt.Println(styles.Get("comment").Render(output))
+		}
+	}
+
+	return nil
+}
+
+// withSteps ensure the given template is valid.
+func withSteps(template Template) (Template, error) {
+	for index, step := range template {
+		if len(step.Command) == 0 {
+			return Template{}, errors.New(fmt.Sprintf("unable to parse step %d: step must contain the 'command' key", index+1))
+		}
+	}
+
+	return template, nil
+}
+
+// Step represents a command to execute in a specific directory.
 type Step struct {
 	Command []string `json:"command"`
 	Dir     string   `json:"dir"`
 }
 
-func (self *Step) Subsitute(space, project, path string) {
-	for index, argument := range self.Command {
+func (self Step) run(space, project, path string) (string, error) {
+	command := self.getCommand(space, project, path)
+
+	fmt.Printf("%s %s\n", styles.Get("normal").Render("*"),
+		strings.Join(command.Args, " "))
+
+	output, err := command.CombinedOutput()
+	return string(output), err
+}
+
+func (self Step) subsitute(space, project, path string) []string {
+	command := []string{}
+
+	for _, argument := range self.Command {
 		argument = strings.ReplaceAll(argument, SPACE_TOKEN, space)
 		argument = strings.ReplaceAll(argument, PROJECT_TOKEN, project)
 		argument = strings.ReplaceAll(argument, PATH_TOKEN, path)
 
-		self.Command[index] = argument
+		command = append(command, argument)
 	}
+
+	return command
 }
 
-func (self Step) GetCommand(space, path string) *exec.Cmd {
-	cmd := exec.Command(self.Command[0], self.Command[1:]...)
+func (self Step) getCommand(space, project, path string) *exec.Cmd {
+	command := self.subsitute(space, project, path)
+	cmd := exec.Command(command[0], command[1:]...)
 
 	switch self.Dir {
 	case "SPACE":
@@ -48,8 +98,10 @@ func (self Step) GetCommand(space, path string) *exec.Cmd {
 	return cmd
 }
 
-func DefaultTemplate() []Step {
-	return []Step{
+// Default returns the default template to add when there is not configuration
+// file yet.
+func Default() Template {
+	return Template{
 		{
 			Command: []string{"mkdir", "{path}"},
 		},
@@ -72,7 +124,7 @@ func GetTemplateNames(templates map[string][]Step) []string {
 
 func ListTemplates() map[string][]Step {
 	templates := map[string][]Step{}
-	viper.UnmarshalKey(fmt.Sprintf("templates"), &templates)
+	viper.UnmarshalKey("templates", &templates)
 
 	return templates
 }
@@ -89,7 +141,7 @@ func FindTemplate(name string) ([]Step, bool) {
 	return template, true
 }
 
-func AddTemplate(name string, steps []Step) error {
+func Add(name string, steps []Step) error {
 	templates := ListTemplates()
 
 	templates[name] = steps
@@ -102,7 +154,7 @@ func AddTemplate(name string, steps []Step) error {
 	return nil
 }
 
-func RemoveTemplate(name string) error {
+func Remove(name string) error {
 	templates := ListTemplates()
 
 	delete(templates, name)
@@ -115,25 +167,30 @@ func RemoveTemplate(name string) error {
 	return nil
 }
 
-func ParseTemplate(file *os.File) ([]Step, error) {
+func FromFile(file *os.File) (Template, error) {
 	data, err := io.ReadAll(file)
 
 	if err != nil {
 		return nil, err
 	}
 
+	return fromByteSlice(data)
+}
+
+func fromByteSlice(template []byte) (Template, error) {
 	steps := []Step{}
-	err = json.Unmarshal(data, &steps)
+	err := json.Unmarshal(template, &steps)
 
 	if err != nil {
 		return nil, err
 	}
 
-	for index, step := range steps {
-		if len(step.Command) == 0 {
-			return nil, errors.New(fmt.Sprintf("unable to parse step %d: step must contain the 'command' key", index+1))
-		}
-	}
+	return withSteps(steps)
+}
 
-	return steps, nil
+func FromConfig(key string) (Template, error) {
+	template := []Step{}
+	viper.UnmarshalKey(key, &template)
+
+	return withSteps(template)
 }

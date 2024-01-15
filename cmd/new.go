@@ -28,7 +28,7 @@ import (
 	"github.com/alexis-moins/pm/internal/projects"
 	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
-	templatesLib "github.com/alexis-moins/pm/internal/templates"
+	"github.com/alexis-moins/pm/internal/templates"
 	"github.com/alexis-moins/pm/internal/tmux"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -90,7 +90,7 @@ var newCmd = &cobra.Command{
 			return errors.New(fmt.Sprintf("project %s already exists in space %s", projectName, space))
 		}
 
-		commands, ok := templatesLib.FindTemplate(templateName)
+		template, ok := templates.FindTemplate(templateName)
 
 		if !ok {
 			message := fmt.Sprintf("%s is not a valid template. %s", templateName,
@@ -99,12 +99,14 @@ var newCmd = &cobra.Command{
 			return errors.New(message)
 		}
 
-		if err := projects.Create(space, projectName, commands); err != nil {
+		projectPath := projects.GetPath(space, projectName)
+
+		if err := templates.Run(template, space, projectName, projectPath); err != nil {
 			return err
 		}
 
 		if detach, _ := cmd.Flags().GetBool("detach"); !detach {
-			output, err := tmux.CreateSession(tmux.GetSessionName(space, projectName), projects.GetPath(space, projectName))
+			output, err := tmux.CreateSession(tmux.GetSessionName(space, projectName), projectPath)
 
 			if err != nil {
 				return errors.New(output)

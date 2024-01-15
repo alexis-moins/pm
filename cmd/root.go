@@ -79,15 +79,19 @@ func init() {
 	viper.SetDefault("spaces.default", "default")
 	viper.SetDefault("spaces.list", []string{"default"})
 
+	viper.SetDefault("commands.open.tmux", true)
+	viper.SetDefault("commands.open.template", []string{})
+
 	defaultColors := map[string]string{
 		"comment":    "#6e738d",
 		"error":      "#ed8796",
 		"success":    "#a6da95",
 		"suggestion": "#eed49f",
+		"normal":     "#8aadf4",
 	}
 
 	viper.SetDefault("global.colors", defaultColors)
-	viper.SetDefault("templates.default", templates.DefaultTemplate())
+	viper.SetDefault("templates.default", templates.Default())
 
 	if err := viper.ReadInConfig(); err != nil {
 		if err := os.MkdirAll(configPath, 0750); err != nil {

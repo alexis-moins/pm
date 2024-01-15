@@ -12,7 +12,6 @@ import (
 
 	_spaces "github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
-	"github.com/alexis-moins/pm/internal/templates"
 	"github.com/spf13/viper"
 )
 
@@ -96,25 +95,6 @@ func ListProjects() []string {
 	}
 
 	return projects
-}
-
-func Create(space, project string, template []templates.Step) error {
-	path := GetPath(space, project)
-
-	for _, step := range template {
-		step.Subsitute(space, project, path)
-		cmd := step.GetCommand(space, path)
-
-		fmt.Printf("%s %s\n", styles.Get("error").Render("*"), strings.Join(step.Command, " "))
-
-		if output, err := cmd.CombinedOutput(); err != nil {
-			return errors.New(string(output))
-		} else if len(output) > 0 {
-			fmt.Println(styles.Get("comment").Render(string(output)[:]))
-		}
-	}
-
-	return nil
 }
 
 // Clone the repository in the given space, using the given project name.

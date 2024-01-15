@@ -29,6 +29,7 @@ import (
 	"github.com/alexis-moins/pm/internal/projects"
 	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
+	"github.com/alexis-moins/pm/internal/templates"
 	"github.com/alexis-moins/pm/internal/tmux"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -82,25 +83,46 @@ var openCmd = &cobra.Command{
 		}
 
 		projectPath := projects.GetPath(space, projectName)
-		tmuxFormat := tmux.GetSessionName(space, projectName)
 
-		if tmux.IsRunning() {
-			windows, err := tmux.ListWindows()
+		if useTmux := viper.GetBool("commands.open.tmux"); useTmux {
+			tmuxFormat := tmux.GetSessionName(space, projectName)
+
+			if tmux.IsRunning() {
+				windows, err := tmux.ListWindows()
+
+				if err != nil {
+					return err
+				}
+
+				if slices.Contains(windows, tmuxFormat) {
+					return errors.New(fmt.Sprintf("session %s already exists", projectName))
+				}
+			}
+
+			// No session was found
+			output, err := tmux.CreateSession(tmuxFormat, projectPath)
 
 			if err != nil {
-				return err
+				return errors.New(output)
 			}
 
-			if slices.Contains(windows, tmuxFormat) {
-				return errors.New(fmt.Sprintf("session %s already exists", projectName))
-			}
+			return nil
 		}
 
-		// No session was found
-		output, err := tmux.CreateSession(tmuxFormat, projectPath)
+		steps, err := templates.FromConfig("commands.open.template")
 
 		if err != nil {
-			return errors.New(output)
+			return err
+		}
+
+		if len(steps) == 0 {
+			return errors.New("custom template is empty")
+		}
+
+		err = templates.Run(steps, space, projectName, projectPath)
+
+		if err != nil {
+			return err
 		}
 
 		return nil
