@@ -1,0 +1,6 @@
+[
+  {
+    "command": ["gleam", "new", "{project}"],
+    "dir": "SPACE"
+  }
+]
