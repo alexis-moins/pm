@@ -3,3 +3,6 @@ install:
 
 run *ARGS:
     @-go run main.go {{ARGS}}
+
+build:
+    @-go build && echo done

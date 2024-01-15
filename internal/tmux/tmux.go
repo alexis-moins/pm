@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 )
 
@@ -58,4 +59,29 @@ func ListWindows() ([]string, error) {
 
 func GetSessionName(space, project string) string {
 	return fmt.Sprintf("%s|%s", space, project)
+}
+
+func OpenProject(space, project, path string) error {
+	tmuxFormat := GetSessionName(space, project)
+
+	if IsRunning() {
+		windows, err := ListWindows()
+
+		if err != nil {
+			return err
+		}
+
+		if slices.Contains(windows, tmuxFormat) {
+			return errors.New(fmt.Sprintf("session %s already exists", project))
+		}
+	}
+
+	// No session was found
+	output, err := CreateSession(tmuxFormat, path)
+
+	if err != nil {
+		return errors.New(output)
+	}
+
+	return nil
 }

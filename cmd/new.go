@@ -28,7 +28,7 @@ import (
 	"github.com/alexis-moins/pm/internal/projects"
 	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
-	templatesLib "github.com/alexis-moins/pm/internal/templates"
+	"github.com/alexis-moins/pm/internal/templates"
 	"github.com/alexis-moins/pm/internal/tmux"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -90,7 +90,7 @@ var newCmd = &cobra.Command{
 			return errors.New(fmt.Sprintf("project %s already exists in space %s", projectName, space))
 		}
 
-		commands, ok := templatesLib.FindTemplate(templateName)
+		template, ok := templates.FindTemplate(templateName)
 
 		if !ok {
 			message := fmt.Sprintf("%s is not a valid template. %s", templateName,
@@ -99,12 +99,14 @@ var newCmd = &cobra.Command{
 			return errors.New(message)
 		}
 
-		if err := projects.Create(space, projectName, commands); err != nil {
+		projectPath := projects.GetPath(space, projectName)
+
+		if err := templates.Run(template, space, projectName, projectPath); err != nil {
 			return err
 		}
 
-		if detach, _ := cmd.Flags().GetBool("detach"); !detach {
-			output, err := tmux.CreateSession(tmux.GetSessionName(space, projectName), projects.GetPath(space, projectName))
+		if detach, _ := cmd.Flags().GetBool("detach"); viper.GetBool("commands.new.tmux") && !detach {
+			output, err := tmux.CreateSession(tmux.GetSessionName(space, projectName), projectPath)
 
 			if err != nil {
 				return errors.New(output)
@@ -112,6 +114,28 @@ var newCmd = &cobra.Command{
 		}
 
 		styles.Success(fmt.Sprintf("created project %s in space %s", projectName, space))
+
+		if noHook, _ := cmd.Flags().GetBool("no-hook"); noHook {
+			return nil
+		}
+
+		steps, err := templates.FromConfig("commands.new.hook")
+
+		if err != nil {
+			return err
+		}
+
+		if len(steps) == 0 {
+			return nil
+		}
+
+		fmt.Println(styles.Get("comment").Render("Executing hook..."))
+		err = templates.Run(steps, space, projectName, projectPath)
+
+		if err != nil {
+			return err
+		}
+
 		return nil
 	},
 }
@@ -123,4 +147,5 @@ func init() {
 	newCmd.RegisterFlagCompletionFunc("space", spaces.SpaceFlagCompletionFunc)
 
 	newCmd.Flags().BoolP("detach", "d", false, "do not create a new tmux session")
+	newCmd.Flags().BoolP("no-hook", "n", false, "do not execute the hook")
 }

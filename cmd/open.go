@@ -24,12 +24,10 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"slices"
 
 	"github.com/alexis-moins/pm/internal/projects"
 	"github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
-	"github.com/alexis-moins/pm/internal/tmux"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -81,29 +79,7 @@ var openCmd = &cobra.Command{
 			return errors.New(message)
 		}
 
-		projectPath := projects.GetPath(space, projectName)
-		tmuxFormat := tmux.GetSessionName(space, projectName)
-
-		if tmux.IsRunning() {
-			windows, err := tmux.ListWindows()
-
-			if err != nil {
-				return err
-			}
-
-			if slices.Contains(windows, tmuxFormat) {
-				return errors.New(fmt.Sprintf("session %s already exists", projectName))
-			}
-		}
-
-		// No session was found
-		output, err := tmux.CreateSession(tmuxFormat, projectPath)
-
-		if err != nil {
-			return errors.New(output)
-		}
-
-		return nil
+		return projects.Open(space, projectName)
 	},
 }
 

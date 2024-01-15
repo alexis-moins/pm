@@ -13,6 +13,7 @@ import (
 	_spaces "github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
 	"github.com/alexis-moins/pm/internal/templates"
+	"github.com/alexis-moins/pm/internal/tmux"
 	"github.com/spf13/viper"
 )
 
@@ -98,25 +99,6 @@ func ListProjects() []string {
 	return projects
 }
 
-func Create(space, project string, template []templates.Step) error {
-	path := GetPath(space, project)
-
-	for _, step := range template {
-		step.Subsitute(space, project, path)
-		cmd := step.GetCommand(space, path)
-
-		fmt.Printf("%s %s\n", styles.Get("error").Render("*"), strings.Join(step.Command, " "))
-
-		if output, err := cmd.CombinedOutput(); err != nil {
-			return errors.New(string(output))
-		} else if len(output) > 0 {
-			fmt.Println(styles.Get("comment").Render(string(output)[:]))
-		}
-	}
-
-	return nil
-}
-
 // Clone the repository in the given space, using the given project name.
 func Clone(repository, space, projectName string) error {
 	command := exec.Command("git", "clone", fmt.Sprintf("git@github.com:%s.git", repository), GetPath(space, projectName))
@@ -131,5 +113,36 @@ func Clone(repository, space, projectName string) error {
 	}
 
 	fmt.Println(styles.Get("comment").Render(string(output)))
+	return nil
+}
+
+// Open opens the project in tmux (if configured) and execute custom hook.
+func Open(space, project string) error {
+	path := GetPath(space, project)
+	useTmux := viper.GetBool("commands.open.tmux")
+
+	if useTmux {
+		if err := tmux.OpenProject(space, project, path); err != nil {
+			return err
+		}
+	}
+
+	steps, err := templates.FromConfig("commands.open.hook")
+
+	if err != nil {
+		return err
+	}
+
+	if len(steps) == 0 && !useTmux {
+        fmt.Println("nothing to do...")
+        return nil
+	}
+
+	err = templates.Run(steps, space, project, path)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

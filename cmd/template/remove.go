@@ -56,7 +56,7 @@ var removeCmd = &cobra.Command{
 			return errors.New(message)
 		}
 
-		if err := templates.RemoveTemplate(templateName); err != nil {
+		if err := templates.Remove(templateName); err != nil {
 			return errors.New("unable to remove template")
 		}
 
