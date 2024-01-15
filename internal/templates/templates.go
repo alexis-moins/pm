@@ -60,7 +60,7 @@ type Step struct {
 func (self Step) run(space, project, path string) (string, error) {
 	command := self.getCommand(space, project, path)
 
-	fmt.Printf("%s %s\n", styles.Get("normal").Render("*"),
+	fmt.Printf("%s %s\n", styles.Get("success").Render("*"),
 		strings.Join(command.Args, " "))
 
 	output, err := command.CombinedOutput()

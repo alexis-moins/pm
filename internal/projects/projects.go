@@ -12,6 +12,8 @@ import (
 
 	_spaces "github.com/alexis-moins/pm/internal/spaces"
 	"github.com/alexis-moins/pm/internal/styles"
+	"github.com/alexis-moins/pm/internal/templates"
+	"github.com/alexis-moins/pm/internal/tmux"
 	"github.com/spf13/viper"
 )
 
@@ -111,5 +113,36 @@ func Clone(repository, space, projectName string) error {
 	}
 
 	fmt.Println(styles.Get("comment").Render(string(output)))
+	return nil
+}
+
+// Open opens the project in tmux (if configured) and execute custom hook.
+func Open(space, project string) error {
+	path := GetPath(space, project)
+	useTmux := viper.GetBool("commands.open.tmux")
+
+	if useTmux {
+		if err := tmux.OpenProject(space, project, path); err != nil {
+			return err
+		}
+	}
+
+	steps, err := templates.FromConfig("commands.open.hook")
+
+	if err != nil {
+		return err
+	}
+
+	if len(steps) == 0 && !useTmux {
+        fmt.Println("nothing to do...")
+        return nil
+	}
+
+	err = templates.Run(steps, space, project, path)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

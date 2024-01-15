@@ -80,7 +80,10 @@ func init() {
 	viper.SetDefault("spaces.list", []string{"default"})
 
 	viper.SetDefault("commands.open.tmux", true)
-	viper.SetDefault("commands.open.template", []string{})
+	viper.SetDefault("commands.open.hook", []string{})
+
+	viper.SetDefault("commands.new.tmux", true)
+	viper.SetDefault("commands.new.hook", []string{})
 
 	defaultColors := map[string]string{
 		"comment":    "#6e738d",
