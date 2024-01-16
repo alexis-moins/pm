@@ -85,6 +85,8 @@ func init() {
 	viper.SetDefault("commands.new.tmux", true)
 	viper.SetDefault("commands.new.hook", []string{})
 
+	viper.SetDefault("commands.clone.hostname", "github.com")
+
 	defaultColors := map[string]string{
 		"comment":    "#6e738d",
 		"error":      "#ed8796",

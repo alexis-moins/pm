@@ -100,8 +100,9 @@ func ListProjects() []string {
 }
 
 // Clone the repository in the given space, using the given project name.
-func Clone(repository, space, projectName string) error {
-	command := exec.Command("git", "clone", fmt.Sprintf("git@github.com:%s.git", repository), GetPath(space, projectName))
+func Clone(hostname, repository, space, projectName string) error {
+	command := exec.Command("git", "clone",
+		fmt.Sprintf("git@%s:%s.git", hostname, repository), GetPath(space, projectName))
 
 	fmt.Printf("%s %s %s\n", styles.Get("success").Render("*"),
 		strings.Join(command.Args, " "), styles.Get("comment").Render("(this may take a while)"))
@@ -134,8 +135,8 @@ func Open(space, project string) error {
 	}
 
 	if len(steps) == 0 && !useTmux {
-        fmt.Println("nothing to do...")
-        return nil
+		fmt.Println("nothing to do...")
+		return nil
 	}
 
 	err = templates.Run(steps, space, project, path)
