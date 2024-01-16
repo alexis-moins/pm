@@ -36,7 +36,7 @@ import (
 var RootCmd = &cobra.Command{
 	Use:          "pm",
 	Short:        "Project manager built on top of tmux",
-	Version:      "0.7.1",
+	Version:      "0.7.2",
 	SilenceUsage: true,
 
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -84,6 +84,8 @@ func init() {
 
 	viper.SetDefault("commands.new.tmux", true)
 	viper.SetDefault("commands.new.hook", []string{})
+
+	viper.SetDefault("commands.clone.hostname", "github.com")
 
 	defaultColors := map[string]string{
 		"comment":    "#6e738d",

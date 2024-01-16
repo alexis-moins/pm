@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"path"
 	"regexp"
+	"strings"
 
 	_projects "github.com/alexis-moins/pm/internal/projects"
 	"github.com/alexis-moins/pm/internal/spaces"
@@ -34,7 +35,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var repositoryRegex = regexp.MustCompile(`^[^/]+/[^/]+$`)
+var repositoryRegex = regexp.MustCompile(`^(?:git@)?([\w\.]+:)?([^/]+/[^/\.]+)(?:\.git)?$`)
 
 // cloneCmd represents the clone command
 var cloneCmd = &cobra.Command{
@@ -43,7 +44,7 @@ var cloneCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	GroupID: "project",
 	Example: `  pm clone alexis-moins/recipe
-  pm clone neovim/neovim -n nvim -s tools`,
+  pm clone git@github.com:neovim/neovim.git -n nvim -s tools`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		repository := args[0]
@@ -51,21 +52,32 @@ var cloneCmd = &cobra.Command{
 		space, _ := cmd.Flags().GetString("space")
 		nameFlag, _ := cmd.Flags().GetString("name")
 
+		hostname := viper.GetString("commands.clone.hostname")
+
+		if host, _ := cmd.Flags().GetString("hostname"); len(host) > 0 {
+			hostname = host
+		}
+
 		if len(space) == 0 {
 			space = viper.GetString("spaces.default")
 		}
 
-		if !repositoryRegex.Match([]byte(repository)) {
-			format := styles.Suggestion("<username>/<project>")
-			return errors.New(fmt.Sprintf("invalid repository format. Use %s", format))
+		repository = repositoryRegex.ReplaceAllString(repository, "${1}${2}")
+		parts := strings.Split(repository, ":")
+
+		// If split succeeds, the first part is the hostname
+		if len(parts) == 2 {
+			hostname = parts[0]
 		}
+
+		// Last part must be username/project
+		repository = parts[len(parts)-1]
 
 		if !spaces.IsValid(space) {
 			message := fmt.Sprintf("%s is not a valid space. %s", space,
 				styles.Suggestion("pm space list"))
 
 			return errors.New(message)
-
 		}
 
 		var projectName string
@@ -80,7 +92,7 @@ var cloneCmd = &cobra.Command{
 			return errors.New(fmt.Sprintf("project %s already exists in space %s", projectName, space))
 		}
 
-		if err := _projects.Clone(repository, space, projectName); err != nil {
+		if err := _projects.Clone(hostname, repository, space, projectName); err != nil {
 			return err
 		}
 
@@ -96,6 +108,9 @@ func init() {
 
 	cloneCmd.Flags().StringP("space", "s", "", "space to clone in")
 	cloneCmd.Flags().StringP("name", "n", "", "name of the project")
+
+	cloneCmd.Flags().StringP("hostname", "H", "", "default git hostname")
+	// viper.BindPFlag("commands.clone.hostname", cloneCmd.Flags().Lookup("hostname"))
 
 	cloneCmd.RegisterFlagCompletionFunc("space", spaces.SpaceFlagCompletionFunc)
 }
