@@ -1,5 +1,13 @@
-generate ENV='production':
-    @bashly generate --env={{ENV}}
+SCRIPT := "pm"
 
-watch ENV='production':
-    @bashly generate --env={{ENV}} --watch
+generate:
+    @bashly generate --upgrade
+
+watch:
+    @bashly generate --watch
+
+build:
+    @bashly generate --env=production --upgrade
+
+run *ARGS:
+    @./{{SCRIPT}} {{ARGS}}

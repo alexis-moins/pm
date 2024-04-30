@@ -3,17 +3,13 @@ help: Project manager built on top of tmux
 version: 1.3.0
 
 environment_variables:
-  - name: PM_INSTALL
+  - name: PM_INSTALL_DIR
     help: Directory where the repository was cloned
     default: ${HOME}/.pm
 
   - name: PM_HOME
     help: Directory where the projects will be managed
     default: ${HOME}/dev
-
-  - name: PM_LINK
-    help: Directory where the script will be linked
-    default: ${HOME}/.local/bin
 
 dependencies:
   - git
@@ -31,7 +27,7 @@ commands:
 
   - name: new
     help: Create a new empty project
-    group: PROJECT
+    group: Project
 
     args:
       - name: name
@@ -43,24 +39,22 @@ commands:
         long: --space
         help: Space of the new project
         arg: space
-        default: default
+        required: true
         validate: space_exists
 
-      - short: -n
-        long: --no-git
-        help: Skip git repository initialization
-
-      - short: -d
-        long: --detach
-        help: Don't attach to the new tmux session
+      - short: -t
+        long: --template
+        help: Name of the template
+        default: default
+        arg: template
 
     examples:
-      - pm new recipe --detach
-      - pm new recipe --space tools --no-git
+      - pm new recipe --space tools
+      - pm new recipe --template cargo --space tools
 
   - name: clone
     help: Clone a remote git repository
-    group: PROJECT
+    group: Project
 
     args:
       - name: repository
@@ -72,7 +66,7 @@ commands:
         long: --space
         help: Space to clone the project in
         arg: space
-        default: default
+        required: true
         validate: space_exists
 
       - short: -n
@@ -81,12 +75,12 @@ commands:
         arg: name
 
     examples:
-      - pm clone alexis-moins/recipe
+      - pm clone alexis-moins/recipe --space tools
       - pm clone neovim/neovim --space tools --name editor
 
   - name: open
     help: Open a project in a tmux session
-    group: PROJECT
+    group: Project
 
     args:
       - name: name
@@ -97,7 +91,7 @@ commands:
         long: --space
         help: Space where the project is located
         arg: space
-        default: default
+        required: true
         validate: space_exists
 
     examples:
@@ -106,11 +100,7 @@ commands:
 
   - name: filter
     help: Filter projects by name
-    group: PROJECT
-
-    args:
-      - name: value
-        help: Initial filter
+    group: Project
 
     flags:
       - short: -p
@@ -119,13 +109,7 @@ commands:
 
     examples:
       - pm filter
-      - pm filter neovim
-
-  - name: dir
-    help: Show projects' root directory
-
-    examples:
-      - pm dir
+      - pm filter --path
 
   - name: space
     help: Create, delete or list spaces
@@ -151,7 +135,7 @@ commands:
 
       - name: list
         alias: ls
-        help: List registered spaces
+        help: List added spaces
 
         examples:
           - pm space ls
@@ -179,29 +163,39 @@ commands:
   - name: list
     alias: ls
     help: List projects
-    group: PROJECT
+    group: Project
 
     examples:
       - pm ls
       - pm list
 
   - name: link
-    help: Create a link to this script
+    help: Create a link to the recipe script
+
+    args:
+      - name: path
+        help: Path to the link
+        default: ${HOME}/.local/bin
 
     flags:
       - short: -c
         long: --copy
         help: Copy the script instead of creating a symbolic link
-        conflicts: [--remove]
-
-      - short: -r
-        long: --remove
-        help: Remove the link instead of creating it
-        conflicts: [--copy]
 
     examples:
-      - pm link
-      - pm link --remove
+      - recipe link -c
+      - recipe link /usr/bin
+
+  - name: unlink
+    help: Remove the link to the recipe script
+
+    args:
+      - name: path
+        help: Path to the link
+        default: ${HOME}/.local/bin
+
+    examples:
+      - recipe unlink
 
   - name: update
     help: Update to the latest version
@@ -209,36 +203,8 @@ commands:
     examples:
       - pm update
 
-  - name: tmux
-    help: Commands for tmux integration
-
-    commands:
-      - name: help
-        help: Show help about a command
-        args:
-        - name: command
-          help: Help subject
-
-      - name: new
-        help: Create a new empty project
-
-        examples:
-          - pm tmux new
-
   - name: env
     help: Show environment information
 
     examples:
       - pm env
-
-  - name: keybindings
-    help: Show tmux keybindings
-
-    flags:
-      - short: -s
-        long: --set
-        help: Set the keybindings in ~/.tmux.conf
-
-    examples:
-      - pm keybindings
-      - pm keybindings --set

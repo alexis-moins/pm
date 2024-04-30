@@ -1,17 +1,11 @@
 local SPACE_INDEX="${PM_HOME}/spaces"
 
-if [[ ! -d "${PM_HOME}" ]]; then
-    command mkdir -p "${PM_HOME}"
-fi
+[[ ! -d "${PM_HOME}" ]] && command mkdir -p "${PM_HOME}"
+[[ ! -f "${SPACE_INDEX}" ]] && touch "${SPACE_INDEX}"
 
-if [[ ! -d "${PM_HOME}/default" ]]; then
-    command mkdir -p "${PM_HOME}/default"
-fi
+# Create directories if not present
+for space in $(cat "${SPACE_INDEX}"); do
+    [[ ! -d "${PM_HOME}/${space}" ]] && command mkdir -p "${PM_HOME}/${space}"
+done
 
-if [[ ! -f "${SPACE_INDEX}" ]]; then
-    touch "${SPACE_INDEX}"
-fi
-
-
-echo "default" >> "${SPACE_INDEX}"
 command sort --unique "${SPACE_INDEX}" --output "${SPACE_INDEX}"

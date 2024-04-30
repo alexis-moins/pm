@@ -2,14 +2,14 @@ local name="${args[name]}"
 local space="${args[--space]}"
 
 if [[ -z "${name}" ]]; then
-    project=`filter_project_by_space "${space}"`
+    project="$(filter_project)"
 
     name=`basename "${project}"`
     space=`dirname "${project}"`
 fi
 
 if ! project_exists "${space}" "${name}"; then
-    echo "$(red pm:) no project $(magenta ${name}) in space $(magenta ${space})"
+    error "no project '${name}' in space '${space}'."
     exit 1
 fi
 

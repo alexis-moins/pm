@@ -1,14 +1,12 @@
 <div align='center'>
 
 ```
-                  
-                  
-  _ __  _ __ ___  
- | '_ \| '_ ` _ \ 
+  _ __  _ __ ___
+ | '_ \| '_ ` _ \
  | |_) | | | | | |
  | .__/|_| |_| |_|
- | |              
- |_|              
+ | |
+ |_|
 ```
 
 ![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)
@@ -17,7 +15,7 @@
 
 ---
 
-`pm` is a bash script allowing users to rapidly create new projects. It integrate with tmux to allow for a seemless navigation.
+`pm` is a bash script allowing users to rapidly create new projects. It integrate with tmux to allow for a seamless navigation.
 
 ## Prerequisites
 
@@ -28,23 +26,38 @@
 - git
 
 
-## Installation
+## 🧰 Installation
 
-Clone the repository:
+### Using pm
+
+Clone the repository in the recommended location
 ```bash
 git clone git@github.com:alexis-moins/pm.git ~/.pm
 ```
 
-And let pm create the symbolic link for you!
+Go into the install directory and let pm take care of the rest!
 ```bash
-cd ~/.pm && ./pm link
+PM_INSTALL_DIR=$(pwd) ./pm link
 ```
 
-The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory. You can also change the link destination path with the `PM_LINK` environment variable.
+The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory (you can also change the link destination path). Finally, if you did not clone the repository in `~/.pm`, run the don't forget to set the `PM_INSTALL_DIR` environment variable globally afterwards!
 
-> If you wish to change the default install location, feel free to do so! Just remember to set the `PM_INSTALL` environment variable to point to the right location.
+### Manually
 
-## Quick Start
+Clone the repository then move the [pm](pm) script to anywhere in your `PATH`, and ensure it is executable!
+
+## 🛎️ Setup
+
+Finally, copy the templates used by pm to create new projects.
+```bash
+# Create the 'pm' configuration directory
+mkdir -p ~/.config/pm
+
+# Copy templates provided by default
+copy -r ~/.pm/templates ~/.config/pm/
+```
+
+## 🌱 Quick Start
 
 After installing, you can follow these steps to quickly see how it works:
 
@@ -58,27 +71,19 @@ pm new portal --space personal
 # Opening the project is even simpler
 pm open portal --space personal
 
-# You can even clone github repositories
+# You can even clone github repositories directly
 pm clone alexis-moins/portfolio --space work
 ```
 
-## Tmux integration
+## ✏️  Tmux integration
 
-`pm` comes with the following default tmux keybindings:
+`pm` suggests the following keybinding to easily open projects from tmux. You can put them at the end of your `~/.tmux.conf`.
 ```bash
 # Leader + o: open a pm project
 bind-key o display-popup -E "pm open"
-
-# Leader + -: create a new pm project
-bind-key - display-popup -E "pm tmux new"
 ```
 
-You can either add them to your tmux config manually or by running the following command which will append the keybindings to your configuration.
-```bash
-pm keybindings --set
-```
-
-## Usage
+## 🚦 Usage
 
 ```
 $ pm
@@ -92,14 +97,13 @@ Usage:
 
 Commands:
   help     Show help about a command
-  dir      Show projects' root directory
   space    Create, delete or list spaces
-  link     Create a link to this script
+  link     Create a link to the recipe script
+  unlink   Remove the link to the recipe script
   update   Update to the latest version
-  tmux     Commands for tmux integration
   env      Show environment information
 
-PROJECT Commands:
+Project Commands:
   new      Create a new empty project
   clone    Clone a remote git repository
   open     Open a project in a tmux session
@@ -114,15 +118,11 @@ Options:
     Show version number
 
 Environment Variables:
-  PM_INSTALL
+  PM_INSTALL_DIR
     Directory where the repository was cloned
     Default: ~/.pm
 
   PM_HOME
     Directory where the projects will be managed
     Default: ~/dev
-
-  PM_LINK
-    Directory where the script will be linked
-    Default: ~/.local/bin
 ```

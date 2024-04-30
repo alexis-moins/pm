@@ -5,4 +5,4 @@ local SPACE_INDEX="${PM_HOME}/spaces"
 echo "${space}" >> "${SPACE_INDEX}"
 
 command sort --unique "${SPACE_INDEX}" --output "${SPACE_INDEX}"
-echo "$(green ✔) New space added"
+info "new space added."

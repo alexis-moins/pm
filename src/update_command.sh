@@ -1,6 +1,7 @@
-if [[ ! -d "${PM_INSTALL}" ]]; then
-    echo "${PM_INSTALL} is not a directory. Check documentation for installation instruction."
+if [[ ! -d "${PM_INSTALL_DIR}" ]]; then
+    warn "no pm install directory."
+    warn "check documentation for installation instruction."
     exit 1
 fi
 
-git -C "${PM_INSTALL}" pull
+git -C "${PM_INSTALL_DIR}" pull

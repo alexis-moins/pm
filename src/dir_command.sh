@@ -1,1 +1,0 @@
-echo "${PM_HOME}"
