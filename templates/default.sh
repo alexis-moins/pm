@@ -1,4 +1,3 @@
-#
 # Arguments:
 #  1 - space name
 #  2 - project name

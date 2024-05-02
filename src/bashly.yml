@@ -11,6 +11,10 @@ environment_variables:
     help: Directory where the projects will be managed
     default: ${HOME}/dev
 
+  - name: PM_BACKEND
+    help: Script executed to open the project
+    default: ${PM_INSTALL_DIR}/backend/tmux.sh
+
 dependencies:
   - git
   - tmux
