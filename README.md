@@ -46,17 +46,6 @@ The last command creates a symbolic link to the `pm` script in the `~/.local/bin
 
 Clone the repository then move the [pm](pm) script to anywhere in your `PATH`, and ensure it is executable!
 
-## 🛎️ Setup
-
-Finally, copy the templates used by pm to create new projects.
-```bash
-# Create the 'pm' configuration directory
-mkdir -p ~/.config/pm
-
-# Copy templates provided by default
-copy -r ~/.pm/templates ~/.config/pm/
-```
-
 ## 🌱 Quick Start
 
 After installing, you can follow these steps to quickly see how it works:
