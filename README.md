@@ -1,14 +1,5 @@
 <div align='center'>
 
-```
-  _ __  _ __ ___
- | '_ \| '_ ` _ \
- | |_) | | | | | |
- | .__/|_| |_| |_|
- | |
- |_|
-```
-
 ![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)
 
 </div>
