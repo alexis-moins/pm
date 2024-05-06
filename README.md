@@ -29,7 +29,9 @@ Go into the install directory and let pm take care of the rest!
 PM_INSTALL_DIR=$(pwd) ./pm link
 ```
 
-The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory (you can also change the link destination path). Finally, if you did not clone the repository in `~/.pm`, run the don't forget to set the `PM_INSTALL_DIR` environment variable globally afterwards!
+The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory (you can also change the link destination path). 
+
+> If you did not clone the repository in `~/.pm`, don't forget to set the `PM_INSTALL_DIR` environment variable globally afterwards!
 
 ### Manually
 
