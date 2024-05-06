@@ -58,9 +58,11 @@ pm open <project> --space personal
 pm clone alexis-moins/portfolio --space work
 ```
 
-## ✏️  Tmux integration
+## 🥘 Misc
 
-`pm` suggests the following keybinding to easily open projects from tmux. You can put them at the end of your `~/.tmux.conf`.
+### Tmux
+
+You can put the following shortcut at the end of your `~/.tmux.conf` to open a project from tmux interactively.
 ```bash
 # Leader + o: open a pm project
 bind-key o display-popup -E "pm open"
