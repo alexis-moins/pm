@@ -1,6 +1,6 @@
 name: pm
 help: Project manager built on top of tmux
-version: 1.3.0
+version: 1.4.0
 
 environment_variables:
   - name: PM_INSTALL_DIR
@@ -13,11 +13,10 @@ environment_variables:
 
   - name: PM_BACKEND
     help: Script executed to open the project
-    default: ${PM_INSTALL_DIR}/backend/tmux.sh
+    default: ${PM_INSTALL_DIR}/backends/tmux.sh
 
 dependencies:
   - git
-  - tmux
   - fd
   - gum
   - rg
@@ -83,7 +82,7 @@ commands:
       - pm clone neovim/neovim --space tools --name editor
 
   - name: open
-    help: Open a project in a tmux session
+    help: Open a project
     group: Project
 
     args:
@@ -95,7 +94,6 @@ commands:
         long: --space
         help: Space where the project is located
         arg: space
-        required: true
         validate: space_exists
 
     examples:
@@ -116,7 +114,7 @@ commands:
       - pm filter --path
 
   - name: space
-    help: Create, delete or list spaces
+    help: Space related commands
 
     commands:
       - name: help

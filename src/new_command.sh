@@ -25,12 +25,11 @@ if [[ ! -f "${template}" ]]; then
     fi
 fi
 
-source "${template}" "${space}" "${name}" "${path}" &> /dev/null
-
-if [[ "${?}" ]]; then
+if source "${template}" "${space}" "${name}" "${path}"; then
     info "project '${name}' created in space '${space}'."
 else
     error "unable to create project."
+    return 1
 fi
 
 if [[ ! -f "${PM_BACKEND}" ]]; then

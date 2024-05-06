@@ -2,10 +2,19 @@ local name="${args[name]}"
 local space="${args[--space]}"
 
 if [[ -z "${name}" ]]; then
-    project="$(filter_project)"
+    if [[ -z "${space}" ]]; then
+        project="$(filter_project)"
+    else
+        project="$(filter_project_by_space "${space}")"
+    fi
 
     name=`basename "${project}"`
     space=`dirname "${project}"`
+else
+    if [[ -z "${space}" ]]; then
+        error "must use --space flag with argumet NAME."
+        return 1
+    fi
 fi
 
 if ! project_exists "${space}" "${name}"; then
