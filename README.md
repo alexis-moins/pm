@@ -4,8 +4,6 @@
 
 </div>
 
----
-
 `pm` is a bash script allowing users to rapidly create new projects. It integrate with tmux to allow for a seamless navigation.
 
 ## Prerequisites
