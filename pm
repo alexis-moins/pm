@@ -31,8 +31,8 @@ pm_usage() {
   printf "%s\n" "Commands:"
   printf "  %s   Show help about a command\n" "help  "
   printf "  %s   Space related commands\n" "space "
-  printf "  %s   Create a link to the recipe script\n" "link  "
-  printf "  %s   Remove the link to the recipe script\n" "unlink"
+  printf "  %s   Create a link to the pm script\n" "link  "
+  printf "  %s   Remove the link to the pm script\n" "unlink"
   printf "  %s   Update to the latest version\n" "update"
   printf "  %s   Show environment information\n" "env   "
   echo
@@ -524,11 +524,11 @@ pm_list_usage() {
 
 pm_link_usage() {
   if [[ -n $long_usage ]]; then
-    printf "pm link - Create a link to the recipe script\n"
+    printf "pm link - Create a link to the pm script\n"
     echo
 
   else
-    printf "pm link - Create a link to the recipe script\n"
+    printf "pm link - Create a link to the pm script\n"
     echo
 
   fi
@@ -557,8 +557,8 @@ pm_link_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  recipe link -c\n"
-    printf "  recipe link /usr/bin\n"
+    printf "  pm link -c\n"
+    printf "  pm link /usr/bin\n"
     echo
 
   fi
@@ -566,11 +566,11 @@ pm_link_usage() {
 
 pm_unlink_usage() {
   if [[ -n $long_usage ]]; then
-    printf "pm unlink - Remove the link to the recipe script\n"
+    printf "pm unlink - Remove the link to the pm script\n"
     echo
 
   else
-    printf "pm unlink - Remove the link to the recipe script\n"
+    printf "pm unlink - Remove the link to the pm script\n"
     echo
 
   fi
@@ -595,7 +595,7 @@ pm_unlink_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  recipe unlink\n"
+    printf "  pm unlink\n"
     echo
 
   fi

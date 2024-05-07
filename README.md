@@ -86,8 +86,8 @@ Usage:
 Commands:
   help     Show help about a command
   space    Space related commands
-  link     Create a link to the recipe script
-  unlink   Remove the link to the recipe script
+  link     Create a link to the pm script
+  unlink   Remove the link to the pm script
   update   Update to the latest version
   env      Show environment information
 

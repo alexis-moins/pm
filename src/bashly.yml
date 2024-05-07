@@ -185,7 +185,7 @@ commands:
       - pm list
 
   - name: link
-    help: Create a link to the recipe script
+    help: Create a link to the pm script
 
     args:
       - name: path
@@ -198,11 +198,11 @@ commands:
         help: Copy the script instead of creating a symbolic link
 
     examples:
-      - recipe link -c
-      - recipe link /usr/bin
+      - pm link -c
+      - pm link /usr/bin
 
   - name: unlink
-    help: Remove the link to the recipe script
+    help: Remove the link to the pm script
 
     args:
       - name: path
@@ -210,7 +210,7 @@ commands:
         default: ${HOME}/.local/bin
 
     examples:
-      - recipe unlink
+      - pm unlink
 
   - name: update
     help: Update to the latest version
