@@ -1,6 +1,6 @@
 name: pm
 help: Project manager built on top of tmux
-version: 1.4.0
+version: 1.4.1
 
 environment_variables:
   - name: PM_INSTALL_DIR
@@ -12,8 +12,8 @@ environment_variables:
     default: ${HOME}/dev
 
   - name: PM_BACKEND
-    help: Script executed to open the project
-    default: ${PM_INSTALL_DIR}/backends/tmux.sh
+    help: Name of the backend used to open projects
+    default: tmux
 
 dependencies:
   - git
@@ -50,6 +50,13 @@ commands:
         help: Name of the template
         default: default
         arg: template
+
+      - short: -b
+        long: --backend
+        help: Name of the backend used to open projects
+        arg: backend
+        default: ${PM_BACKEND}
+
 
     examples:
       - pm new recipe --space tools
@@ -95,6 +102,12 @@ commands:
         help: Space where the project is located
         arg: space
         validate: space_exists
+
+      - short: -b
+        long: --backend
+        help: Name of the backend used to open projects
+        arg: backend
+        default: ${PM_BACKEND}
 
     examples:
       - pm open recipe

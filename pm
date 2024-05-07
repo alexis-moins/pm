@@ -67,8 +67,8 @@ pm_usage() {
     echo
 
     printf "  %s\n" "PM_BACKEND"
-    printf "    Script executed to open the project\n"
-    printf "    Default: ${PM_INSTALL_DIR}/backends/tmux.sh\n"
+    printf "    Name of the backend used to open projects\n"
+    printf "    Default: tmux\n"
     echo
 
   fi
@@ -132,6 +132,11 @@ pm_new_usage() {
     printf "  %s\n" "--template, -t TEMPLATE"
     printf "    Name of the template\n"
     printf "    Default: default\n"
+    echo
+
+    printf "  %s\n" "--backend, -b BACKEND"
+    printf "    Name of the backend used to open projects\n"
+    printf "    Default: ${PM_BACKEND}\n"
     echo
 
     printf "  %s\n" "--help, -h"
@@ -218,6 +223,11 @@ pm_open_usage() {
 
     printf "  %s\n" "--space, -s SPACE"
     printf "    Space where the project is located\n"
+    echo
+
+    printf "  %s\n" "--backend, -b BACKEND"
+    printf "    Name of the backend used to open projects\n"
+    printf "    Default: ${PM_BACKEND}\n"
     echo
 
     printf "  %s\n" "--help, -h"
@@ -808,9 +818,10 @@ pm_help_command() {
 
 pm_new_command() {
   local name="${args[name]}"
-
   local space="${args[--space]}"
+
   local template_name="${args[--template]}"
+  local backend_name="${args[--backend]}"
 
   local project="${space}/${name}"
 
@@ -841,12 +852,20 @@ pm_new_command() {
       return 1
   fi
 
-  if [[ ! -f "${PM_BACKEND}" ]]; then
-      error "backend '${PM_BACKEND}' not found."
-      return 1
+  # Search for user backend first
+  local backend="${HOME}/.config/pm/backends/${backend_name}.sh"
+
+  if [[ ! -f "${backend}" ]]; then
+      # Then search for pm backends
+      backend="${PM_INSTALL_DIR}/backends/${backend_name}.sh"
+
+      if [[ ! -f "${backend}" ]]; then
+          error "backend '${backend_name}' not found."
+          return 1
+      fi
   fi
 
-  source "${PM_BACKEND}" "${space}" "${name}" "${path}" &> /dev/null
+  source "${backend}" "${space}" "${name}" "${path}"
 
 }
 
@@ -874,6 +893,8 @@ pm_open_command() {
   local name="${args[name]}"
   local space="${args[--space]}"
 
+  local backend_name="${args[--backend]}"
+
   if [[ -z "${name}" ]]; then
       if [[ -z "${space}" ]]; then
           project="$(filter_project)"
@@ -895,14 +916,22 @@ pm_open_command() {
       exit 1
   fi
 
-  if [[ ! -f "${PM_BACKEND}" ]]; then
-      error "backend '${PM_BACKEND}' not found."
-      return 1
+  # Search for user backend first
+  local backend="${HOME}/.config/pm/backends/${backend_name}.sh"
+
+  if [[ ! -f "${backend}" ]]; then
+      # Then search for pm backends
+      backend="${PM_INSTALL_DIR}/backends/${backend_name}.sh"
+
+      if [[ ! -f "${backend}" ]]; then
+          error "backend '${backend_name}' not found."
+          return 1
+      fi
   fi
 
   local path="${PM_HOME}/${space}/${name}"
 
-  source "${PM_BACKEND}" "${space}" "${name}" "${path}" &> /dev/null
+  source "${backend}" "${space}" "${name}" "${path}"
 
 }
 
@@ -919,7 +948,7 @@ pm_filter_command() {
 }
 
 pm_space_help_command() {
-  command="${args[command]}"
+  command="${args[command]:-}"
   long_usage=yes
 
   if [[ -z "$command" ]]; then
@@ -1063,7 +1092,7 @@ parse_requirements() {
 
   export PM_INSTALL_DIR="${PM_INSTALL_DIR:-${HOME}/.pm}"
   export PM_HOME="${PM_HOME:-${HOME}/dev}"
-  export PM_BACKEND="${PM_BACKEND:-${PM_INSTALL_DIR}/backends/tmux.sh}"
+  export PM_BACKEND="${PM_BACKEND:-tmux}"
 
   env_var_names+=("PM_INSTALL_DIR")
   env_var_names+=("PM_HOME")
@@ -1304,6 +1333,18 @@ pm_new_parse_requirements() {
         fi
         ;;
 
+      --backend | -b)
+
+        if [[ -n ${2+x} ]]; then
+          args['--backend']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--backend requires an argument: --backend, -b BACKEND" >&2
+          exit 1
+        fi
+        ;;
+
       -?*)
         printf "invalid option: %s\n" "$key" >&2
         exit 1
@@ -1335,6 +1376,7 @@ pm_new_parse_requirements() {
   fi
 
   [[ -n ${args['--template']:-} ]] || args['--template']="default"
+  [[ -n ${args['--backend']:-} ]] || args['--backend']="${PM_BACKEND}"
 
   if [[ -v args['--space'] && -n $(validate_space_exists "${args['--space']:-}") ]]; then
     printf "validation error in %s:\n%s\n" "--space, -s SPACE" "$(validate_space_exists "${args['--space']:-}")" >&2
@@ -1462,6 +1504,18 @@ pm_open_parse_requirements() {
         fi
         ;;
 
+      --backend | -b)
+
+        if [[ -n ${2+x} ]]; then
+          args['--backend']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--backend requires an argument: --backend, -b BACKEND" >&2
+          exit 1
+        fi
+        ;;
+
       -?*)
         printf "invalid option: %s\n" "$key" >&2
         exit 1
@@ -1481,6 +1535,8 @@ pm_open_parse_requirements() {
 
     esac
   done
+
+  [[ -n ${args['--backend']:-} ]] || args['--backend']="${PM_BACKEND}"
 
   if [[ -v args['--space'] && -n $(validate_space_exists "${args['--space']:-}") ]]; then
     printf "validation error in %s:\n%s\n" "--space, -s SPACE" "$(validate_space_exists "${args['--space']:-}")" >&2
@@ -2081,13 +2137,13 @@ pm_env_parse_requirements() {
 }
 
 initialize() {
-  version="1.4.0"
+  version="1.4.1"
   long_usage=''
   set -e
 
   export PM_INSTALL_DIR="${PM_INSTALL_DIR:-${HOME}/.pm}"
   export PM_HOME="${PM_HOME:-${HOME}/dev}"
-  export PM_BACKEND="${PM_BACKEND:-${PM_INSTALL_DIR}/backends/tmux.sh}"
+  export PM_BACKEND="${PM_BACKEND:-tmux}"
 
   local SPACE_INDEX="${PM_HOME}/spaces"
 

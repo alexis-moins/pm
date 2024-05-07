@@ -1,6 +1,6 @@
 <div align='center'>
 
-![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.4.1-blue.svg)
 
 </div>
 
@@ -53,6 +53,9 @@ pm new <project> --space personal --template cargo
 
 # Opening the project is even simpler
 pm open <project> --space personal
+
+# But using a different backend is also possible
+pm open <project> --space personal --backend vscode
 
 # You can even clone github repositories directly
 pm clone alexis-moins/portfolio --space work
@@ -112,6 +115,6 @@ Environment Variables:
     Default: ~/dev
 
   PM_BACKEND
-    Script executed to open the project
-    Default: ~/.pm/backends/tmux.sh
+    Name of the backend used to open projects
+    Default: tmux
 ```

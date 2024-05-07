@@ -1,7 +1,8 @@
 local name="${args[name]}"
-
 local space="${args[--space]}"
+
 local template_name="${args[--template]}"
+local backend_name="${args[--backend]}"
 
 local project="${space}/${name}"
 
@@ -32,10 +33,17 @@ else
     return 1
 fi
 
-if [[ ! -f "${PM_BACKEND}" ]]; then
-    error "backend '${PM_BACKEND}' not found."
-    return 1
+# Search for user backend first
+local backend="${HOME}/.config/pm/backends/${backend_name}.sh"
+
+if [[ ! -f "${backend}" ]]; then
+    # Then search for pm backends
+    backend="${PM_INSTALL_DIR}/backends/${backend_name}.sh"
+
+    if [[ ! -f "${backend}" ]]; then
+        error "backend '${backend_name}' not found."
+        return 1
+    fi
 fi
 
-source "${PM_BACKEND}" "${space}" "${name}" "${path}" &> /dev/null
-
+source "${backend}" "${space}" "${name}" "${path}"

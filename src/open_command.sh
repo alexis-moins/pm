@@ -1,6 +1,8 @@
 local name="${args[name]}"
 local space="${args[--space]}"
 
+local backend_name="${args[--backend]}"
+
 if [[ -z "${name}" ]]; then
     if [[ -z "${space}" ]]; then
         project="$(filter_project)"
@@ -22,11 +24,19 @@ if ! project_exists "${space}" "${name}"; then
     exit 1
 fi
 
-if [[ ! -f "${PM_BACKEND}" ]]; then
-    error "backend '${PM_BACKEND}' not found."
-    return 1
+# Search for user backend first
+local backend="${HOME}/.config/pm/backends/${backend_name}.sh"
+
+if [[ ! -f "${backend}" ]]; then
+    # Then search for pm backends
+    backend="${PM_INSTALL_DIR}/backends/${backend_name}.sh"
+
+    if [[ ! -f "${backend}" ]]; then
+        error "backend '${backend_name}' not found."
+        return 1
+    fi
 fi
 
 local path="${PM_HOME}/${space}/${name}"
 
-source "${PM_BACKEND}" "${space}" "${name}" "${path}" &> /dev/null
+source "${backend}" "${space}" "${name}" "${path}"
