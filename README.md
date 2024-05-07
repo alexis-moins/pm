@@ -11,7 +11,7 @@
 - bash 4.0 or higher
 - [gum](https://github.com/charmbracelet/gum)
 - [fd](https://github.com/sharkdp/fd)
-- tmux
+- tmux (optional)
 - git
 
 
