@@ -20,7 +20,7 @@ environment_variables:
     default: tmux
 
   - name: PM_SHOW_CMD
-    help: Command used to show template
+    help: Command used to show templates
     default: cat
 
 dependencies:
@@ -229,6 +229,7 @@ commands:
 
     examples:
       - pm env
+      - pm env PM_HOME
 
   - name: template
     help: Template related commands
@@ -251,8 +252,16 @@ commands:
             required: true
             validate: template_exists
 
+        flags:
+          - short: -e
+            long: --exec
+            arg: executable
+            default: ${PM_SHOW_CMD}
+            help: Command used to show the template
+
         examples:
           - pm template show cargo
+          - pm template show cargo -e bat
 
       - name: new
         help: Create a new template

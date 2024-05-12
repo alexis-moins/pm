@@ -130,6 +130,6 @@ Environment Variables:
     Default: tmux
 
   PM_SHOW_CMD
-    Command used to show template
+    Command used to show templates
     Default: cat
 ```

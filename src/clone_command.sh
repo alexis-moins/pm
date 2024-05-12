@@ -13,4 +13,4 @@ fi
 local destination="${PM_HOME}/${space}/${name}"
 
 command "${deps[git]}" clone "${repository}" "$destination"
-sucess "cloned project in space '${space}'"
+success "cloned project in space '${space}'"

@@ -35,7 +35,7 @@ pm_usage() {
   printf "  %s   Remove the link to the pm script\n" "unlink  "
   printf "  %s   Update to the latest version\n" "update  "
   printf "  %s   Show environment information\n" "env     "
-  printf "  %s   template related commands\n" "template"
+  printf "  %s   Template related commands\n" "template"
   echo
   printf "%s\n" "Project Commands:"
   printf "  %s   Create a new empty project\n" "new     "
@@ -78,7 +78,7 @@ pm_usage() {
     echo
 
     printf "  %s\n" "PM_SHOW_CMD"
-    printf "    Command used to show template\n"
+    printf "    Command used to show templates\n"
     printf "    Default: cat\n"
     echo
 
@@ -641,6 +641,7 @@ pm_env_usage() {
 
     printf "%s\n" "Examples:"
     printf "  pm env\n"
+    printf "  pm env PM_HOME\n"
     echo
 
   fi
@@ -648,11 +649,11 @@ pm_env_usage() {
 
 pm_template_usage() {
   if [[ -n $long_usage ]]; then
-    printf "pm template - template related commands\n"
+    printf "pm template - Template related commands\n"
     echo
 
   else
-    printf "pm template - template related commands\n"
+    printf "pm template - Template related commands\n"
     echo
 
   fi
@@ -664,7 +665,7 @@ pm_template_usage() {
 
   printf "%s\n" "Commands:"
   printf "  %s   List templates\n" "list"
-  printf "  %s   show a template\n" "show"
+  printf "  %s   Show a template\n" "show"
   printf "  %s   Create a new template\n" "new "
   echo
 
@@ -714,22 +715,27 @@ pm_template_list_usage() {
 
 pm_template_show_usage() {
   if [[ -n $long_usage ]]; then
-    printf "pm template show - show a template\n"
+    printf "pm template show - Show a template\n"
     echo
 
   else
-    printf "pm template show - show a template\n"
+    printf "pm template show - Show a template\n"
     echo
 
   fi
 
   printf "%s\n" "Usage:"
-  printf "  pm template show TEMPLATE\n"
+  printf "  pm template show TEMPLATE [OPTIONS]\n"
   printf "  pm template show --help | -h\n"
   echo
 
   if [[ -n $long_usage ]]; then
     printf "%s\n" "Options:"
+
+    printf "  %s\n" "--exec, -e EXECUTABLE"
+    printf "    Command used to show the template\n"
+    printf "    Default: ${PM_SHOW_CMD}\n"
+    echo
 
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
@@ -743,6 +749,7 @@ pm_template_show_usage() {
 
     printf "%s\n" "Examples:"
     printf "  pm template show cargo\n"
+    printf "  pm template show cargo -e bat\n"
     echo
 
   fi
@@ -1200,14 +1207,15 @@ pm_template_list_command() {
 
 pm_template_show_command() {
   local template_name="${args[template]}"
+  local command="${args[--exec]}"
   #
   # Search for user templates first
   local template="${HOME}/.config/pm/templates/${template_name}.sh"
 
   if [[ -f "${template}" ]]; then
-      command "${PM_SHOW_CMD}" "${template}"
+      command ${command} "${template}"
   else
-      command "${PM_SHOW_CMD}" "${PM_INSTALL_DIR}/templates/${template_name}.sh"
+      command ${command} "${PM_INSTALL_DIR}/templates/${template_name}.sh"
   fi
 
 }
@@ -2403,6 +2411,18 @@ pm_template_show_parse_requirements() {
     key="$1"
     case "$key" in
 
+      --exec | -e)
+
+        if [[ -n ${2+x} ]]; then
+          args['--exec']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--exec requires an argument: --exec, -e EXECUTABLE" >&2
+          exit 1
+        fi
+        ;;
+
       -?*)
         printf "invalid option: %s\n" "$key" >&2
         exit 1
@@ -2424,9 +2444,11 @@ pm_template_show_parse_requirements() {
   done
 
   if [[ -z ${args['template']+x} ]]; then
-    printf "missing required argument: TEMPLATE\nusage: pm template show TEMPLATE\n" >&2
+    printf "missing required argument: TEMPLATE\nusage: pm template show TEMPLATE [OPTIONS]\n" >&2
     exit 1
   fi
+
+  [[ -n ${args['--exec']:-} ]] || args['--exec']="${PM_SHOW_CMD}"
 
   if [[ -v args['template'] && -n $(validate_template_exists "${args['template']:-}") ]]; then
     printf "validation error in %s:\n%s\n" "TEMPLATE" "$(validate_template_exists "${args['template']:-}")" >&2
