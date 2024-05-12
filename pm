@@ -643,7 +643,7 @@ pm_env_usage() {
   fi
 
   printf "%s\n" "Usage:"
-  printf "  pm env\n"
+  printf "  pm env [VARIABLE]\n"
   printf "  pm env --help | -h\n"
   echo
 
@@ -652,6 +652,13 @@ pm_env_usage() {
 
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "VARIABLE"
+    printf "    Name of the environment variable to show\n"
+    printf "    Allowed: PM_INSTALL_DIR, PM_HOME, PM_BACKEND\n"
     echo
 
     printf "%s\n" "Examples:"
@@ -716,11 +723,6 @@ blue_underlined() { print_in_color "\e[4;34m" "$*"; }
 magenta_underlined() { print_in_color "\e[4;35m" "$*"; }
 cyan_underlined() { print_in_color "\e[4;36m" "$*"; }
 
-confirm() {
-    local response=`gum choose --header "${1}" --header.foreground="7" --cursor.foreground="4" 'yes' 'no'`
-    [[ "${response}" == "yes" ]] && return 0 || return 1
-}
-
 filter_project() {
     command fd --type d --max-depth 1 --base-directory "${PM_HOME}" . $(cat "${PM_HOME}/spaces") \
     | sort --unique \
@@ -730,11 +732,11 @@ filter_project() {
 filter_project_by_space() {
     command fd --type d --max-depth 1 --base-directory "${PM_HOME}" "${1}" \
         | sort --unique \
-        | gum filter --placeholder "Select a project"
+        | command "${deps[gum]}" filter --placeholder "Select a project"
 }
 
 filter_space() {
-    command cat "${PM_HOME}/spaces" | gum filter --placeholder "Select a space"
+    command cat "${PM_HOME}/spaces" | command "${deps[gum]}" filter --placeholder "Select a space"
 }
 
 filter_recipe_book_healthy() {
@@ -745,15 +747,19 @@ filter_recipe_book_healthy() {
 }
 
 error() {
-    gum log --level="error" --prefix="pm" --prefix.foreground="7" --level.foreground="1" "${1}"
+    echo "$(red "pm:") ${1}"
 }
 
 info() {
-    gum log --level="info" --prefix="pm" --prefix.foreground="7" --level.foreground="4" "${1}"
+    echo "$(blue "pm:") ${1}"
+}
+
+success() {
+    echo "$(green "pm:") ${1}"
 }
 
 warn() {
-    gum log --level="warn" --prefix="pm" --prefix.foreground="7" --level.foreground="3" "${1}"
+    echo "$(yellow "pm:") ${1}"
 }
 
 project_exists() {
@@ -788,7 +794,7 @@ validate_space_exists() {
 }
 
 validate_space_is_missing() {
-    if command rg --quiet "${1}" "${PM_HOME}/spaces"; then
+    if command "${deps[rg]}" --quiet "${1}" "${PM_HOME}/spaces"; then
         echo "${1} is already a registered space"
         echo -e "\nSee $(yellow_underlined pm space list)"
     fi
@@ -828,7 +834,7 @@ pm_new_command() {
   local path="${PM_HOME}/${project}"
 
   if [[ -d "${path}" ]]; then
-      error "project '${name}' already exists in space '${space}'."
+      error "project '${name}' already exists in space '${space}'"
       exit 1
   fi
 
@@ -840,16 +846,16 @@ pm_new_command() {
       template="${PM_INSTALL_DIR}/templates/${template_name}.sh"
 
       if [[ ! -f "${template}" ]]; then
-          error "template '${template_name}' not found."
-          return 1
+          error "template '${template_name}' not found"
+          exit 1
       fi
   fi
 
   if source "${template}" "${space}" "${name}" "${path}"; then
-      info "project '${name}' created in space '${space}'."
+      success "project '${name}' created in space '${space}'"
   else
-      error "unable to create project."
-      return 1
+      error "unable to create project"
+      exit 1
   fi
 
   # Search for user backend first
@@ -860,8 +866,8 @@ pm_new_command() {
       backend="${PM_INSTALL_DIR}/backends/${backend_name}.sh"
 
       if [[ ! -f "${backend}" ]]; then
-          error "backend '${backend_name}' not found."
-          return 1
+          error "backend '${backend_name}' not found"
+          exit 1
       fi
   fi
 
@@ -878,14 +884,14 @@ pm_clone_command() {
   [[ -z "${name}" ]] && name="$(basename "${repository}")"
 
   if [[ -d "${PM_HOME}/${destination}/${name}" ]]; then
-      error "space '${space}' already contains this project."
+      error "space '${space}' already contains this project"
       exit 1
   fi
 
   local destination="${PM_HOME}/${space}/${name}"
 
-  command git clone "git@github.com:${repository}.git" "$destination"
-  info "cloned project in space '${space}' as '${name}'."
+  command "${deps[git]}" clone "git@github.com:${repository}.git" "$destination"
+  sucess "cloned project in space '${space}'"
 
 }
 
@@ -906,13 +912,13 @@ pm_open_command() {
       space=`dirname "${project}"`
   else
       if [[ -z "${space}" ]]; then
-          error "must use --space flag with argumet NAME."
+          error "must use --space flag with argumet NAME"
           return 1
       fi
   fi
 
   if ! project_exists "${space}" "${name}"; then
-      error "no project '${name}' in space '${space}'."
+      error "no project '${name}' in space '${space}'"
       exit 1
   fi
 
@@ -924,7 +930,7 @@ pm_open_command() {
       backend="${PM_INSTALL_DIR}/backends/${backend_name}.sh"
 
       if [[ ! -f "${backend}" ]]; then
-          error "backend '${backend_name}' not found."
+          error "backend '${backend_name}' not found"
           return 1
       fi
   fi
@@ -977,7 +983,7 @@ pm_space_add_command() {
   echo "${space}" >> "${SPACE_INDEX}"
 
   command sort --unique "${SPACE_INDEX}" --output "${SPACE_INDEX}"
-  info "new space added."
+  sucess "new space added"
 
 }
 
@@ -991,10 +997,10 @@ pm_space_list_command() {
 pm_space_remove_command() {
   local space="${args[space]}"
 
-  local new_spaces=`command rg -vN --color=never "${space}" "${PM_HOME}/spaces"`
+  local new_spaces="$(command "${deps[rg]}" -vN --color=never "${space}" "${PM_HOME}/spaces")"
 
   echo "${new_spaces}" > "${PM_HOME}/spaces"
-  info "space removed from index"
+  success "space removed from index"
 
 }
 
@@ -1015,24 +1021,24 @@ pm_link_command() {
   local source="${PM_INSTALL_DIR}"
 
   if [[ -f "${path}/pm" ]]; then
-      error "there is already a link in ${path}."
+      error "there is already a link in ${path}"
       exit 1
   fi
 
   if [[ ! -d "${source}" ]]; then
-      error "source directory ${source} does not exist."
+      error "source directory ${source} does not exist"
       exit 1
   fi
 
   if [[ ! -f "${source}/pm" ]]; then
-      error "script 'pm' not found in ${source}."
+      error "script 'pm' not found in ${source}"
       exit 1
   fi
 
   local executable=`test -n "${copy}" && echo "cp" || echo "ln -s"`
 
   command ${executable} "${source}/pm" "${path}/pm"
-  info "link created in ${path}."
+  sucess "link created in ${path}"
 
 }
 
@@ -1042,9 +1048,9 @@ pm_unlink_command() {
   if [[ -f "${path}/pm" ]]; then
       run_silent rm "${path}/pm"
 
-      info "link removed from ${path}."
+      sucess "link removed from ${path}"
   else
-      error "no link found in ${path}."
+      error "no link found in ${path}"
       exit 1
   fi
 
@@ -1057,14 +1063,20 @@ pm_update_command() {
       exit 1
   fi
 
-  git -C "${PM_INSTALL_DIR}" pull
+  command "${deps[git]}" -C "${PM_INSTALL_DIR}" pull
 
 }
 
 pm_env_command() {
-  echo "PM_INSTALL_DIR=${PM_INSTALL_DIR}"
-  echo "PM_HOME=${PM_HOME}"
-  echo "PM_BACKEND=${PM_BACKEND}"
+  local variable="${args[variable]}"
+
+  if [[ -n "${variable}" ]]; then
+      echo "${!variable}"
+  else
+      echo "PM_INSTALL_DIR=${PM_INSTALL_DIR}"
+      echo "PM_HOME=${PM_HOME}"
+      echo "PM_BACKEND=${PM_BACKEND}"
+  fi
 
 }
 
@@ -2126,13 +2138,23 @@ pm_env_parse_requirements() {
 
       *)
 
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
+        if [[ -z ${args['variable']+x} ]]; then
+          args['variable']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
 
         ;;
 
     esac
   done
+
+  if [[ -n ${args['variable']:-} ]] && [[ ! ${args['variable']:-} =~ ^(PM_INSTALL_DIR|PM_HOME|PM_BACKEND)$ ]]; then
+    printf "%s\n" "variable must be one of: PM_INSTALL_DIR, PM_HOME, PM_BACKEND" >&2
+    exit 1
+  fi
 
 }
 

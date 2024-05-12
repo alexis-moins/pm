@@ -4,4 +4,4 @@ if [[ ! -d "${PM_INSTALL_DIR}" ]]; then
     exit 1
 fi
 
-git -C "${PM_INSTALL_DIR}" pull
+command "${deps[git]}" -C "${PM_INSTALL_DIR}" pull

@@ -12,5 +12,5 @@ fi
 
 local destination="${PM_HOME}/${space}/${name}"
 
-command git clone "git@github.com:${repository}.git" "$destination"
-sucess "cloned project in space '${space}' as '${name}'"
+command "${deps[git]}" clone "git@github.com:${repository}.git" "$destination"
+sucess "cloned project in space '${space}'"

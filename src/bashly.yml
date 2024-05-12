@@ -57,7 +57,6 @@ commands:
         arg: backend
         default: ${PM_BACKEND}
 
-
     examples:
       - pm new recipe --space tools
       - pm new recipe --template cargo --space tools
@@ -220,6 +219,11 @@ commands:
 
   - name: env
     help: Show environment information
+
+    args:
+      - name: variable
+        help: Name of the environment variable to show
+        allowed: [PM_INSTALL_DIR, PM_HOME, PM_BACKEND]
 
     examples:
       - pm env
