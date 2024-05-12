@@ -51,7 +51,13 @@ pm new <project> -s personal
 # pm supports project creation using templates
 pm new <project> -s personal -t cargo
 
-# Opening the project is even simpler
+# You can list templates...
+pm template list
+
+# ...and even create your own
+pm template new python-poetry
+
+# Opening a project is even simpler
 pm open <project> -s personal
 
 # But using a different backend is also possible
