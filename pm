@@ -13,11 +13,11 @@ version_command() {
 
 pm_usage() {
   if [[ -n $long_usage ]]; then
-    printf "pm - Project manager built on top of tmux\n"
+    printf "pm - manage your projects the easy way\n"
     echo
 
   else
-    printf "pm - Project manager built on top of tmux\n"
+    printf "pm - manage your projects the easy way\n"
     echo
 
   fi
@@ -29,19 +29,20 @@ pm_usage() {
   echo
 
   printf "%s\n" "Commands:"
-  printf "  %s   Show help about a command\n" "help  "
-  printf "  %s   Space related commands\n" "space "
-  printf "  %s   Create a link to the pm script\n" "link  "
-  printf "  %s   Remove the link to the pm script\n" "unlink"
-  printf "  %s   Update to the latest version\n" "update"
-  printf "  %s   Show environment information\n" "env   "
+  printf "  %s   Show help about a command\n" "help    "
+  printf "  %s   Space related commands\n" "space   "
+  printf "  %s   Create a link to the pm script\n" "link    "
+  printf "  %s   Remove the link to the pm script\n" "unlink  "
+  printf "  %s   Update to the latest version\n" "update  "
+  printf "  %s   Show environment information\n" "env     "
+  printf "  %s   template related commands\n" "template"
   echo
   printf "%s\n" "Project Commands:"
-  printf "  %s   Create a new empty project\n" "new   "
-  printf "  %s   Clone a remote git repository\n" "clone "
-  printf "  %s   Open a project\n" "open  "
-  printf "  %s   Filter projects by name\n" "filter"
-  printf "  %s   List projects\n" "list  "
+  printf "  %s   Create a new empty project\n" "new     "
+  printf "  %s   Clone a remote git repository\n" "clone   "
+  printf "  %s   Open a project\n" "open    "
+  printf "  %s   Filter projects by name\n" "filter  "
+  printf "  %s   List projects\n" "list    "
   echo
 
   if [[ -n $long_usage ]]; then
@@ -56,6 +57,11 @@ pm_usage() {
 
     printf "%s\n" "Environment Variables:"
 
+    printf "  %s\n" "EDITOR"
+    printf "    Command used for interactive commands\n"
+    printf "    Default: vim\n"
+    echo
+
     printf "  %s\n" "PM_INSTALL_DIR"
     printf "    Directory where the repository was cloned\n"
     printf "    Default: ${HOME}/.pm\n"
@@ -69,6 +75,11 @@ pm_usage() {
     printf "  %s\n" "PM_BACKEND"
     printf "    Name of the backend used to open projects\n"
     printf "    Default: tmux\n"
+    echo
+
+    printf "  %s\n" "PM_SHOW_CMD"
+    printf "    Command used to show template\n"
+    printf "    Default: cat\n"
     echo
 
   fi
@@ -191,7 +202,7 @@ pm_clone_usage() {
     printf "%s\n" "Arguments:"
 
     printf "  %s\n" "REPOSITORY"
-    printf "    Remote repository to clone (FORMAT: <username>/<repository>)\n"
+    printf "    Remote repository url\n"
     echo
 
     printf "%s\n" "Examples:"
@@ -300,7 +311,6 @@ pm_space_usage() {
   echo
 
   printf "%s\n" "Commands:"
-  printf "  %s   Show help about a command\n" "help  "
   printf "  %s   Add a new space\n" "add   "
   printf "  %s   List added spaces\n" "list  "
   printf "  %s   Remove a space (projects will not be removed)\n" "remove"
@@ -312,38 +322,6 @@ pm_space_usage() {
 
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-pm_space_help_usage() {
-  if [[ -n $long_usage ]]; then
-    printf "pm space help - Show help about a command\n"
-    echo
-
-  else
-    printf "pm space help - Show help about a command\n"
-    echo
-
-  fi
-
-  printf "%s\n" "Usage:"
-  printf "  pm space help [COMMAND]\n"
-  printf "  pm space help --help | -h\n"
-  echo
-
-  if [[ -n $long_usage ]]; then
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Arguments:"
-
-    printf "  %s\n" "COMMAND"
-    printf "    Help subject\n"
     echo
 
   fi
@@ -658,11 +636,149 @@ pm_env_usage() {
 
     printf "  %s\n" "VARIABLE"
     printf "    Name of the environment variable to show\n"
-    printf "    Allowed: PM_INSTALL_DIR, PM_HOME, PM_BACKEND\n"
+    printf "    Allowed: PM_INSTALL_DIR, PM_HOME, PM_BACKEND, PM_SHOW_CMD\n"
     echo
 
     printf "%s\n" "Examples:"
     printf "  pm env\n"
+    echo
+
+  fi
+}
+
+pm_template_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm template - template related commands\n"
+    echo
+
+  else
+    printf "pm template - template related commands\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm template COMMAND\n"
+  printf "  pm template [COMMAND] --help | -h\n"
+  echo
+
+  printf "%s\n" "Commands:"
+  printf "  %s   List templates\n" "list"
+  printf "  %s   show a template\n" "show"
+  printf "  %s   Create a new template\n" "new "
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+pm_template_list_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm template list - List templates\n"
+    echo
+
+  else
+    printf "pm template list - List templates\n"
+    echo
+
+  fi
+
+  printf "Alias: ls\n"
+  echo
+
+  printf "%s\n" "Usage:"
+  printf "  pm template list\n"
+  printf "  pm template list --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm template ls\n"
+    printf "  pm template list\n"
+    echo
+
+  fi
+}
+
+pm_template_show_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm template show - show a template\n"
+    echo
+
+  else
+    printf "pm template show - show a template\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm template show TEMPLATE\n"
+  printf "  pm template show --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "TEMPLATE"
+    printf "    Name of the template\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm template show cargo\n"
+    echo
+
+  fi
+}
+
+pm_template_new_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm template new - Create a new template\n"
+    echo
+
+  else
+    printf "pm template new - Create a new template\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm template new TEMPLATE\n"
+  printf "  pm template new --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "TEMPLATE"
+    printf "    Name of the template\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm template new poetry\n"
     echo
 
   fi
@@ -739,13 +855,6 @@ filter_space() {
     command cat "${PM_HOME}/spaces" | command "${deps[gum]}" filter --placeholder "Select a space"
 }
 
-filter_recipe_book_healthy() {
-    if ! recipe_doctor_command &> /dev/null; then
-        echo "$(yellow info:) your recipe book is not correctly setup"
-        echo "$(yellow info:) consider running $(yellow_underlined recipe doctor)"
-    fi
-}
-
 error() {
     echo "$(red "pm:") ${1}"
 }
@@ -797,6 +906,18 @@ validate_space_is_missing() {
     if command "${deps[rg]}" --quiet "${1}" "${PM_HOME}/spaces"; then
         echo "${1} is already a registered space"
         echo -e "\nSee $(yellow_underlined pm space list)"
+    fi
+}
+
+validate_template_exists() {
+    if [[ ! -f "${PM_INSTALL_DIR}/templates/${1}.sh" ]] && [[ ! -f "${HOME}/.config/pm/templates/${1}.sh" ]]; then
+        error "template ${1} not found"
+    fi
+}
+
+validate_template_is_missing() {
+    if [[ -f "${HOME}/.config/pm/templates/${1}.sh" ]]; then
+        error "template ${1} already exists"
     fi
 }
 
@@ -890,7 +1011,7 @@ pm_clone_command() {
 
   local destination="${PM_HOME}/${space}/${name}"
 
-  command "${deps[git]}" clone "git@github.com:${repository}.git" "$destination"
+  command "${deps[git]}" clone "${repository}" "$destination"
   sucess "cloned project in space '${space}'"
 
 }
@@ -950,28 +1071,6 @@ pm_filter_command() {
   [[ -n "${path}" ]] && project="${PM_HOME}/${project}"
 
   echo "${project}"
-
-}
-
-pm_space_help_command() {
-  command="${args[command]:-}"
-  long_usage=yes
-
-  if [[ -z "$command" ]]; then
-    # No command argument, show the global help
-    help_function=pm_space_usage
-  else
-    # Show the help for the requested command
-    help_function="pm_space_${command}_usage"
-  fi
-
-  # Call the help function if it exists
-  if [[ $(type -t "$help_function") ]]; then
-    "$help_function"
-  else
-    echo "No help available for this command"
-    exit 1
-  fi
 
 }
 
@@ -1076,7 +1175,55 @@ pm_env_command() {
       echo "PM_INSTALL_DIR=${PM_INSTALL_DIR}"
       echo "PM_HOME=${PM_HOME}"
       echo "PM_BACKEND=${PM_BACKEND}"
+      echo "PM_SHOW_CMD=${PM_SHOW_CMD}"
   fi
+
+}
+
+pm_template_list_command() {
+  for file in $(command ls "${PM_INSTALL_DIR}/templates"); do
+      if [[ -f "${HOME}/.config/pm/templates/${file}" ]]; then
+          continue
+      fi
+
+      echo "${file::-3}"
+  done
+
+  # Exit if not user templates directory
+  [[ ! -d "${HOME}/.config/pm/templates" ]] && exit 0
+
+  for file in $(command ls "${HOME}/.config/pm/templates"); do
+      echo "${file::-3}"
+  done
+
+}
+
+pm_template_show_command() {
+  local template_name="${args[template]}"
+  #
+  # Search for user templates first
+  local template="${HOME}/.config/pm/templates/${template_name}.sh"
+
+  if [[ -f "${template}" ]]; then
+      command "${PM_SHOW_CMD}" "${template}"
+  else
+      command "${PM_SHOW_CMD}" "${PM_INSTALL_DIR}/templates/${template_name}.sh"
+  fi
+
+}
+
+pm_template_new_command() {
+  local template_name="${args[template]}"
+
+  local pm_template="${PM_INSTALL_DIR}/templates/default.sh"
+
+  [[ ! -d "${HOME}/.config/pm/templates" ]] && command mkdir -p "${HOME}/.config/pm/templates"
+
+  local new_template_path="${HOME}/.config/pm/templates/${template_name}.sh"
+
+  command cp "${pm_template}" "${new_template_path}"
+
+  command "${EDITOR}" ${new_template_path}
 
 }
 
@@ -1102,13 +1249,17 @@ parse_requirements() {
     esac
   done
 
+  export EDITOR="${EDITOR:-vim}"
   export PM_INSTALL_DIR="${PM_INSTALL_DIR:-${HOME}/.pm}"
   export PM_HOME="${PM_HOME:-${HOME}/dev}"
   export PM_BACKEND="${PM_BACKEND:-tmux}"
+  export PM_SHOW_CMD="${PM_SHOW_CMD:-cat}"
 
+  env_var_names+=("EDITOR")
   env_var_names+=("PM_INSTALL_DIR")
   env_var_names+=("PM_HOME")
   env_var_names+=("PM_BACKEND")
+  env_var_names+=("PM_SHOW_CMD")
 
   if command -v git >/dev/null 2>&1; then
     deps['git']="$(command -v git | head -n1)"
@@ -1217,6 +1368,13 @@ parse_requirements() {
       action="env"
       shift
       pm_env_parse_requirements "$@"
+      shift $#
+      ;;
+
+    template)
+      action="template"
+      shift
+      pm_template_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1625,13 +1783,6 @@ pm_space_parse_requirements() {
   case $action in
     -*) ;;
 
-    help)
-      action="help"
-      shift
-      pm_space_help_parse_requirements "$@"
-      shift $#
-      ;;
-
     add)
       action="add"
       shift
@@ -1685,51 +1836,6 @@ pm_space_parse_requirements() {
 
         printf "invalid argument: %s\n" "$key" >&2
         exit 1
-
-        ;;
-
-    esac
-  done
-
-}
-
-pm_space_help_parse_requirements() {
-
-  while [[ $# -gt 0 ]]; do
-    case "${1:-}" in
-      --help | -h)
-        long_usage=yes
-        pm_space_help_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  action="space help"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        if [[ -z ${args['command']+x} ]]; then
-          args['command']=$1
-          shift
-        else
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-        fi
 
         ;;
 
@@ -2151,21 +2257,249 @@ pm_env_parse_requirements() {
     esac
   done
 
-  if [[ -n ${args['variable']:-} ]] && [[ ! ${args['variable']:-} =~ ^(PM_INSTALL_DIR|PM_HOME|PM_BACKEND)$ ]]; then
-    printf "%s\n" "variable must be one of: PM_INSTALL_DIR, PM_HOME, PM_BACKEND" >&2
+  if [[ -n ${args['variable']:-} ]] && [[ ! ${args['variable']:-} =~ ^(PM_INSTALL_DIR|PM_HOME|PM_BACKEND|PM_SHOW_CMD)$ ]]; then
+    printf "%s\n" "variable must be one of: PM_INSTALL_DIR, PM_HOME, PM_BACKEND, PM_SHOW_CMD" >&2
+    exit 1
+  fi
+
+}
+
+pm_template_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_template_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action=${1:-}
+
+  case $action in
+    -*) ;;
+
+    list | ls)
+      action="list"
+      shift
+      pm_template_list_parse_requirements "$@"
+      shift $#
+      ;;
+
+    show)
+      action="show"
+      shift
+      pm_template_show_parse_requirements "$@"
+      shift $#
+      ;;
+
+    new)
+      action="new"
+      shift
+      pm_template_new_parse_requirements "$@"
+      shift $#
+      ;;
+
+    "")
+      pm_template_usage >&2
+      exit 1
+      ;;
+
+    *)
+      printf "invalid command: %s\n" "$action" >&2
+      exit 1
+      ;;
+
+  esac
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_template_list_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_template_list_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="template list"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_template_show_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_template_show_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="template show"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        if [[ -z ${args['template']+x} ]]; then
+          args['template']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  if [[ -z ${args['template']+x} ]]; then
+    printf "missing required argument: TEMPLATE\nusage: pm template show TEMPLATE\n" >&2
+    exit 1
+  fi
+
+  if [[ -v args['template'] && -n $(validate_template_exists "${args['template']:-}") ]]; then
+    printf "validation error in %s:\n%s\n" "TEMPLATE" "$(validate_template_exists "${args['template']:-}")" >&2
+    exit 1
+  fi
+
+}
+
+pm_template_new_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_template_new_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="template new"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        if [[ -z ${args['template']+x} ]]; then
+          args['template']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  if [[ -z ${args['template']+x} ]]; then
+    printf "missing required argument: TEMPLATE\nusage: pm template new TEMPLATE\n" >&2
+    exit 1
+  fi
+
+  if [[ -v args['template'] && -n $(validate_template_is_missing "${args['template']:-}") ]]; then
+    printf "validation error in %s:\n%s\n" "TEMPLATE" "$(validate_template_is_missing "${args['template']:-}")" >&2
     exit 1
   fi
 
 }
 
 initialize() {
-  version="1.4.1"
+  version="1.5.0"
   long_usage=''
   set -e
 
+  export EDITOR="${EDITOR:-vim}"
   export PM_INSTALL_DIR="${PM_INSTALL_DIR:-${HOME}/.pm}"
   export PM_HOME="${PM_HOME:-${HOME}/dev}"
   export PM_BACKEND="${PM_BACKEND:-tmux}"
+  export PM_SHOW_CMD="${PM_SHOW_CMD:-cat}"
 
   local SPACE_INDEX="${PM_HOME}/spaces"
 
@@ -2197,7 +2531,6 @@ run() {
     "open") pm_open_command ;;
     "filter") pm_filter_command ;;
     "space") pm_space_command ;;
-    "space help") pm_space_help_command ;;
     "space add") pm_space_add_command ;;
     "space list") pm_space_list_command ;;
     "space remove") pm_space_remove_command ;;
@@ -2207,6 +2540,10 @@ run() {
     "unlink") pm_unlink_command ;;
     "update") pm_update_command ;;
     "env") pm_env_command ;;
+    "template") pm_template_command ;;
+    "template list") pm_template_list_command ;;
+    "template show") pm_template_show_command ;;
+    "template new") pm_template_new_command ;;
   esac
 }
 

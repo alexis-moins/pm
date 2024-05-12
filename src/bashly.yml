@@ -1,8 +1,12 @@
 name: pm
-help: Project manager built on top of tmux
-version: 1.4.1
+help: manage your projects the easy way
+version: 1.5.0
 
 environment_variables:
+  - name: EDITOR
+    help: Command used for interactive commands
+    default: vim
+
   - name: PM_INSTALL_DIR
     help: Directory where the repository was cloned
     default: ${HOME}/.pm
@@ -14,6 +18,10 @@ environment_variables:
   - name: PM_BACKEND
     help: Name of the backend used to open projects
     default: tmux
+
+  - name: PM_SHOW_CMD
+    help: Command used to show template
+    default: cat
 
 dependencies:
   - git
@@ -67,7 +75,7 @@ commands:
 
     args:
       - name: repository
-        help: "Remote repository to clone (FORMAT: <username>/<repository>)"
+        help: "Remote repository url"
         required: true
 
     flags:
@@ -129,12 +137,6 @@ commands:
     help: Space related commands
 
     commands:
-      - name: help
-        help: Show help about a command
-        args:
-        - name: command
-          help: Help subject
-
       - name: add
         help: Add a new space
 
@@ -223,7 +225,43 @@ commands:
     args:
       - name: variable
         help: Name of the environment variable to show
-        allowed: [PM_INSTALL_DIR, PM_HOME, PM_BACKEND]
+        allowed: [PM_INSTALL_DIR, PM_HOME, PM_BACKEND, PM_SHOW_CMD]
 
     examples:
       - pm env
+
+  - name: template
+    help: Template related commands
+
+    commands:
+      - name: list
+        alias: ls
+        help: List templates
+
+        examples:
+          - pm template ls
+          - pm template list
+
+      - name: show
+        help: Show a template
+
+        args:
+          - name: template
+            help: Name of the template
+            required: true
+            validate: template_exists
+
+        examples:
+          - pm template show cargo
+
+      - name: new
+        help: Create a new template
+
+        args:
+          - name: template
+            help: Name of the template
+            required: true
+            validate: template_is_missing
+
+        examples:
+          - pm template new poetry
