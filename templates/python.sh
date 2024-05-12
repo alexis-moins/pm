@@ -11,5 +11,14 @@
 # Create the project directory
 command mkdir -p "${3}"
 
+# Navigate to the space directory
+command cd "${3}"
+
+# Create a new python project
+command python -m venv .venv
+
 # Initialize git repository
-command git -C "${3}" init
+command git init
+
+# Ignore the newly created virtual env
+echo .venv > .gitignore

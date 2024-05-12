@@ -14,13 +14,13 @@ if [[ -z "${name}" ]]; then
     space=`dirname "${project}"`
 else
     if [[ -z "${space}" ]]; then
-        error "must use --space flag with argumet NAME."
+        error "must use --space flag with argumet NAME"
         return 1
     fi
 fi
 
 if ! project_exists "${space}" "${name}"; then
-    error "no project '${name}' in space '${space}'."
+    error "no project '${name}' in space '${space}'"
     exit 1
 fi
 
@@ -32,7 +32,7 @@ if [[ ! -f "${backend}" ]]; then
     backend="${PM_INSTALL_DIR}/backends/${backend_name}.sh"
 
     if [[ ! -f "${backend}" ]]; then
-        error "backend '${backend_name}' not found."
+        error "backend '${backend_name}' not found"
         return 1
     fi
 fi
