@@ -90,9 +90,10 @@ commands:
         long: --name
         help: Name to clone the project as
         arg: name
+        required: true
 
     examples:
-      - pm clone alexis-moins/recipe --space tools
+      - pm clone alexis-moins/recipe --space tools --name recipe
       - pm clone neovim/neovim --space tools --name editor
 
   - name: open

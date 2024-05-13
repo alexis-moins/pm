@@ -191,7 +191,7 @@ pm_clone_usage() {
     printf "    Space to clone the project in\n"
     echo
 
-    printf "  %s\n" "--name, -n NAME"
+    printf "  %s\n" "--name, -n NAME (required)"
     printf "    Name to clone the project as\n"
     echo
 
@@ -206,7 +206,7 @@ pm_clone_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  pm clone alexis-moins/recipe --space tools\n"
+    printf "  pm clone alexis-moins/recipe --space tools --name recipe\n"
     printf "  pm clone neovim/neovim --space tools --name editor\n"
     echo
 
@@ -1009,8 +1009,6 @@ pm_clone_command() {
   local name="${args[--name]}"
   local space="${args[--space]}"
 
-  [[ -z "${name}" ]] && name="$(basename "${repository}")"
-
   if [[ -d "${PM_HOME}/${destination}/${name}" ]]; then
       error "space '${space}' already contains this project"
       exit 1
@@ -1018,8 +1016,8 @@ pm_clone_command() {
 
   local destination="${PM_HOME}/${space}/${name}"
 
-  command "${deps[git]}" clone "${repository}" "$destination"
-  sucess "cloned project in space '${space}'"
+  command "${deps[git]}" clone "${repository}" "${destination}"
+  success "cloned project ${name} in space ${space}"
 
 }
 
@@ -1089,7 +1087,7 @@ pm_space_add_command() {
   echo "${space}" >> "${SPACE_INDEX}"
 
   command sort --unique "${SPACE_INDEX}" --output "${SPACE_INDEX}"
-  sucess "new space added"
+  success "new space added"
 
 }
 
@@ -1144,7 +1142,7 @@ pm_link_command() {
   local executable=`test -n "${copy}" && echo "cp" || echo "ln -s"`
 
   command ${executable} "${source}/pm" "${path}/pm"
-  sucess "link created in ${path}"
+  success "link created in ${path}"
 
 }
 
@@ -1154,7 +1152,7 @@ pm_unlink_command() {
   if [[ -f "${path}/pm" ]]; then
       run_silent rm "${path}/pm"
 
-      sucess "link removed from ${path}"
+      success "link removed from ${path}"
   else
       error "no link found in ${path}"
       exit 1
@@ -1637,6 +1635,10 @@ pm_clone_parse_requirements() {
 
   if [[ -z ${args['--space']+x} ]]; then
     printf "missing required flag: --space, -s SPACE\n" >&2
+    exit 1
+  fi
+  if [[ -z ${args['--name']+x} ]]; then
+    printf "missing required flag: --name, -n NAME\n" >&2
     exit 1
   fi
 
