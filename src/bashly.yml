@@ -27,7 +27,6 @@ dependencies:
   - git
   - fd
   - gum
-  - rg
 
 commands:
   - name: help

@@ -1288,13 +1288,6 @@ parse_requirements() {
     exit 1
   fi
 
-  if command -v rg >/dev/null 2>&1; then
-    deps['rg']="$(command -v rg | head -n1)"
-  else
-    printf "missing dependency: rg\n" >&2
-    exit 1
-  fi
-
   action=${1:-}
 
   case $action in
