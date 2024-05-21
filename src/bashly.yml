@@ -1,6 +1,6 @@
 name: pm
 help: manage your projects the easy way
-version: 1.5.0
+version: 1.6.0
 
 environment_variables:
   - name: EDITOR
@@ -25,7 +25,6 @@ environment_variables:
 
 dependencies:
   - git
-  - fd
   - gum
 
 commands:
@@ -117,21 +116,8 @@ commands:
         default: ${PM_BACKEND}
 
     examples:
-      - pm open recipe
+      - pm open personal/recipe
       - pm open editor --space tools
-
-  - name: filter
-    help: Filter projects by name
-    group: Project
-
-    flags:
-      - short: -p
-        long: --path
-        help: Output the full path to the project
-
-    examples:
-      - pm filter
-      - pm filter --path
 
   - name: space
     help: Space related commands
@@ -169,12 +155,6 @@ commands:
 
         examples:
           - pm space rm personal
-
-      - name: filter
-        help: Filter spaces by name
-
-        examples:
-          - pm space filter
 
   - name: list
     alias: ls
@@ -274,3 +254,9 @@ commands:
 
         examples:
           - pm template new poetry
+
+  - name: cd
+    help: Navigate to your pm home in a new shell
+
+    examples:
+      - pm cd

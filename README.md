@@ -1,6 +1,6 @@
 <div align='center'>
 
-![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)
 
 </div>
 
@@ -10,7 +10,6 @@
 
 - bash 4.0 or higher
 - [gum](https://github.com/charmbracelet/gum)
-- [fd](https://github.com/sharkdp/fd)
 - tmux (optional)
 - git
 
@@ -96,13 +95,13 @@ Commands:
   unlink     Remove the link to the pm script
   update     Update to the latest version
   env        Show environment information
-  template   template related commands
+  template   Template related commands
+  cd         Navigate to your pm home in a new shell
 
 Project Commands:
   new        Create a new empty project
   clone      Clone a remote git repository
   open       Open a project
-  filter     Filter projects by name
   list       List projects
 
 Options:

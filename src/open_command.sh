@@ -10,12 +10,17 @@ if [[ -z "${name}" ]]; then
         project="$(filter_project_by_space "${space}")"
     fi
 
-    name=`basename "${project}"`
-    space=`dirname "${project}"`
+    name="$(basename "${project}")"
+    space="$(dirname "${project}")"
 else
-    if [[ -z "${space}" ]]; then
+    if [[ "${name}" = */* ]]; then
+        # NOTE: order matters here
+        space="$(dirname "${name}")"
+        name="$(basename "${name}")"
+
+    elif [[ -z "${space}" ]]; then
         error "must use --space flag with argumet NAME"
-        return 1
+        exit 1
     fi
 fi
 

@@ -36,12 +36,12 @@ pm_usage() {
   printf "  %s   Update to the latest version\n" "update  "
   printf "  %s   Show environment information\n" "env     "
   printf "  %s   Template related commands\n" "template"
+  printf "  %s   Navigate to your pm home in a new shell\n" "cd      "
   echo
   printf "%s\n" "Project Commands:"
   printf "  %s   Create a new empty project\n" "new     "
   printf "  %s   Clone a remote git repository\n" "clone   "
   printf "  %s   Open a project\n" "open    "
-  printf "  %s   Filter projects by name\n" "filter  "
   printf "  %s   List projects\n" "list    "
   echo
 
@@ -252,43 +252,8 @@ pm_open_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  pm open recipe\n"
+    printf "  pm open personal/recipe\n"
     printf "  pm open editor --space tools\n"
-    echo
-
-  fi
-}
-
-pm_filter_usage() {
-  if [[ -n $long_usage ]]; then
-    printf "pm filter - Filter projects by name\n"
-    echo
-
-  else
-    printf "pm filter - Filter projects by name\n"
-    echo
-
-  fi
-
-  printf "%s\n" "Usage:"
-  printf "  pm filter [OPTIONS]\n"
-  printf "  pm filter --help | -h\n"
-  echo
-
-  if [[ -n $long_usage ]]; then
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--path, -p"
-    printf "    Output the full path to the project\n"
-    echo
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Examples:"
-    printf "  pm filter\n"
-    printf "  pm filter --path\n"
     echo
 
   fi
@@ -314,7 +279,6 @@ pm_space_usage() {
   printf "  %s   Add a new space\n" "add   "
   printf "  %s   List added spaces\n" "list  "
   printf "  %s   Remove a space (projects will not be removed)\n" "remove"
-  printf "  %s   Filter spaces by name\n" "filter"
   echo
 
   if [[ -n $long_usage ]]; then
@@ -431,36 +395,6 @@ pm_space_remove_usage() {
 
     printf "%s\n" "Examples:"
     printf "  pm space rm personal\n"
-    echo
-
-  fi
-}
-
-pm_space_filter_usage() {
-  if [[ -n $long_usage ]]; then
-    printf "pm space filter - Filter spaces by name\n"
-    echo
-
-  else
-    printf "pm space filter - Filter spaces by name\n"
-    echo
-
-  fi
-
-  printf "%s\n" "Usage:"
-  printf "  pm space filter\n"
-  printf "  pm space filter --help | -h\n"
-  echo
-
-  if [[ -n $long_usage ]]; then
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Examples:"
-    printf "  pm space filter\n"
     echo
 
   fi
@@ -791,6 +725,36 @@ pm_template_new_usage() {
   fi
 }
 
+pm_cd_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm cd - Navigate to your pm home in a new shell\n"
+    echo
+
+  else
+    printf "pm cd - Navigate to your pm home in a new shell\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm cd\n"
+  printf "  pm cd --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm cd\n"
+    echo
+
+  fi
+}
+
 normalize_input() {
   local arg flags
 
@@ -847,19 +811,19 @@ magenta_underlined() { print_in_color "\e[4;35m" "$*"; }
 cyan_underlined() { print_in_color "\e[4;36m" "$*"; }
 
 filter_project() {
-    command fd --type d --max-depth 1 --base-directory "${PM_HOME}" . $(cat "${PM_HOME}/spaces") \
-    | sort --unique \
-    | gum filter --placeholder "Select a project"
+    list_projects | command "${deps[gum]}" filter --placeholder "Select a project"
 }
 
 filter_project_by_space() {
-    command fd --type d --max-depth 1 --base-directory "${PM_HOME}" "${1}" \
-        | sort --unique \
+    command find "${PM_HOME}/${1}" -maxdepth 1 -mindepth 1 -type d \
+        | sed "s!${PM_HOME}/!!" \
         | command "${deps[gum]}" filter --placeholder "Select a project"
 }
 
-filter_space() {
-    command cat "${PM_HOME}/spaces" | command "${deps[gum]}" filter --placeholder "Select a space"
+list_projects() {
+    for space in $(cat "${PM_HOME}/spaces"); do
+        command find "${PM_HOME}/${space}" -maxdepth 1 -mindepth 1 -type d | sed "s!${PM_HOME}/!!"
+    done
 }
 
 error() {
@@ -1034,12 +998,17 @@ pm_open_command() {
           project="$(filter_project_by_space "${space}")"
       fi
 
-      name=`basename "${project}"`
-      space=`dirname "${project}"`
+      name="$(basename "${project}")"
+      space="$(dirname "${project}")"
   else
-      if [[ -z "${space}" ]]; then
+      if [[ "${name}" = */* ]]; then
+          # NOTE: order matters here
+          space="$(dirname "${name}")"
+          name="$(basename "${name}")"
+
+      elif [[ -z "${space}" ]]; then
           error "must use --space flag with argumet NAME"
-          return 1
+          exit 1
       fi
   fi
 
@@ -1064,18 +1033,6 @@ pm_open_command() {
   local path="${PM_HOME}/${space}/${name}"
 
   source "${backend}" "${space}" "${name}" "${path}"
-
-}
-
-pm_filter_command() {
-  local path="${args[--path]}"
-
-  local project="$(filter_project)"
-  [[ -z "${project}" ]] && exit 1
-
-  [[ -n "${path}" ]] && project="${PM_HOME}/${project}"
-
-  echo "${project}"
 
 }
 
@@ -1108,13 +1065,8 @@ pm_space_remove_command() {
 
 }
 
-pm_space_filter_command() {
-  filter_space
-
-}
-
 pm_list_command() {
-  command fd --type d --max-depth 1 --base-directory "${PM_HOME}" . $(cat "${PM_HOME}/spaces") | sort --unique
+  list_projects
 
 }
 
@@ -1233,6 +1185,11 @@ pm_template_new_command() {
 
 }
 
+pm_cd_command() {
+  command cd "${PM_HOME}" && command "${SHELL}"
+
+}
+
 parse_requirements() {
 
   while [[ $# -gt 0 ]]; do
@@ -1274,13 +1231,6 @@ parse_requirements() {
     exit 1
   fi
 
-  if command -v fd >/dev/null 2>&1; then
-    deps['fd']="$(command -v fd | head -n1)"
-  else
-    printf "missing dependency: fd\n" >&2
-    exit 1
-  fi
-
   if command -v gum >/dev/null 2>&1; then
     deps['gum']="$(command -v gum | head -n1)"
   else
@@ -1318,13 +1268,6 @@ parse_requirements() {
       action="open"
       shift
       pm_open_parse_requirements "$@"
-      shift $#
-      ;;
-
-    filter)
-      action="filter"
-      shift
-      pm_filter_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1374,6 +1317,13 @@ parse_requirements() {
       action="template"
       shift
       pm_template_parse_requirements "$@"
+      shift $#
+      ;;
+
+    cd)
+      action="cd"
+      shift
+      pm_cd_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1718,52 +1668,6 @@ pm_open_parse_requirements() {
 
 }
 
-pm_filter_parse_requirements() {
-
-  while [[ $# -gt 0 ]]; do
-    case "${1:-}" in
-      --help | -h)
-        long_usage=yes
-        pm_filter_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  action="filter"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      --path | -p)
-
-        args['--path']=1
-        shift
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-}
-
 pm_space_parse_requirements() {
 
   while [[ $# -gt 0 ]]; do
@@ -1804,13 +1708,6 @@ pm_space_parse_requirements() {
       action="remove"
       shift
       pm_space_remove_parse_requirements "$@"
-      shift $#
-      ;;
-
-    filter)
-      action="filter"
-      shift
-      pm_space_filter_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1994,46 +1891,6 @@ pm_space_remove_parse_requirements() {
     printf "validation error in %s:\n%s\n" "SPACE" "$(validate_space_exists "${args['space']:-}")" >&2
     exit 1
   fi
-
-}
-
-pm_space_filter_parse_requirements() {
-
-  while [[ $# -gt 0 ]]; do
-    case "${1:-}" in
-      --help | -h)
-        long_usage=yes
-        pm_space_filter_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  action="space filter"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
 
 }
 
@@ -2507,8 +2364,48 @@ pm_template_new_parse_requirements() {
 
 }
 
+pm_cd_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_cd_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="cd"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
 initialize() {
-  version="1.5.0"
+  version="1.6.0"
   long_usage=''
   set -e
 
@@ -2546,12 +2443,10 @@ run() {
     "new") pm_new_command ;;
     "clone") pm_clone_command ;;
     "open") pm_open_command ;;
-    "filter") pm_filter_command ;;
     "space") pm_space_command ;;
     "space add") pm_space_add_command ;;
     "space list") pm_space_list_command ;;
     "space remove") pm_space_remove_command ;;
-    "space filter") pm_space_filter_command ;;
     "list") pm_list_command ;;
     "link") pm_link_command ;;
     "unlink") pm_unlink_command ;;
@@ -2561,6 +2456,7 @@ run() {
     "template list") pm_template_list_command ;;
     "template show") pm_template_show_command ;;
     "template new") pm_template_new_command ;;
+    "cd") pm_cd_command ;;
   esac
 }
 
