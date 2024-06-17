@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+#
+# Install pm script
+#
+destination="${1:-${HOME}/.local/bin}"
+
+PM_INSTALL_DIR="$(pwd)" ./pm link "${destination}"

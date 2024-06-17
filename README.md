@@ -23,12 +23,12 @@ Clone the repository in the recommended location
 git clone git@github.com:alexis-moins/pm.git ~/.pm
 ```
 
-Go into the install directory and let pm take care of the rest!
+Go into the install directory and execute the [install](install) script:
 ```bash
-PM_INSTALL_DIR=$(pwd) ./pm link
+./install
 ```
 
-The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory (you can also change the link destination path). 
+The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory (you can also change the link destination path by passing it as an argument to the install script).
 
 > If you did not clone the repository in `~/.pm`, don't forget to set the `PM_INSTALL_DIR` environment variable globally afterwards!
 
