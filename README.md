@@ -122,7 +122,7 @@ Environment Variables:
 
   PM_HOME
     Directory where the projects will be managed
-    Default: ~/dev
+    Default: ~/git
 
   PM_BACKEND
     Name of the backend used to open projects
