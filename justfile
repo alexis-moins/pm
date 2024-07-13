@@ -1,10 +1,10 @@
 SCRIPT := "pm"
 
 generate:
-    @bashly generate --upgrade
+    @bashly generate --upgrade --env=production
 
 watch:
-    @bashly generate --watch
+    @bashly generate --watch --env=production
 
 build:
     @bashly generate --env=production --upgrade
