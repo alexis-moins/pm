@@ -1,6 +1,6 @@
 <div align='center'>
 
-![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)
 
 </div>
 
@@ -122,7 +122,7 @@ Environment Variables:
 
   PM_HOME
     Directory where the projects will be managed
-    Default: ~/git
+    Default: ~/dev
 
   PM_BACKEND
     Name of the backend used to open projects

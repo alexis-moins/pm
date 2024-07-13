@@ -1,6 +1,6 @@
 name: pm
 help: manage your projects the easy way
-version: 1.6.0
+version: 1.7.0
 
 environment_variables:
   - name: EDITOR
@@ -81,17 +81,15 @@ commands:
         long: --space
         help: Space to clone the project in
         arg: space
-        required: true
         validate: space_exists
 
       - short: -n
         long: --name
         help: Name to clone the project as
         arg: name
-        required: true
 
     examples:
-      - pm clone alexis-moins/recipe --space tools --name recipe
+      - pm clone alexis-moins/recipe
       - pm clone neovim/neovim --space tools --name editor
 
   - name: open

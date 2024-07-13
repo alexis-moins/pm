@@ -1,4 +1,4 @@
-local SPACE_INDEX="${PM_HOME}/spaces"
+export SPACE_INDEX="${PM_HOME}/spaces"
 
 [[ ! -d "${PM_HOME}" ]] && command mkdir -p "${PM_HOME}"
 [[ ! -f "${SPACE_INDEX}" ]] && touch "${SPACE_INDEX}"
