@@ -4,6 +4,12 @@ local space="${args[--space]}"
 local template_name="${args[--template]}"
 local backend_name="${args[--backend]}"
 
+if [[ -z "${space}" ]]; then
+    space="$(cat "${SPACE_INDEX}" | "${deps[gum]}" filter --placeholder "Select a space")"
+
+    [[ -z "${space}" ]] && exit 1
+fi
+
 local project="${space}/${name}"
 
 local path="${PM_HOME}/${project}"
@@ -11,6 +17,12 @@ local path="${PM_HOME}/${project}"
 if [[ -d "${path}" ]]; then
     error "project '${name}' already exists in space '${space}'"
     exit 1
+fi
+
+if [[ -z "${template_name}" ]]; then
+    template_name="$(list_templates | "${deps[gum]}" filter --placeholder "Select a template")"
+
+    [[ -z "${template_name}" ]] && exit 1
 fi
 
 # Search for user templates first

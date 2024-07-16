@@ -4,7 +4,7 @@ local name="${args[--name]}"
 local space="${args[--space]}"
 
 if [[ -z "${name}" ]]; then
-    name="$(command "${deps[gum]}" input --placeholder "awesome-project" --prompt "Project name: " --no-show-help)"
+    name="$(command "${deps[gum]}" input --placeholder "awesome-project" --prompt "◉ Project name: " --no-show-help)"
 
     [[ -z "${name}" ]] && exit 0
 fi

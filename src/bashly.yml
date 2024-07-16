@@ -48,14 +48,13 @@ commands:
         long: --space
         help: Space of the new project
         arg: space
-        required: true
         validate: space_exists
 
       - short: -t
         long: --template
         help: Name of the template
-        default: default
         arg: template
+        validate: template_exists
 
       - short: -b
         long: --backend
@@ -162,34 +161,6 @@ commands:
     examples:
       - pm ls
       - pm list
-
-  - name: link
-    help: Create a link to the pm script
-
-    args:
-      - name: path
-        help: Path to the link
-        default: ${HOME}/.local/bin
-
-    flags:
-      - short: -c
-        long: --copy
-        help: Copy the script instead of creating a symbolic link
-
-    examples:
-      - pm link -c
-      - pm link /usr/bin
-
-  - name: unlink
-    help: Remove the link to the pm script
-
-    args:
-      - name: path
-        help: Path to the link
-        default: ${HOME}/.local/bin
-
-    examples:
-      - pm unlink
 
   - name: update
     help: Update to the latest version

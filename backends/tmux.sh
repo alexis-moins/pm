@@ -2,7 +2,7 @@ name="${2/\./dot-}"
 
 local session="$(tmux list-windows -aF '#S: #{pane_current_path}' \
     | uniq \
-    | command rg  "${name}: ${3::-1}")"
+    | command grep "${name}: ${3::-1}")"
 
 if [[ -z "${TMUX}" ]]; then
     # Outside tmux session

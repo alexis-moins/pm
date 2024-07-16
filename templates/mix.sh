@@ -12,10 +12,7 @@
 command cd "$(dirname "${3}")"
 
 # Create a new dune project
-command dune init project "${2}"
+command mix new "${2}"
 
 # Initialize git repository
 command git -C "${3}" init
-
-# Ignore the _build directory
-echo _build > .gitignore
