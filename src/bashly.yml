@@ -1,6 +1,6 @@
 name: pm
 help: manage your projects the easy way
-version: 1.7.0
+version: 1.7.1
 
 environment_variables:
   - name: EDITOR
