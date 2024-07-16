@@ -1,24 +1,20 @@
-# Information about the project are passed as arguments in the following way:
+# Information about the project are passed as environment variables in the following way:
 #
-# $1 - Name of the space the project must be created in.
+# SPACE        - name of the space the project must be created in.
 #
-# $2 - name of the project. Once this script ends, the directory
-#      ${HOME}/${PM_HOME}/${1}/${2} should have been created.
+# SPACE_PATH   - absolute path to the space directory. It corresponds to the
+#                following pattern evaluated: ${HOME}/${PM_HOME}/${SPACE}.
 #
-# $3 - absolute path to the project. It corresponds to the following
-#      pattern evaluated: ${HOME}/${PM_HOME}/${1}/${2}.
+# PROJECT      - name of the project that must be created.
+#
+# PROJECT_PATH - absolute path to the project directory. It corresponds to the
+#                following pattern evaluated: ${SPACE_PATH}/${PROJECT}.
+mkdir -p "${PROJECT_PATH}"
 
-# Create the project directory
-command mkdir -p "${3}"
+cd "${PROJECT_PATH}"
 
-# Navigate to the space directory
-command cd "${3}"
+python -m venv .venv
 
-# Create a new python project
-command python -m venv .venv
+git init
 
-# Initialize git repository
-command git init
-
-# Ignore the newly created virtual env
 echo .venv > .gitignore

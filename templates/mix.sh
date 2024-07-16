@@ -11,4 +11,6 @@
 #                following pattern evaluated: ${SPACE_PATH}/${PROJECT}.
 cd "${SPACE_PATH}"
 
-cargo new "${PROJECT}"
+mix new "${PROJECT}"
+
+git -C "${PROJECT_PATH}" init

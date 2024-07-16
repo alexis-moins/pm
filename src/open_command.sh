@@ -44,4 +44,11 @@ fi
 
 local path="${PM_HOME}/${space}/${name}"
 
-source "${backend}" "${space}" "${name}" "${path}"
+# Export variable that will be usable within the sourced template script
+export SPACE="${space}"
+export SPACE_PATH="$(dirname "${path}")"
+
+export PROJECT="${name}"
+export PROJECT_PATH="${path}"
+
+source "${backend}"

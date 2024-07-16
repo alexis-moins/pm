@@ -1,6 +1,6 @@
 <div align='center'>
 
-![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.7.1-blue.svg)
 
 </div>
 
@@ -91,8 +91,6 @@ Usage:
 Commands:
   help       Show help about a command
   space      Space related commands
-  link       Create a link to the pm script
-  unlink     Remove the link to the pm script
   update     Update to the latest version
   env        Show environment information
   template   Template related commands
