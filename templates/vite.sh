@@ -1,24 +1,23 @@
-# Information about the project are passed as arguments in the following way:
+# Information about the project are passed as environment variables in the following way:
 #
-# $1 - Name of the space the project must be created in.
+# SPACE        - name of the space the project must be created in.
 #
-# $2 - name of the project. Once this script ends, the directory
-#      ${HOME}/${PM_HOME}/${1}/${2} should have been created.
+# SPACE_PATH   - absolute path to the space directory. It corresponds to the
+#                following pattern evaluated: ${HOME}/${PM_HOME}/${SPACE}.
 #
-# $3 - absolute path to the project. It corresponds to the following
-#      pattern evaluated: ${HOME}/${PM_HOME}/${1}/${2}.
-
+# PROJECT      - name of the project that must be created.
+#
+# PROJECT_PATH - absolute path to the project directory. It corresponds to the
+#                following pattern evaluated: ${SPACE_PATH}/${PROJECT}.
 manager="${PM_VITE_CMD:-npm}"
 template="${PM_VITE_TEMPLATE:-"vue-ts"}"
 
-# Navigate to the space directory
-command cd "$(dirname "${3}")"
+cd "${SPACE_PATH}"
 
 if [[ "${manager}" = "npm" ]]; then
-    command npm create vite@latest "${2}" -- --template=${template}
+    npm create vite@latest "${PROJECT}" -- --template=${template}
 else
-    command "${manager}" create vite "${2}" --template=${template}
+    command "${manager}" create vite "${PROJECT}" --template=${template}
 fi
 
-# Initialize git repository
-command git -C "${3}" init
+git -C "${PROJECT_PATH}" init

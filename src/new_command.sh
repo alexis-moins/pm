@@ -38,7 +38,16 @@ if [[ ! -f "${template}" ]]; then
     fi
 fi
 
-if source "${template}" "${space}" "${name}" "${path}"; then
+# Export variable that will be usable within the sourced template script
+export SPACE="${space}"
+export SPACE_PATH="$(dirname "${path}")"
+
+export PROJECT="${name}"
+export PROJECT_PATH="${path}"
+
+source "${template}"
+
+if [[ "${?}" -eq 0 ]]; then
     success "project '${name}' created in space '${space}'"
 else
     error "unable to create project"
@@ -58,4 +67,4 @@ if [[ ! -f "${backend}" ]]; then
     fi
 fi
 
-source "${backend}" "${space}" "${name}" "${path}"
+source "${backend}"
