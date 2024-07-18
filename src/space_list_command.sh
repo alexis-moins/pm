@@ -1,3 +1,3 @@
-if [[ -f "${PM_HOME}/spaces" ]]; then
-    cat "${PM_HOME}/spaces"
+if [[ -f "${SPACE_INDEX}" ]]; then
+    cat "${SPACE_INDEX}"
 fi

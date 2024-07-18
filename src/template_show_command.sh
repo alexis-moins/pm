@@ -7,5 +7,5 @@ local template="${HOME}/.config/pm/templates/${template_name}.sh"
 if [[ -f "${template}" ]]; then
     command ${command} "${template}"
 else
-    command ${command} "${PM_INSTALL_DIR}/templates/${template_name}.sh"
+    command ${command} "${PM_DATA_DIR}/templates/${template_name}.sh"
 fi

@@ -1,5 +1,5 @@
 list_templates() {
-    for file in $(command ls "${PM_INSTALL_DIR}/templates"); do
+    for file in $(command ls "${PM_DATA_DIR}/templates"); do
         if [[ -f "${HOME}/.config/pm/templates/${file}" ]]; then
             continue
         fi
