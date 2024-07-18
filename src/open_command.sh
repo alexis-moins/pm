@@ -34,7 +34,7 @@ local backend="${HOME}/.config/pm/backends/${backend_name}.sh"
 
 if [[ ! -f "${backend}" ]]; then
     # Then search for pm backends
-    backend="${PM_INSTALL_DIR}/backends/${backend_name}.sh"
+    backend="${PM_DATA_DIR}/backends/${backend_name}.sh"
 
     if [[ ! -f "${backend}" ]]; then
         error "backend '${backend_name}' not found"

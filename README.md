@@ -1,6 +1,6 @@
 <div align='center'>
 
-![Version](https://img.shields.io/badge/version-1.7.1-blue.svg)
+![Version](https://img.shields.io/badge/version-1.8.0-blue.svg)
 
 </div>
 
@@ -23,9 +23,9 @@ Clone the repository in the recommended location
 git clone git@github.com:alexis-moins/pm.git ~/.pm
 ```
 
-Go into the install directory and execute the [install](install) script:
+Go into the install directory and execute the [install](install.sh) script:
 ```bash
-./install
+./install.sh
 ```
 
 The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory (you can also change the link destination path by passing it as an argument to the install script).
@@ -91,8 +91,6 @@ Usage:
 Commands:
   help       Show help about a command
   space      Space related commands
-  update     Update to the latest version
-  env        Show environment information
   template   Template related commands
   cd         Navigate to your pm home in a new shell
 
@@ -110,14 +108,6 @@ Options:
     Show version number
 
 Environment Variables:
-  EDITOR
-    Command used for interactive commands
-    Default: vim
-
-  PM_INSTALL_DIR
-    Directory where the repository was cloned
-    Default: ~/.pm
-
   PM_HOME
     Directory where the projects will be managed
     Default: ~/dev

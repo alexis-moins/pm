@@ -31,8 +31,6 @@ pm_usage() {
   printf "%s\n" "Commands:"
   printf "  %s   Show help about a command\n" "help    "
   printf "  %s   Space related commands\n" "space   "
-  printf "  %s   Update to the latest version\n" "update  "
-  printf "  %s   Show environment information\n" "env     "
   printf "  %s   Template related commands\n" "template"
   printf "  %s   Navigate to your pm home in a new shell\n" "cd      "
   echo
@@ -54,16 +52,6 @@ pm_usage() {
     echo
 
     printf "%s\n" "Environment Variables:"
-
-    printf "  %s\n" "EDITOR"
-    printf "    Command used for interactive commands\n"
-    printf "    Default: vim\n"
-    echo
-
-    printf "  %s\n" "PM_INSTALL_DIR"
-    printf "    Directory where the repository was cloned\n"
-    printf "    Default: ${HOME}/.pm\n"
-    echo
 
     printf "  %s\n" "PM_HOME"
     printf "    Directory where the projects will be managed\n"
@@ -431,74 +419,6 @@ pm_list_usage() {
   fi
 }
 
-pm_update_usage() {
-  if [[ -n $long_usage ]]; then
-    printf "pm update - Update to the latest version\n"
-    echo
-
-  else
-    printf "pm update - Update to the latest version\n"
-    echo
-
-  fi
-
-  printf "%s\n" "Usage:"
-  printf "  pm update\n"
-  printf "  pm update --help | -h\n"
-  echo
-
-  if [[ -n $long_usage ]]; then
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Examples:"
-    printf "  pm update\n"
-    echo
-
-  fi
-}
-
-pm_env_usage() {
-  if [[ -n $long_usage ]]; then
-    printf "pm env - Show environment information\n"
-    echo
-
-  else
-    printf "pm env - Show environment information\n"
-    echo
-
-  fi
-
-  printf "%s\n" "Usage:"
-  printf "  pm env [VARIABLE]\n"
-  printf "  pm env --help | -h\n"
-  echo
-
-  if [[ -n $long_usage ]]; then
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Arguments:"
-
-    printf "  %s\n" "VARIABLE"
-    printf "    Name of the environment variable to show\n"
-    printf "    Allowed: PM_INSTALL_DIR, PM_HOME, PM_BACKEND, PM_SHOW_CMD\n"
-    echo
-
-    printf "%s\n" "Examples:"
-    printf "  pm env\n"
-    printf "  pm env PM_HOME\n"
-    echo
-
-  fi
-}
-
 pm_template_usage() {
   if [[ -n $long_usage ]]; then
     printf "pm template - Template related commands\n"
@@ -745,7 +665,7 @@ list_projects() {
 }
 
 list_templates() {
-    for file in $(command ls "${PM_INSTALL_DIR}/templates"); do
+    for file in $(command ls "${PM_DATA_DIR}/templates"); do
         if [[ -f "${HOME}/.config/pm/templates/${file}" ]]; then
             continue
         fi
@@ -816,7 +736,7 @@ validate_space_is_missing() {
 }
 
 validate_template_exists() {
-    if [[ ! -f "${PM_INSTALL_DIR}/templates/${1}.sh" ]] && [[ ! -f "${HOME}/.config/pm/templates/${1}.sh" ]]; then
+    if [[ ! -f "${PM_DATA_DIR}/templates/${1}.sh" ]] && [[ ! -f "${HOME}/.config/pm/templates/${1}.sh" ]]; then
         error "template ${1} not found"
     fi
 }
@@ -882,7 +802,7 @@ pm_new_command() {
 
   if [[ ! -f "${template}" ]]; then
       # Then search for pm templates
-      template="${PM_INSTALL_DIR}/templates/${template_name}.sh"
+      template="${PM_DATA_DIR}/templates/${template_name}.sh"
 
       if [[ ! -f "${template}" ]]; then
           error "template '${template_name}' not found"
@@ -911,7 +831,7 @@ pm_new_command() {
 
   if [[ ! -f "${backend}" ]]; then
       # Then search for pm backends
-      backend="${PM_INSTALL_DIR}/backends/${backend_name}.sh"
+      backend="${PM_DATA_DIR}/backends/${backend_name}.sh"
 
       if [[ ! -f "${backend}" ]]; then
           error "backend '${backend_name}' not found"
@@ -990,7 +910,7 @@ pm_open_command() {
 
   if [[ ! -f "${backend}" ]]; then
       # Then search for pm backends
-      backend="${PM_INSTALL_DIR}/backends/${backend_name}.sh"
+      backend="${PM_DATA_DIR}/backends/${backend_name}.sh"
 
       if [[ ! -f "${backend}" ]]; then
           error "backend '${backend_name}' not found"
@@ -1023,8 +943,8 @@ pm_space_add_command() {
 }
 
 pm_space_list_command() {
-  if [[ -f "${PM_HOME}/spaces" ]]; then
-      cat "${PM_HOME}/spaces"
+  if [[ -f "${SPACE_INDEX}" ]]; then
+      cat "${SPACE_INDEX}"
   fi
 
 }
@@ -1044,31 +964,6 @@ pm_list_command() {
 
 }
 
-pm_update_command() {
-  if [[ ! -d "${PM_INSTALL_DIR}" ]]; then
-      warn "no pm install directory."
-      warn "check documentation for installation instruction."
-      exit 1
-  fi
-
-  command "${deps[git]}" -C "${PM_INSTALL_DIR}" pull
-
-}
-
-pm_env_command() {
-  local variable="${args[variable]}"
-
-  if [[ -n "${variable}" ]]; then
-      echo "${!variable}"
-  else
-      echo "PM_INSTALL_DIR=${PM_INSTALL_DIR}"
-      echo "PM_HOME=${PM_HOME}"
-      echo "PM_BACKEND=${PM_BACKEND}"
-      echo "PM_SHOW_CMD=${PM_SHOW_CMD}"
-  fi
-
-}
-
 pm_template_list_command() {
   list_templates
 
@@ -1084,7 +979,7 @@ pm_template_show_command() {
   if [[ -f "${template}" ]]; then
       command ${command} "${template}"
   else
-      command ${command} "${PM_INSTALL_DIR}/templates/${template_name}.sh"
+      command ${command} "${PM_DATA_DIR}/templates/${template_name}.sh"
   fi
 
 }
@@ -1092,7 +987,7 @@ pm_template_show_command() {
 pm_template_new_command() {
   local template_name="${args[template]}"
 
-  local pm_template="${PM_INSTALL_DIR}/templates/default.sh"
+  local pm_template="${PM_DATA_DIR}/templates/default.sh"
 
   [[ ! -d "${HOME}/.config/pm/templates" ]] && command mkdir -p "${HOME}/.config/pm/templates"
 
@@ -1100,7 +995,7 @@ pm_template_new_command() {
 
   command cp "${pm_template}" "${new_template_path}"
 
-  command "${EDITOR}" ${new_template_path}
+  command "${EDITOR:-vim}" ${new_template_path}
 
 }
 
@@ -1131,14 +1026,12 @@ parse_requirements() {
     esac
   done
 
-  export EDITOR="${EDITOR:-vim}"
-  export PM_INSTALL_DIR="${PM_INSTALL_DIR:-${HOME}/.pm}"
+  export PM_DATA_DIR="${PM_DATA_DIR:-${HOME}/.local/share/pm}"
   export PM_HOME="${PM_HOME:-${HOME}/dev}"
   export PM_BACKEND="${PM_BACKEND:-tmux}"
   export PM_SHOW_CMD="${PM_SHOW_CMD:-cat}"
 
-  env_var_names+=("EDITOR")
-  env_var_names+=("PM_INSTALL_DIR")
+  env_var_names+=("PM_DATA_DIR")
   env_var_names+=("PM_HOME")
   env_var_names+=("PM_BACKEND")
   env_var_names+=("PM_SHOW_CMD")
@@ -1201,20 +1094,6 @@ parse_requirements() {
       action="list"
       shift
       pm_list_parse_requirements "$@"
-      shift $#
-      ;;
-
-    update)
-      action="update"
-      shift
-      pm_update_parse_requirements "$@"
-      shift $#
-      ;;
-
-    env)
-      action="env"
-      shift
-      pm_env_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1829,96 +1708,6 @@ pm_list_parse_requirements() {
 
 }
 
-pm_update_parse_requirements() {
-
-  while [[ $# -gt 0 ]]; do
-    case "${1:-}" in
-      --help | -h)
-        long_usage=yes
-        pm_update_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  action="update"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-}
-
-pm_env_parse_requirements() {
-
-  while [[ $# -gt 0 ]]; do
-    case "${1:-}" in
-      --help | -h)
-        long_usage=yes
-        pm_env_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  action="env"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        if [[ -z ${args['variable']+x} ]]; then
-          args['variable']=$1
-          shift
-        else
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-        fi
-
-        ;;
-
-    esac
-  done
-
-  if [[ -n ${args['variable']:-} ]] && [[ ! ${args['variable']:-} =~ ^(PM_INSTALL_DIR|PM_HOME|PM_BACKEND|PM_SHOW_CMD)$ ]]; then
-    printf "%s\n" "variable must be one of: PM_INSTALL_DIR, PM_HOME, PM_BACKEND, PM_SHOW_CMD" >&2
-    exit 1
-  fi
-
-}
-
 pm_template_parse_requirements() {
 
   while [[ $# -gt 0 ]]; do
@@ -2200,12 +1989,11 @@ pm_cd_parse_requirements() {
 }
 
 initialize() {
-  version="1.7.0"
+  version="1.7.1"
   long_usage=''
   set -e
 
-  export EDITOR="${EDITOR:-vim}"
-  export PM_INSTALL_DIR="${PM_INSTALL_DIR:-${HOME}/.pm}"
+  export PM_DATA_DIR="${PM_DATA_DIR:-${HOME}/.local/share/pm}"
   export PM_HOME="${PM_HOME:-${HOME}/dev}"
   export PM_BACKEND="${PM_BACKEND:-tmux}"
   export PM_SHOW_CMD="${PM_SHOW_CMD:-cat}"
@@ -2213,6 +2001,8 @@ initialize() {
   export SPACE_INDEX="${PM_HOME}/spaces"
 
   [[ ! -d "${PM_HOME}" ]] && command mkdir -p "${PM_HOME}"
+  [[ ! -d "${PM_DATA_DIR}" ]] && command mkdir -p "${PM_DATA_DIR}"
+
   [[ ! -f "${SPACE_INDEX}" ]] && touch "${SPACE_INDEX}"
 
   # Create directories if not present
@@ -2243,8 +2033,6 @@ run() {
     "space list") pm_space_list_command ;;
     "space remove") pm_space_remove_command ;;
     "list") pm_list_command ;;
-    "update") pm_update_command ;;
-    "env") pm_env_command ;;
     "template") pm_template_command ;;
     "template list") pm_template_list_command ;;
     "template show") pm_template_show_command ;;

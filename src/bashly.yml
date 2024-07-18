@@ -3,13 +3,10 @@ help: manage your projects the easy way
 version: 1.7.1
 
 environment_variables:
-  - name: EDITOR
-    help: Command used for interactive commands
-    default: vim
-
-  - name: PM_INSTALL_DIR
-    help: Directory where the repository was cloned
-    default: ${HOME}/.pm
+  - name: PM_DATA_DIR
+    help: zcz
+    default: ${HOME}/.local/share/pm
+    private: true
 
   - name: PM_HOME
     help: Directory where the projects will be managed
@@ -72,7 +69,7 @@ commands:
 
     args:
       - name: repository
-        help: "Remote repository url"
+        help: Remote repository url
         required: true
 
     flags:
@@ -161,24 +158,6 @@ commands:
     examples:
       - pm ls
       - pm list
-
-  - name: update
-    help: Update to the latest version
-
-    examples:
-      - pm update
-
-  - name: env
-    help: Show environment information
-
-    args:
-      - name: variable
-        help: Name of the environment variable to show
-        allowed: [PM_INSTALL_DIR, PM_HOME, PM_BACKEND, PM_SHOW_CMD]
-
-    examples:
-      - pm env
-      - pm env PM_HOME
 
   - name: template
     help: Template related commands
