@@ -60,16 +60,6 @@ pm open <project> -s personal -b vscode
 pm clone git@github.com:alexis-moins/dot.git -s work
 ```
 
-## 🥘 Misc
-
-### Tmux
-
-You can put the following shortcut at the end of your `~/.tmux.conf` to open a project from tmux interactively.
-```bash
-# Leader + o: open a pm project
-bind-key o display-popup -E "pm open"
-```
-
 ## 🚦 Usage
 
 ```
