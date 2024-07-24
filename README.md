@@ -1,6 +1,6 @@
 <div align='center'>
 
-![Version](https://img.shields.io/badge/version-1.8.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.8.1-blue.svg)
 
 </div>
 
