@@ -2149,7 +2149,7 @@ pm_cd_parse_requirements() {
 }
 
 initialize() {
-  version="1.7.1"
+  version="1.8.1"
   long_usage=''
   set -e
 

@@ -1,6 +1,6 @@
 name: pm
 help: manage your projects the easy way
-version: 1.7.1
+version: 1.8.1
 
 environment_variables:
   - name: PM_DATA_DIR
