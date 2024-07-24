@@ -1,23 +1,10 @@
 #!/usr/bin/env bash
 #
-# <pm> uninstall script
+# Uninstall script
 #
-destination="${1}"
+destination="${1:-"${HOME}/.local/bin"}"
 
-if [[ -z "${destination}" ]]; then
-    echo "missing required argument: DESTINATION"
-    echo "usage: uninstall.sh DESTINATION"
-    exit 1
-fi
-
-if [[ ! -f "${destination}/pm" ]]; then
-    echo "=> pm not found"
-    exit 1
-fi
-
-share="${HOME}/.local/share/pm"
-
-[[ -d "${share}/backends" ]] && command rm -rf "${share}/backends"
-[[ -d "${share}/templates" ]] && command rm -rf "${share}/templates"
+# Remove config
+./pm uninstall-hook
 
 command rm "${destination}/pm"

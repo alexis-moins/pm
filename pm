@@ -120,6 +120,64 @@ pm_help_usage() {
 }
 
 # :command.usage
+pm_install_hook_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm install-hook\n"
+    echo
+
+  else
+    printf "pm install-hook\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm install-hook\n"
+  printf "  pm install-hook --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+pm_uninstall_hook_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "pm uninstall-hook\n"
+    echo
+
+  else
+    printf "pm uninstall-hook\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  pm uninstall-hook\n"
+  printf "  pm uninstall-hook --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+# :command.usage
 pm_new_usage() {
   if [[ -n $long_usage ]]; then
     printf "pm new - Create a new empty project\n"
@@ -797,7 +855,7 @@ filter_project_by_space() {
 
 # src/lib/list_projects.sh
 list_projects() {
-    for space in $(cat "${PM_HOME}/spaces"); do
+    for space in $(cat "${PM_DATA_DIR}/spaces"); do
         command find "${PM_HOME}/${space}" -maxdepth 1 -mindepth 1 -type d | sed "s!${PM_HOME}/!!"
     done
 }
@@ -922,6 +980,24 @@ pm_help_command() {
     echo "No help available for this command"
     exit 1
   fi
+
+}
+
+# :command.function
+pm_install_hook_command() {
+  # src/install_hook_command.sh
+  [[ ! -d "${PM_DATA_DIR}" ]] && command mkdir -p "${PM_DATA_DIR}"
+
+  command cp -R ./backends "${PM_DATA_DIR}/backends"
+  command cp -R ./templates "${PM_DATA_DIR}/templates"
+
+}
+
+# :command.function
+pm_uninstall_hook_command() {
+  # src/uninstall_hook_command.sh
+  [[ -d "${PM_DATA_DIR}/backends" ]] && command rm -rf "${PM_DATA_DIR}/backends"
+  [[ -d "${PM_DATA_DIR}/templates" ]] && command rm -rf "${PM_DATA_DIR}/templates"
 
 }
 
@@ -1245,6 +1321,20 @@ parse_requirements() {
       shift $#
       ;;
 
+    install-hook)
+      action="install-hook"
+      shift
+      pm_install_hook_parse_requirements "$@"
+      shift $#
+      ;;
+
+    uninstall-hook)
+      action="uninstall-hook"
+      shift
+      pm_uninstall_hook_parse_requirements "$@"
+      shift $#
+      ;;
+
     new)
       action="new"
       shift
@@ -1371,6 +1461,94 @@ pm_help_parse_requirements() {
           printf "invalid argument: %s\n" "$key" >&2
           exit 1
         fi
+
+        ;;
+
+    esac
+  done
+
+}
+
+# :command.parse_requirements
+pm_install_hook_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_install_hook_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="install-hook"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+# :command.parse_requirements
+pm_uninstall_hook_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_uninstall_hook_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="uninstall-hook"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
 
         ;;
 
@@ -2281,11 +2459,9 @@ initialize() {
   export PM_SHOW_CMD="${PM_SHOW_CMD:-cat}"
 
   # src/initialize.sh
-  export SPACE_INDEX="${PM_HOME}/spaces"
+  export SPACE_INDEX="${PM_DATA_DIR}/spaces"
 
   [[ ! -d "${PM_HOME}" ]] && command mkdir -p "${PM_HOME}"
-  [[ ! -d "${PM_DATA_DIR}" ]] && command mkdir -p "${PM_DATA_DIR}"
-
   [[ ! -f "${SPACE_INDEX}" ]] && touch "${SPACE_INDEX}"
 
   # Create directories if not present
@@ -2309,6 +2485,8 @@ run() {
 
   case "$action" in
     "help") pm_help_command ;;
+    "install-hook") pm_install_hook_command ;;
+    "uninstall-hook") pm_uninstall_hook_command ;;
     "new") pm_new_command ;;
     "clone") pm_clone_command ;;
     "open") pm_open_command ;;

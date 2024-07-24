@@ -4,7 +4,7 @@ version: 1.7.1
 
 environment_variables:
   - name: PM_DATA_DIR
-    help: zcz
+    help: Directory used to store data required by pm
     default: ${HOME}/.local/share/pm
     private: true
 
@@ -30,6 +30,12 @@ commands:
     args:
     - name: command
       help: Help subject
+
+  - name: install-hook
+    private: true
+
+  - name: uninstall-hook
+    private: true
 
   - name: new
     help: Create a new empty project

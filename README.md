@@ -16,7 +16,13 @@
 
 ## 🧰 Installation
 
-### Using pm
+### With [bruce](https://github.com/alexis-moins/bruce)
+
+```bash
+bruce add alexis-moins/pm
+```
+
+### With the install script
 
 Clone the repository in the recommended location
 ```bash
@@ -29,12 +35,6 @@ Go into the install directory and execute the [install](install.sh) script:
 ```
 
 The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory (you can also change the link destination path by passing it as an argument to the install script).
-
-> If you did not clone the repository in `~/.pm`, don't forget to set the `PM_INSTALL_DIR` environment variable globally afterwards!
-
-### Manually
-
-Clone the repository then move the [pm](pm) script to anywhere in your `PATH`, and ensure it is executable!
 
 ## 🌱 Quick Start
 

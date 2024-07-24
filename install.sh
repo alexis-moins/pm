@@ -1,27 +1,10 @@
 #!/usr/bin/env bash
 #
-# <pm> install script
+# Install script
 #
-destination="${1}"
+destination="${1:-"${HOME}/.local/bin"}"
 
-if [[ -z "${destination}" ]]; then
-    echo "missing required argument: DESTINATION"
-    echo "usage: install.sh DESTINATION"
-    exit 1
-fi
+# Setup pm before installing
+./pm install-hook
 
-if [[ -f "${destination}/pm" ]]; then
-    echo "script already installed"
-    exit 0
-fi
-
-[[ ! -d "${destination}" ]] && command mkdir -p "${destination}"
-
-share="${HOME}/.local/share/pm"
-
-[[ ! -d "${share}" ]] && command mkdir -p "${share}"
-
-command cp -R ./backends "${share}/backends"
-command cp -R ./templates "${share}/templates"
-
-command cp ./pm "${destination}/pm"
+command cp -i pm "${destination}/pm"
