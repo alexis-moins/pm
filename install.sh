@@ -2,6 +2,8 @@
 #
 # Install script
 #
+set -e
+
 WHITE="\e[0m"
 GREEN="\e[32;1m"
 

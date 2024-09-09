@@ -4,7 +4,6 @@ version: 1.8.2
 
 environment_variables:
   - name: PM_DATA_DIR
-    help: Directory used to store data required by pm
     default: ${HOME}/.local/share/pm
     private: true
 
