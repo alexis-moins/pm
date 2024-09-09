@@ -11,4 +11,4 @@
 #                following pattern evaluated: ${SPACE_PATH}/${PROJECT}.
 cd "${SPACE_PATH}"
 
-cargo new "${PROJECT}"
+cargo new --"${PM_CARGO_TEMPLATE:-"bin"}" "${PROJECT}"

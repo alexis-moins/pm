@@ -1,6 +1,6 @@
 <div align='center'>
 
-![Version](https://img.shields.io/badge/version-1.8.1-blue.svg)
+![Version](https://img.shields.io/badge/version-1.8.2-blue.svg)
 
 </div>
 
@@ -16,8 +16,6 @@
 
 ## 🧰 Installation
 
-### Manually
-
 Clone the repository
 ```bash
 git clone git@github.com:alexis-moins/pm.git ~/.pm
@@ -28,7 +26,7 @@ Go into the install directory and execute the [install](install.sh) script:
 ./install.sh
 ```
 
-The last command creates a symbolic link to the `pm` script in the `~/.local/bin/` directory (you can also change the link destination path by passing it as an argument to the install script).
+The install script copies the `pm` script in the `~/.local/bin` directory (you can also change the destination by passing it as an argument to the install script).
 
 ## 🌱 Quick Start
 

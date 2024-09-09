@@ -2,9 +2,18 @@
 #
 # Uninstall script
 #
+set -e
+
+WHITE="\e[0m"
+GREEN="\e[32;1m"
+
 destination="${1:-"${HOME}/.local/bin"}"
 
-# Remove config
+# Remove templates and backends
 ./pm uninstall-hook
 
-command rm "${destination}/pm"
+if [[ -f "${destination}/pm" ]]; then
+    command rm "${destination}/pm"
+fi
+
+echo -e "${GREEN}✓${WHITE} pm has been removed"
