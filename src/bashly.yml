@@ -1,10 +1,9 @@
 name: pm
 help: manage your projects the easy way
-version: 1.8.1
+version: 1.8.2
 
 environment_variables:
   - name: PM_DATA_DIR
-    help: Directory used to store data required by pm
     default: ${HOME}/.local/share/pm
     private: true
 
