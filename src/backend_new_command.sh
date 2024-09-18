@@ -1,12 +1,12 @@
-local template_name="${args[template]}"
+local backend_name="${args[backend]}"
 
-if [[ ! -d "${HOME}/.config/pm/templates" ]]; then
-    command mkdir -p "${HOME}/.config/pm/templates"
+if [[ ! -d "${HOME}/.config/pm/backends" ]]; then
+    command mkdir -p "${HOME}/.config/pm/backends"
 fi
 
-local new_template_path="${HOME}/.config/pm/templates/${template_name}.sh"
+local new_backend_path="${HOME}/.config/pm/backends/${backend_name}.sh"
 
-command cat > ${new_template_path} << EOF
+command cat > ${new_backend_path} << EOF
 # Information about the project are passed as environment variables in the following way:
 #
 # SPACE        - name of the space the project must be created in.
@@ -18,7 +18,7 @@ command cat > ${new_template_path} << EOF
 #
 # PROJECT_PATH - absolute path to the project directory. It corresponds to the
 #                following pattern evaluated: \${SPACE_PATH}/\${PROJECT}.
-echo "Hi from '${template_name}' template"
+echo "Hi from '${backend_name}' backend"
 EOF
 
-command "${EDITOR:-vim}" ${new_template_path}
+command "${EDITOR:-vim}" ${new_backend_path}

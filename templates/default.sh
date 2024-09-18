@@ -1,3 +1,5 @@
+# BEWARE: This is a default template. It is managed internally and may be overridden!
+#
 # Information about the project are passed as environment variables in the following way:
 #
 # SPACE        - name of the space the project must be created in.

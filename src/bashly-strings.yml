@@ -1,0 +1,45 @@
+# When overriding from the user folder, feel free to delete everything
+# you do not plan on overriding to keep the default string.
+
+# Usage captions
+usage: "Usage:"
+options: "Options:"
+global_options: "Global Options:"
+arguments: "Arguments:"
+commands: "Commands:"
+examples: "Examples:"
+environment_variables: "Environment Variables:"
+group: "%{group} Commands:"
+
+# Usage helpers
+command_alias: "Alias: %{alias}"
+default_command_summary: "%{summary} (default)"
+required: "(required)"
+repeatable: "(repeatable)"
+default: "Default: %{value}"
+allowed: "Allowed: %{values}"
+needs: "Needs: %{values}"
+conflicts: "Conflicts: %{values}"
+
+# Fixed flags help text
+help_flag_text: Show this help
+version_flag_text: Show version number
+
+# Error messages
+flag_requires_an_argument: "$(red pm:) %{name} requires an argument: %{usage}"
+flag_needs_another: "$(red pm:) %{name} flag requires %{need}"
+invalid_argument: "$(red pm:) invalid argument: %s"
+invalid_flag: "$(red pm:) invalid option: %s"
+invalid_command: "$(red pm:) invalid command: %s"
+conflicting_flags: "$(red pm:) conflicting options: %s cannot be used with %s"
+missing_required_argument: "$(red pm:) missing required argument: %{arg}\\nusage: %{usage}"
+missing_required_flag: "$(red pm:) missing required flag: %{usage}"
+missing_required_environment_variable: "$(red pm:) missing required environment variable: %{var}"
+missing_dependency: "$(red pm:) missing dependency: %{dependency}"
+examples_caption_on_error: 'examples:'
+disallowed_flag: "$(red pm:) %{name} must be one of: %{allowed}"
+disallowed_argument: "$(red pm:) %{name} must be one of: %{allowed}"
+disallowed_environment_variable: "$(red pm:) %{name} environment variable must be one of: %{allowed}"
+unsupported_bash_version: "$(red pm:) bash version 4 or higher is required"
+validation_error: "$(red pm:) validation error in %s:\\n%s"
+environment_variable_validation_error: "$(red pm: )validation error in environment variable %s:\\n%s"
