@@ -135,6 +135,7 @@ commands:
 
   - name: filter
     help: Filter projects
+    group: Project
 
     examples:
       - pm filter
