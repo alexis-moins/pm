@@ -1,6 +1,5 @@
 validate_space_exists() {
-    if [[ ! -d "${PM_HOME}/${1}" ]]; then
-        echo "${1} must be an existing space"
-        echo -e "\nSee $(yellow_underlined pm space list)"
+    if ! space_exists "${1}"; then
+        error "space '${1}' not found"
     fi
 }

@@ -3,7 +3,7 @@
 # Modifying it manually is not recommended
 
 if [[ "${BASH_VERSINFO:-0}" -lt 4 ]]; then
-  printf "bash version 4 or higher is required\n" >&2
+  printf "$(red pm:) bash version 4 or higher is required\n" >&2
   exit 1
 fi
 
@@ -21,15 +21,17 @@ pm_usage() {
   echo
 
   printf "%s\n" "Commands:"
-  printf "  %s   Show help about a command\n" "help          "
-  printf "  %s   Space related commands\n" "space         "
+  printf "  %s   Generate bash completions\n" "completions   "
+  printf "  %s   Open pm home in a new shell\n" "cd            "
+  printf "  %s   Add, list and filter spaces\n" "space         "
   printf "  %s   Template related commands\n" "template      "
-  printf "  %s   Navigate to your pm home in a new shell\n" "cd            "
+  printf "  %s   Backend related commands\n" "backend       "
   echo
   printf "%s\n" "Project Commands:"
   printf "  %s   Create a new empty project\n" "new           "
   printf "  %s   Clone a remote git repository\n" "clone         "
   printf "  %s   Open a project\n" "open          "
+  printf "  %s   Filter projects\n" "filter        "
   printf "  %s   List projects\n" "list          "
   echo
 
@@ -55,33 +57,14 @@ pm_usage() {
     printf "    %s\n" "Default: tmux"
     echo
 
-    printf "  %s\n" "PM_SHOW_CMD"
-    printf "    Command used to show templates\n"
+    printf "  %s\n" "PM_BACKEND_SHOW_CMD"
+    printf "    Command used to show backends\n"
     printf "    %s\n" "Default: cat"
     echo
 
-  fi
-}
-
-pm_help_usage() {
-  printf "pm help - Show help about a command\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  pm help [COMMAND]\n"
-  printf "  pm help --help | -h\n"
-  echo
-
-  if [[ -n "$long_usage" ]]; then
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Arguments:"
-
-    printf "  %s\n" "COMMAND"
-    printf "    Help subject\n"
+    printf "  %s\n" "PM_TEMPLATE_SHOW_CMD"
+    printf "    Command used to show templates\n"
+    printf "    %s\n" "Default: cat"
     echo
 
   fi
@@ -127,7 +110,7 @@ pm_new_usage() {
   printf "pm new - Create a new empty project\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  pm new NAME [OPTIONS]\n"
+  printf "  pm new [PATH] [OPTIONS]\n"
   printf "  pm new --help | -h\n"
   echo
 
@@ -135,11 +118,18 @@ pm_new_usage() {
     printf "%s\n" "Options:"
 
     printf "  %s\n" "--space, -s SPACE"
-    printf "    Space of the new project\n"
+    printf "    Space to create the project in\n"
+    printf "    %s\n" "Needs: --name"
+    echo
+
+    printf "  %s\n" "--name, -n NAME"
+    printf "    Name of the project\n"
+    printf "    %s\n" "Needs: --space"
     echo
 
     printf "  %s\n" "--template, -t TEMPLATE"
     printf "    Name of the template\n"
+    printf "    %s\n" "Default: default"
     echo
 
     printf "  %s\n" "--backend, -b BACKEND"
@@ -153,13 +143,13 @@ pm_new_usage() {
 
     printf "%s\n" "Arguments:"
 
-    printf "  %s\n" "NAME"
-    printf "    Name of the new project\n"
+    printf "  %s\n" "PATH"
+    printf "    Path to the project (relative to \$PM_HOME)\n"
     echo
 
     printf "%s\n" "Examples:"
-    printf "  pm new recipe --space tools\n"
-    printf "  pm new recipe --template cargo --space tools\n"
+    printf "  pm new tools/recipe\n"
+    printf "  pm new -n recipe -s tools -t cargo\n"
     echo
 
   fi
@@ -176,12 +166,12 @@ pm_clone_usage() {
   if [[ -n "$long_usage" ]]; then
     printf "%s\n" "Options:"
 
-    printf "  %s\n" "--space, -s SPACE"
+    printf "  %s\n" "--space, -s SPACE (required)"
     printf "    Space to clone the project in\n"
     echo
 
-    printf "  %s\n" "--name, -n NAME"
-    printf "    Name to clone the project as\n"
+    printf "  %s\n" "--name, -n NAME (required)"
+    printf "    Name of the project\n"
     echo
 
     printf "  %s\n" "--help, -h"
@@ -195,8 +185,7 @@ pm_clone_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  pm clone alexis-moins/recipe\n"
-    printf "  pm clone neovim/neovim --space tools --name editor\n"
+    printf "  pm clone alexis-moins/recipe -s tools -n recipe\n"
     echo
 
   fi
@@ -206,7 +195,7 @@ pm_open_usage() {
   printf "pm open - Open a project\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  pm open [NAME] [OPTIONS]\n"
+  printf "  pm open [PATH] [OPTIONS]\n"
   printf "  pm open --help | -h\n"
   echo
 
@@ -215,6 +204,12 @@ pm_open_usage() {
 
     printf "  %s\n" "--space, -s SPACE"
     printf "    Space where the project is located\n"
+    printf "    %s\n" "Needs: --name"
+    echo
+
+    printf "  %s\n" "--name, -n NAME"
+    printf "    Name of the project\n"
+    printf "    %s\n" "Needs: --space"
     echo
 
     printf "  %s\n" "--backend, -b BACKEND"
@@ -228,20 +223,112 @@ pm_open_usage() {
 
     printf "%s\n" "Arguments:"
 
-    printf "  %s\n" "NAME"
-    printf "    Name of the project\n"
+    printf "  %s\n" "PATH"
+    printf "    Path to the project (relative to \$PM_HOME)\n"
     echo
 
     printf "%s\n" "Examples:"
-    printf "  pm open personal/recipe\n"
-    printf "  pm open editor --space tools\n"
+    printf "  pm open tools/recipe\n"
+    printf "  pm open -s tools -n recipe\n"
+    echo
+
+  fi
+}
+
+pm_filter_usage() {
+  printf "pm filter - Filter projects\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  pm filter\n"
+  printf "  pm filter --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm filter\n"
+    echo
+
+  fi
+}
+
+pm_list_usage() {
+  printf "pm list - List projects\n\n"
+  printf "Alias: ls\n"
+  echo
+
+  printf "%s\n" "Usage:"
+  printf "  pm list\n"
+  printf "  pm list --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm ls\n"
+    printf "  pm list\n"
+    echo
+
+  fi
+}
+
+pm_completions_usage() {
+  printf "pm completions - Generate bash completions\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  pm completions\n"
+  printf "  pm completions --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm completions\n"
+    printf "  eval \"$(pm completions)\"\n"
+    echo
+
+  fi
+}
+
+pm_cd_usage() {
+  printf "pm cd - Open pm home in a new shell\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  pm cd\n"
+  printf "  pm cd --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm cd\n"
     echo
 
   fi
 }
 
 pm_space_usage() {
-  printf "pm space - Space related commands\n\n"
+  printf "pm space - Add, list and filter spaces\n\n"
 
   printf "%s\n" "Usage:"
   printf "  pm space COMMAND\n"
@@ -251,7 +338,7 @@ pm_space_usage() {
   printf "%s\n" "Commands:"
   printf "  %s   Add a new space\n" "add   "
   printf "  %s   List added spaces\n" "list  "
-  printf "  %s   Remove a space (projects will not be removed)\n" "remove"
+  printf "  %s   Filter spaces\n" "filter"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -317,44 +404,12 @@ pm_space_list_usage() {
   fi
 }
 
-pm_space_remove_usage() {
-  printf "pm space remove - Remove a space (projects will not be removed)\n\n"
-  printf "Alias: rm\n"
-  echo
+pm_space_filter_usage() {
+  printf "pm space filter - Filter spaces\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  pm space remove SPACE\n"
-  printf "  pm space remove --help | -h\n"
-  echo
-
-  if [[ -n "$long_usage" ]]; then
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Arguments:"
-
-    printf "  %s\n" "SPACE"
-    printf "    Name of the space to remove\n"
-    echo
-
-    printf "%s\n" "Examples:"
-    printf "  pm space rm personal\n"
-    echo
-
-  fi
-}
-
-pm_list_usage() {
-  printf "pm list - List projects\n\n"
-  printf "Alias: ls\n"
-  echo
-
-  printf "%s\n" "Usage:"
-  printf "  pm list\n"
-  printf "  pm list --help | -h\n"
+  printf "  pm space filter\n"
+  printf "  pm space filter --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -365,8 +420,7 @@ pm_list_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  pm ls\n"
-    printf "  pm list\n"
+    printf "  pm space filter\n"
     echo
 
   fi
@@ -374,6 +428,8 @@ pm_list_usage() {
 
 pm_template_usage() {
   printf "pm template - Template related commands\n\n"
+  printf "Alias: templ\n"
+  echo
 
   printf "%s\n" "Usage:"
   printf "  pm template COMMAND\n"
@@ -381,9 +437,12 @@ pm_template_usage() {
   echo
 
   printf "%s\n" "Commands:"
-  printf "  %s   List templates\n" "list"
-  printf "  %s   Show a template\n" "show"
-  printf "  %s   Create a new template\n" "new "
+  printf "  %s   List templates\n" "list  "
+  printf "  %s   Filter templates\n" "filter"
+  printf "  %s   Show a template\n" "show  "
+  printf "  %s   Create a new template\n" "new   "
+  printf "  %s   Edit a template\n" "edit  "
+  printf "  %s   Locates a template\n" "which "
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -402,20 +461,53 @@ pm_template_list_usage() {
   echo
 
   printf "%s\n" "Usage:"
-  printf "  pm template list\n"
+  printf "  pm template list [OPTIONS]\n"
   printf "  pm template list --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
     printf "%s\n" "Options:"
 
+    printf "  %s\n" "--only, -o GROUP"
+    printf "    List only specific templates\n"
+    printf "    %s\n" "Allowed: user, default"
+    echo
+
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
     echo
 
     printf "%s\n" "Examples:"
-    printf "  pm template ls\n"
     printf "  pm template list\n"
+    printf "  pm template list --only=default\n"
+    echo
+
+  fi
+}
+
+pm_template_filter_usage() {
+  printf "pm template filter - Filter templates\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  pm template filter [OPTIONS]\n"
+  printf "  pm template filter --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--only, -o GROUP"
+    printf "    Filter only specific templates\n"
+    printf "    %s\n" "Allowed: user, default"
+    echo
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm template filter\n"
+    printf "  pm template filter --only=user\n"
     echo
 
   fi
@@ -432,9 +524,9 @@ pm_template_show_usage() {
   if [[ -n "$long_usage" ]]; then
     printf "%s\n" "Options:"
 
-    printf "  %s\n" "--exec, -e EXECUTABLE"
+    printf "  %s\n" "--exec, -x EXECUTABLE"
     printf "    Command used to show the template\n"
-    printf "    %s\n" "Default: ${PM_SHOW_CMD}"
+    printf "    %s\n" "Default: ${PM_TEMPLATE_SHOW_CMD}"
     echo
 
     printf "  %s\n" "--help, -h"
@@ -449,7 +541,7 @@ pm_template_show_usage() {
 
     printf "%s\n" "Examples:"
     printf "  pm template show cargo\n"
-    printf "  pm template show cargo -e bat\n"
+    printf "  pm template show cargo -x bat\n"
     echo
 
   fi
@@ -483,12 +575,12 @@ pm_template_new_usage() {
   fi
 }
 
-pm_cd_usage() {
-  printf "pm cd - Navigate to your pm home in a new shell\n\n"
+pm_template_edit_usage() {
+  printf "pm template edit - Edit a template\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  pm cd\n"
-  printf "  pm cd --help | -h\n"
+  printf "  pm template edit TEMPLATE\n"
+  printf "  pm template edit --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -498,8 +590,245 @@ pm_cd_usage() {
     printf "    Show this help\n"
     echo
 
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "TEMPLATE"
+    printf "    Name of the template\n"
+    echo
+
     printf "%s\n" "Examples:"
-    printf "  pm cd\n"
+    printf "  pm template edit python\n"
+    echo
+
+  fi
+}
+
+pm_template_which_usage() {
+  printf "pm template which - Locates a template\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  pm template which TEMPLATE\n"
+  printf "  pm template which --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "TEMPLATE"
+    printf "    Name of the template\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm template which python\n"
+    echo
+
+  fi
+}
+
+pm_backend_usage() {
+  printf "pm backend - Backend related commands\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  pm backend COMMAND\n"
+  printf "  pm backend [COMMAND] --help | -h\n"
+  echo
+
+  printf "%s\n" "Commands:"
+  printf "  %s   List backends\n" "list  "
+  printf "  %s   Filter backends\n" "filter"
+  printf "  %s   Show backends\n" "show  "
+  printf "  %s   Create a new backend\n" "new   "
+  printf "  %s   Edit a backend\n" "edit  "
+  printf "  %s   Locates a backend\n" "which "
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+pm_backend_list_usage() {
+  printf "pm backend list - List backends\n\n"
+  printf "Alias: ls\n"
+  echo
+
+  printf "%s\n" "Usage:"
+  printf "  pm backend list [OPTIONS]\n"
+  printf "  pm backend list --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--only, -o GROUP"
+    printf "    List only specific backends\n"
+    printf "    %s\n" "Allowed: user, default"
+    echo
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm backend list\n"
+    printf "  pm backend list --only=default\n"
+    echo
+
+  fi
+}
+
+pm_backend_filter_usage() {
+  printf "pm backend filter - Filter backends\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  pm backend filter [OPTIONS]\n"
+  printf "  pm backend filter --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--only, -o GROUP"
+    printf "    Filter only specific backends\n"
+    printf "    %s\n" "Allowed: user, default"
+    echo
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm backend filter\n"
+    printf "  pm backend filter --only=user\n"
+    echo
+
+  fi
+}
+
+pm_backend_show_usage() {
+  printf "pm backend show - Show backends\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  pm backend show BACKEND [OPTIONS]\n"
+  printf "  pm backend show --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--exec, -x EXECUTABLE"
+    printf "    Command used to show the backend\n"
+    printf "    %s\n" "Default: ${PM_BACKEND_SHOW_CMD}"
+    echo
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "BACKEND"
+    printf "    Name of the backend\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm backend show cargo\n"
+    printf "  pm backend show cargo -x bat\n"
+    echo
+
+  fi
+}
+
+pm_backend_new_usage() {
+  printf "pm backend new - Create a new backend\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  pm backend new BACKEND\n"
+  printf "  pm backend new --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "BACKEND"
+    printf "    Name of the backend\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm backend new vscode\n"
+    echo
+
+  fi
+}
+
+pm_backend_edit_usage() {
+  printf "pm backend edit - Edit a backend\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  pm backend edit BACKEND\n"
+  printf "  pm backend edit --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "BACKEND"
+    printf "    Name of the backend\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm backend edit tmux\n"
+    echo
+
+  fi
+}
+
+pm_backend_which_usage() {
+  printf "pm backend which - Locates a backend\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  pm backend which BACKEND\n"
+  printf "  pm backend which --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "BACKEND"
+    printf "    Name of the backend\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  pm backend which tmux\n"
     echo
 
   fi
@@ -535,6 +864,37 @@ normalize_input() {
   done
 }
 
+find_backend() {
+    # Search for user backend first
+    local backend="${HOME}/.config/pm/backends/${1}.sh"
+
+    if [[ ! -f "${backend}" ]]; then
+        # Then search for pm backends
+        backend="${PM_DATA_DIR}/backends/${1}.sh"
+
+        if [[ ! -f "${backend}" ]]; then
+            error "backend '${1}' not found"
+            exit 1
+        fi
+    fi
+
+    echo "${backend}"
+}
+
+list_backends_by_group() {
+    # List 'user' backends first
+    if [[ -z "${1}" ]] || [[ "${1}" = "user" ]]; then
+        for file in $(command ls "${HOME}/.config/pm/backends"); do
+            echo "${file/.sh/}"; done
+    fi
+
+    # Then list 'default' backends
+    if [[ -z "${1}" ]] || [[ "${1}" = "default" ]]; then
+        for file in $(command ls "${PM_DATA_DIR}/backends"); do
+            echo "${file/.sh/}"; done
+    fi
+}
+
 print_in_color() {
   local color="$1"
   shift
@@ -566,39 +926,6 @@ blue_underlined() { print_in_color "\e[4;34m" "$*"; }
 magenta_underlined() { print_in_color "\e[4;35m" "$*"; }
 cyan_underlined() { print_in_color "\e[4;36m" "$*"; }
 
-filter_project() {
-    list_projects | command "${deps[gum]}" filter --placeholder "Select a project"
-}
-
-filter_project_by_space() {
-    command find "${PM_HOME}/${1}" -maxdepth 1 -mindepth 1 -type d \
-        | sed "s!${PM_HOME}/!!" \
-        | command "${deps[gum]}" filter --placeholder "Select a project"
-}
-
-list_projects() {
-    for space in $(cat "${PM_DATA_DIR}/spaces"); do
-        command find "${PM_HOME}/${space}" -maxdepth 1 -mindepth 1 -type d | sed "s!${PM_HOME}/!!"
-    done
-}
-
-list_templates() {
-    for file in $(command ls "${PM_DATA_DIR}/templates"); do
-        if [[ -f "${HOME}/.config/pm/templates/${file}" ]]; then
-            continue
-        fi
-
-        echo "${file/.sh/}"
-    done
-
-    # Exit if not user templates directory
-    [[ ! -d "${HOME}/.config/pm/templates" ]] && exit 0
-
-    for file in $(command ls "${HOME}/.config/pm/templates"); do
-        echo "${file/.sh/}"
-    done
-}
-
 error() {
     echo "$(red "pm:") ${1}"
 }
@@ -615,12 +942,335 @@ warn() {
     echo "$(yellow "pm:") ${1}"
 }
 
+pipe() {
+    echo "${1}" | tr ' ' '\n'
+}
+
+list_projects() {
+    find "${PM_HOME}" -maxdepth 2 -mindepth 2 -type d ! -name '.*' \
+        | sed "s!${PM_HOME}/!!"
+}
+
 project_exists() {
     [[ -d "${PM_HOME}/${1}/${2}" ]] && return 0 || return 1
 }
 
 run_silent() {
   command ${@} &> /dev/null
+}
+
+send_completions() {
+  echo $'# pm completion                                            -*- shell-script -*-'
+  echo $''
+  echo $'# This bash completions script was generated by'
+  echo $'# completely (https://github.com/dannyben/completely)'
+  echo $'# Modifying it manually is not recommended'
+  echo $''
+  echo $'_pm_completions_filter() {'
+  echo $'  local words="$1"'
+  echo $'  local cur=${COMP_WORDS[COMP_CWORD]}'
+  echo $'  local result=()'
+  echo $''
+  echo $'  if [[ "${cur:0:1}" == "-" ]]; then'
+  echo $'    echo "$words"'
+  echo $''
+  echo $'  else'
+  echo $'    for word in $words; do'
+  echo $'      [[ "${word:0:1}" != "-" ]] && result+=("$word")'
+  echo $'    done'
+  echo $''
+  echo $'    echo "${result[*]}"'
+  echo $''
+  echo $'  fi'
+  echo $'}'
+  echo $''
+  echo $'_pm_completions() {'
+  echo $'  local cur=${COMP_WORDS[COMP_CWORD]}'
+  echo $'  local compwords=("${COMP_WORDS[@]:1:$COMP_CWORD-1}")'
+  echo $'  local compline="${compwords[*]}"'
+  echo $''
+  echo $'  case "$compline" in'
+  echo $'    \'template filter\'*\'--only\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend filter\'*\'--only\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template list\'*\'--only\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend list\'*\'--only\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ filter\'*\'--only\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template ls\'*\'--only\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template filter\'*\'-o\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ list\'*\'--only\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend filter\'*\'-o\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend ls\'*\'--only\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template list\'*\'-o\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ ls\'*\'--only\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template filter\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help --only -h -o")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ filter\'*\'-o\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend list\'*\'-o\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template which\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend filter\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help --only -h -o")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template ls\'*\'-o\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template show\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--exec --help -h -x")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template edit\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend ls\'*\'-o\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ list\'*\'-o\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend which\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template list\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help --only -h -o")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend edit\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend show\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--exec --help -h -x")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'space filter\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ filter\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help --only -h -o")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend list\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help --only -h -o")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template new\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template ls\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help --only -h -o")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend new\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ ls\'*\'-o\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "user default")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'completions\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ which\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend ls\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help --only -h -o")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ edit\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ list\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help --only -h -o")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ show\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--exec --help -h -x")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'space list\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ new\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'space add\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ ls\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help --only -h -o")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'template\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h edit filter list ls new show which")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'space ls\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'backend\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h edit filter list ls new show which")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'filter\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'clone\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help --name --space -h -n -s")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'templ\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h edit filter list ls new show which")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'space\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h add filter list ls")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'list\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'open\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--backend --help --name --space -b -h -n -s")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'new\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--backend --help --name --space --template -b -h -n -s -t")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'ls\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'cd\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    *)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_pm_completions_filter "--help --version -h -v backend cd clone completions filter list ls new open space templ template")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'  esac'
+  echo $'} &&'
+  echo $'  complete -F _pm_completions pm'
+  echo $''
+  echo $'# ex: filetype=sh'
+}
+
+list_spaces() {
+    find "${PM_HOME}" -maxdepth 1 -mindepth 1 -type d ! -name '.*' \
+        | sed "s!${PM_HOME}/!!"
+}
+
+space_exists() {
+    [[ -d "${PM_HOME}/${1}" ]] && return 0 || return 1
+}
+
+find_template() {
+    # Search for user templates first
+    local template="${HOME}/.config/pm/templates/${1}.sh"
+
+    if [[ ! -f "${template}" ]]; then
+        # Then search for pm templates
+        template="${PM_DATA_DIR}/templates/${1}.sh"
+
+        if [[ ! -f "${template}" ]]; then
+            error "template '${1}' not found"
+            exit 1
+        fi
+    fi
+
+    echo "${template}"
+}
+
+list_templates_by_group() {
+    # List 'user' templates first
+    if [[ -z "${1}" ]] || [[ "${1}" = "user" ]]; then
+        for file in $(command ls "${HOME}/.config/pm/templates"); do
+            echo "${file/.sh/}"; done
+    fi
+
+    # Then list 'default' templates
+    if [[ -z "${1}" ]] || [[ "${1}" = "default" ]]; then
+        for file in $(command ls "${PM_DATA_DIR}/templates"); do
+            echo "${file/.sh/}"; done
+    fi
+}
+
+validate_backend_exists() {
+    if [[ ! -f "${PM_DATA_DIR}/backends/${1}.sh" ]] && [[ ! -f "${HOME}/.config/pm/backends/${1}.sh" ]]; then
+        error "backend '${1}' not found"
+    fi
+}
+
+validate_backend_is_missing() {
+    if [[ -f "${HOME}/.config/pm/backends/${1}.sh" ]]; then
+        error "backend '${1}' already exists"
+    fi
 }
 
 validate_dir_exists() {
@@ -639,56 +1289,46 @@ validate_not_empty() {
   [[ -z "$1" ]] && echo "must not be empty"
 }
 
+validate_project_exists() {
+    if [[ ! "${1}" = */* ]] || [[ ! -d "${PM_HOME}/${1}" ]]; then
+        error "project '${1}' not found"
+    fi
+}
+
+validate_project_is_missing() {
+    if [[ ! "${1}" = */* ]] || [[ -d "${PM_HOME}/${1}" ]]; then
+        error "project '${1}' already exist"
+    fi
+}
+
 validate_space_exists() {
-    if [[ ! -d "${PM_HOME}/${1}" ]]; then
-        echo "${1} must be an existing space"
-        echo -e "\nSee $(yellow_underlined pm space list)"
+    if ! space_exists "${1}"; then
+        error "space '${1}' not found"
     fi
 }
 
 validate_space_is_missing() {
     if command grep "${1}" "${PM_HOME}/spaces" &> /dev/null; then
-        echo "${1} is already a registered space"
-        echo -e "\nSee $(yellow_underlined pm space list)"
+        error "space '${1}' already exists"
     fi
 }
 
 validate_template_exists() {
     if [[ ! -f "${PM_DATA_DIR}/templates/${1}.sh" ]] && [[ ! -f "${HOME}/.config/pm/templates/${1}.sh" ]]; then
-        error "template ${1} not found"
+        error "template '${1}' not found"
     fi
 }
 
 validate_template_is_missing() {
     if [[ -f "${HOME}/.config/pm/templates/${1}.sh" ]]; then
-        error "template ${1} already exists"
+        error "template '${1}' already exists"
     fi
 }
 
-pm_help_command() {
-  command="${args[command]:-}"
-  long_usage=yes
-
-  if [[ -z "$command" ]]; then
-    # No command argument, show the global help
-    help_function=pm_usage
-  else
-    # Show the help for the requested command
-    help_function="pm_${command}_usage"
-  fi
-
-  # Call the help function if it exists
-  if [[ $(type -t "$help_function") ]]; then
-    "$help_function"
-  else
-    echo "No help available for this command"
-    exit 1
-  fi
-
-}
-
 pm_install_hook_command() {
-  [[ ! -d "${PM_DATA_DIR}" ]] && command mkdir -p "${PM_DATA_DIR}"
+  if [[ ! -d "${PM_DATA_DIR}" ]]; then
+      command mkdir -p "${PM_DATA_DIR}"
+  fi
 
   command cp -R ./backends "${PM_DATA_DIR}/backends"
   command cp -R ./templates "${PM_DATA_DIR}/templates"
@@ -707,52 +1347,45 @@ pm_uninstall_hook_command() {
 }
 
 pm_new_command() {
-  local name="${args[name]}"
+  local path="${args[path]}"
+
+  local name="${args[--name]}"
   local space="${args[--space]}"
 
   local template_name="${args[--template]}"
   local backend_name="${args[--backend]}"
 
-  if [[ -z "${space}" ]]; then
-      space="$(cat "${SPACE_INDEX}" | "${deps[gum]}" filter --placeholder "Select a space")"
+  if [[ -z "${space}" ]] && [[ -z "${name}" ]]; then
+      if [[ -z "${path}" ]]; then
+          error "missing required argument: PATH"
+          exit 1
+      fi
 
-      [[ -z "${space}" ]] && exit 1
+      space="$(dirname "${path}")"
+
+      if ! space_exists "${space}"; then
+          error "'${space}' is not a valid space"
+          exit 1
+      fi
+
+      name="$(basename "${path}")"
   fi
 
-  local project="${space}/${name}"
-
-  local path="${PM_HOME}/${project}"
-
-  if [[ -d "${path}" ]]; then
+  if project_exists "${space}" "${name}"; then
       error "project '${name}' already exists in space '${space}'"
       exit 1
   fi
 
-  if [[ -z "${template_name}" ]]; then
-      template_name="$(list_templates | "${deps[gum]}" filter --placeholder "Select a template")"
-
-      [[ -z "${template_name}" ]] && exit 1
-  fi
-
-  # Search for user templates first
-  local template="${HOME}/.config/pm/templates/${template_name}.sh"
-
-  if [[ ! -f "${template}" ]]; then
-      # Then search for pm templates
-      template="${PM_DATA_DIR}/templates/${template_name}.sh"
-
-      if [[ ! -f "${template}" ]]; then
-          error "template '${template_name}' not found"
-          exit 1
-      fi
-  fi
-
-  # Export variable that will be usable within the sourced template script
+  # Export variable that will be usable within the template and backend scripts
   export SPACE="${space}"
-  export SPACE_PATH="$(dirname "${path}")"
+  export SPACE_PATH="${PM_HOME}/${space}"
 
   export PROJECT="${name}"
-  export PROJECT_PATH="${path}"
+  export PROJECT_PATH="${PM_HOME}/${space}/${name}"
+
+  # Both find_* functions exit on error so we can avoid checking result
+  local template="$(find_template "${template_name}")"
+  local backend="$(find_backend "${backend_name}")"
 
   source "${template}"
 
@@ -761,19 +1394,6 @@ pm_new_command() {
   else
       error "unable to create project"
       exit 1
-  fi
-
-  # Search for user backend first
-  local backend="${HOME}/.config/pm/backends/${backend_name}.sh"
-
-  if [[ ! -f "${backend}" ]]; then
-      # Then search for pm backends
-      backend="${PM_DATA_DIR}/backends/${backend_name}.sh"
-
-      if [[ ! -f "${backend}" ]]; then
-          error "backend '${backend_name}' not found"
-          exit 1
-      fi
   fi
 
   source "${backend}"
@@ -786,20 +1406,8 @@ pm_clone_command() {
   local name="${args[--name]}"
   local space="${args[--space]}"
 
-  if [[ -z "${name}" ]]; then
-      name="$(command "${deps[gum]}" input --placeholder "awesome-project" --prompt "◉ Project name: " --no-show-help)"
-
-      [[ -z "${name}" ]] && exit 0
-  fi
-
-  if [[ -z "${space}" ]]; then
-      space="$(cat "${SPACE_INDEX}" | "${deps[gum]}" filter --placeholder "Select a space")"
-
-      [[ -z "${space}" ]] && exit 0
-  fi
-
-  if [[ -d "${PM_HOME}/${destination}/${name}" ]]; then
-      error "space '${space}' already contains this project"
+  if project_exists "${space}" "${name}"; then
+      error "project '${name}' already exists in space '${space}'"
       exit 1
   fi
 
@@ -811,30 +1419,21 @@ pm_clone_command() {
 }
 
 pm_open_command() {
-  local name="${args[name]}"
+  local path="${args[path]}"
+
   local space="${args[--space]}"
+  local name="${args[--name]}"
 
   local backend_name="${args[--backend]}"
 
-  if [[ -z "${name}" ]]; then
-      if [[ -z "${space}" ]]; then
-          project="$(filter_project)"
-      else
-          project="$(filter_project_by_space "${space}")"
-      fi
-
-      name="$(basename "${project}")"
-      space="$(dirname "${project}")"
-  else
-      if [[ "${name}" = */* ]]; then
-          # NOTE: order matters here
-          space="$(dirname "${name}")"
-          name="$(basename "${name}")"
-
-      elif [[ -z "${space}" ]]; then
-          error "must use --space flag with argumet NAME"
+  if [[ -z "${space}" ]] && [[ -z "${name}" ]]; then
+      if [[ -z "${path}" ]]; then
+          error "missing required argument: PATH"
           exit 1
       fi
+
+      space="$(dirname "${path}")"
+      name="$(basename "${path}")"
   fi
 
   if ! project_exists "${space}" "${name}"; then
@@ -842,57 +1441,19 @@ pm_open_command() {
       exit 1
   fi
 
-  # Search for user backend first
-  local backend="${HOME}/.config/pm/backends/${backend_name}.sh"
-
-  if [[ ! -f "${backend}" ]]; then
-      # Then search for pm backends
-      backend="${PM_DATA_DIR}/backends/${backend_name}.sh"
-
-      if [[ ! -f "${backend}" ]]; then
-          error "backend '${backend_name}' not found"
-          return 1
-      fi
-  fi
-
-  local path="${PM_HOME}/${space}/${name}"
-
-  # Export variable that will be usable within the sourced template script
+  # Export variable that will be usable within the backend script
   export SPACE="${space}"
-  export SPACE_PATH="$(dirname "${path}")"
+  export SPACE_PATH="${PM_HOME}/${space}"
 
   export PROJECT="${name}"
-  export PROJECT_PATH="${path}"
+  export PROJECT_PATH="${PM_HOME}/${space}/${name}"
 
-  source "${backend}"
-
-}
-
-pm_space_add_command() {
-  local space="${args[space]}"
-
-  [[ ! -d "${PM_HOME}/${space}" ]] && command mkdir -p "${PM_HOME}/${space}" &> /dev/null
-  echo "${space}" >> "${SPACE_INDEX}"
-
-  command sort --unique "${SPACE_INDEX}" --output "${SPACE_INDEX}"
-  success "new space added"
+  source "$(find_backend "${backend_name}")"
 
 }
 
-pm_space_list_command() {
-  if [[ -f "${SPACE_INDEX}" ]]; then
-      cat "${SPACE_INDEX}"
-  fi
-
-}
-
-pm_space_remove_command() {
-  local space="${args[space]}"
-
-  local new_spaces="$(command grep --invert-match --color=never "${space}" "${PM_HOME}/spaces")"
-
-  echo "${new_spaces}" > "${PM_HOME}/spaces"
-  success "space removed from index"
+pm_filter_command() {
+  list_projects | command "${deps[gum]}" filter --placeholder "Filter projects"
 
 }
 
@@ -901,43 +1462,175 @@ pm_list_command() {
 
 }
 
+pm_completions_command() {
+  send_completions
+
+}
+
+pm_cd_command() {
+  command cd "${PM_HOME}" && command "${SHELL}"
+
+}
+
+pm_space_add_command() {
+  local space="${args[space]}"
+
+  run_silent mkdir "${PM_HOME}/${space}"
+  success "new space added"
+
+}
+
+pm_space_list_command() {
+  list_spaces
+
+}
+
+pm_space_filter_command() {
+  list_spaces | command "${deps[gum]}" filter --placeholder "Filter spaces"
+
+}
+
 pm_template_list_command() {
-  list_templates
+  local only="${args[--only]}"
+
+  list_templates_by_group "${only}"
+
+}
+
+pm_template_filter_command() {
+  local only="${args[--only]}"
+
+  local templates="$(list_templates_by_group "${only}")"
+
+  if [[ -n "${templates}" ]]; then
+      pipe "${templates}" | command "${deps[gum]}" filter --placeholder "Filter templates"
+  fi
 
 }
 
 pm_template_show_command() {
   local template_name="${args[template]}"
   local command="${args[--exec]}"
-  #
-  # Search for user templates first
-  local template="${HOME}/.config/pm/templates/${template_name}.sh"
 
-  if [[ -f "${template}" ]]; then
-      command ${command} "${template}"
-  else
-      command ${command} "${PM_DATA_DIR}/templates/${template_name}.sh"
-  fi
+  local template="$(find_template "${template_name}")"
+
+  command ${command} "${template}"
 
 }
 
 pm_template_new_command() {
   local template_name="${args[template]}"
 
-  local pm_template="${PM_DATA_DIR}/templates/default.sh"
-
-  [[ ! -d "${HOME}/.config/pm/templates" ]] && command mkdir -p "${HOME}/.config/pm/templates"
+  if [[ ! -d "${HOME}/.config/pm/templates" ]]; then
+      command mkdir -p "${HOME}/.config/pm/templates"
+  fi
 
   local new_template_path="${HOME}/.config/pm/templates/${template_name}.sh"
 
-  command cp "${pm_template}" "${new_template_path}"
+  command cat > ${new_template_path} << EOF
+# Information about the project are passed as environment variables in the following way:
+#
+# SPACE        - name of the space the project must be created in.
+#
+# SPACE_PATH   - absolute path to the space directory. It corresponds to the
+#                following pattern evaluated: \${HOME}/\${PM_HOME}/\$SPACE.
+#
+# PROJECT      - name of the project that must be created.
+#
+# PROJECT_PATH - absolute path to the project directory. It corresponds to the
+#                following pattern evaluated: \${SPACE_PATH}/\${PROJECT}.
+echo "Hi from '${template_name}' template"
+EOF
 
   command "${EDITOR:-vim}" ${new_template_path}
 
 }
 
-pm_cd_command() {
-  command cd "${PM_HOME}" && command "${SHELL}"
+pm_template_edit_command() {
+  local template_name="${args[template]}"
+
+  local template="$(find_template "${template_name}")"
+
+  command ${EDITOR:-vim} "${template}"
+
+}
+
+pm_template_which_command() {
+  local template_name="${args[template]}"
+
+  echo "$(find_template "${template_name}")"
+
+}
+
+pm_backend_list_command() {
+  local only="${args[--only]}"
+
+  list_backends_by_group "${only}"
+
+}
+
+pm_backend_filter_command() {
+  local only="${args[--only]}"
+
+  local backends="$(list_backends_by_group "${only}")"
+
+  if [[ -n "${backends}" ]]; then
+      pipe "${backends}" | command "${deps[gum]}" filter --placeholder "Filter backends"
+  fi
+
+}
+
+pm_backend_show_command() {
+  local backend_name="${args[backend]}"
+  local command="${args[--exec]}"
+
+  local backend="$(find_backend "${backend_name}")"
+
+  command ${command} "${backend}"
+
+}
+
+pm_backend_new_command() {
+  local backend_name="${args[backend]}"
+
+  if [[ ! -d "${HOME}/.config/pm/backends" ]]; then
+      command mkdir -p "${HOME}/.config/pm/backends"
+  fi
+
+  local new_backend_path="${HOME}/.config/pm/backends/${backend_name}.sh"
+
+  command cat > ${new_backend_path} << EOF
+# Information about the project are passed as environment variables in the following way:
+#
+# SPACE        - name of the space the project must be created in.
+#
+# SPACE_PATH   - absolute path to the space directory. It corresponds to the
+#                following pattern evaluated: \${HOME}/\${PM_HOME}/\$SPACE.
+#
+# PROJECT      - name of the project that must be created.
+#
+# PROJECT_PATH - absolute path to the project directory. It corresponds to the
+#                following pattern evaluated: \${SPACE_PATH}/\${PROJECT}.
+echo "Hi from '${backend_name}' backend"
+EOF
+
+  command "${EDITOR:-vim}" ${new_backend_path}
+
+}
+
+pm_backend_edit_command() {
+  local backend_name="${args[backend]}"
+
+  local backend="$(find_backend "${backend_name}")"
+
+  command ${EDITOR:-vim} "${backend}"
+
+}
+
+pm_backend_which_command() {
+  local backend_name="${args[backend]}"
+
+  echo "$(find_backend "${backend_name}")"
 
 }
 
@@ -966,24 +1659,26 @@ parse_requirements() {
   export PM_DATA_DIR="${PM_DATA_DIR:-${HOME}/.local/share/pm}"
   export PM_HOME="${PM_HOME:-${HOME}/dev}"
   export PM_BACKEND="${PM_BACKEND:-tmux}"
-  export PM_SHOW_CMD="${PM_SHOW_CMD:-cat}"
+  export PM_BACKEND_SHOW_CMD="${PM_BACKEND_SHOW_CMD:-cat}"
+  export PM_TEMPLATE_SHOW_CMD="${PM_TEMPLATE_SHOW_CMD:-cat}"
 
   env_var_names+=("PM_DATA_DIR")
   env_var_names+=("PM_HOME")
   env_var_names+=("PM_BACKEND")
-  env_var_names+=("PM_SHOW_CMD")
+  env_var_names+=("PM_BACKEND_SHOW_CMD")
+  env_var_names+=("PM_TEMPLATE_SHOW_CMD")
 
   if command -v git >/dev/null 2>&1; then
     deps['git']="$(command -v git | head -n1)"
   else
-    printf "missing dependency: git\n" >&2
+    printf "$(red pm:) missing dependency: git\n" >&2
     exit 1
   fi
 
   if command -v gum >/dev/null 2>&1; then
     deps['gum']="$(command -v gum | head -n1)"
   else
-    printf "missing dependency: gum\n" >&2
+    printf "$(red pm:) missing dependency: gum\n" >&2
     exit 1
   fi
 
@@ -991,13 +1686,6 @@ parse_requirements() {
 
   case $action in
     -*) ;;
-
-    help)
-      action="help"
-      shift
-      pm_help_parse_requirements "$@"
-      shift $#
-      ;;
 
     install-hook)
       action="install-hook"
@@ -1034,10 +1722,10 @@ parse_requirements() {
       shift $#
       ;;
 
-    space)
-      action="space"
+    filter)
+      action="filter"
       shift
-      pm_space_parse_requirements "$@"
+      pm_filter_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1048,10 +1736,10 @@ parse_requirements() {
       shift $#
       ;;
 
-    template)
-      action="template"
+    completions)
+      action="completions"
       shift
-      pm_template_parse_requirements "$@"
+      pm_completions_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1062,13 +1750,34 @@ parse_requirements() {
       shift $#
       ;;
 
+    space)
+      action="space"
+      shift
+      pm_space_parse_requirements "$@"
+      shift $#
+      ;;
+
+    template | templ)
+      action="template"
+      shift
+      pm_template_parse_requirements "$@"
+      shift $#
+      ;;
+
+    backend)
+      action="backend"
+      shift
+      pm_backend_parse_requirements "$@"
+      shift $#
+      ;;
+
     "")
       pm_usage >&2
       exit 1
       ;;
 
     *)
-      printf "invalid command: %s\n" "$action" >&2
+      printf "$(red pm:) invalid command: %s\n" "$action" >&2
       exit 1
       ;;
 
@@ -1079,59 +1788,14 @@ parse_requirements() {
     case "$key" in
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
       *)
 
-        printf "invalid argument: %s\n" "$key" >&2
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
         exit 1
-
-        ;;
-
-    esac
-  done
-
-}
-
-pm_help_parse_requirements() {
-
-  while [[ $# -gt 0 ]]; do
-    case "${1:-}" in
-      --help | -h)
-        long_usage=yes
-        pm_help_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  action="help"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        if [[ -z ${args['command']+x} ]]; then
-          args['command']=$1
-          shift
-        else
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-        fi
 
         ;;
 
@@ -1164,13 +1828,13 @@ pm_install_hook_parse_requirements() {
     case "$key" in
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
       *)
 
-        printf "invalid argument: %s\n" "$key" >&2
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
         exit 1
 
         ;;
@@ -1204,13 +1868,13 @@ pm_uninstall_hook_parse_requirements() {
     case "$key" in
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
       *)
 
-        printf "invalid argument: %s\n" "$key" >&2
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
         exit 1
 
         ;;
@@ -1250,7 +1914,19 @@ pm_new_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--space requires an argument: --space, -s SPACE" >&2
+          printf "%s\n" "$(red pm:) --space requires an argument: --space, -s SPACE" >&2
+          exit 1
+        fi
+        ;;
+
+      --name | -n)
+
+        if [[ -n ${2+x} ]]; then
+          args['--name']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "$(red pm:) --name requires an argument: --name, -n NAME" >&2
           exit 1
         fi
         ;;
@@ -1262,7 +1938,7 @@ pm_new_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--template requires an argument: --template, -t TEMPLATE" >&2
+          printf "%s\n" "$(red pm:) --template requires an argument: --template, -t TEMPLATE" >&2
           exit 1
         fi
         ;;
@@ -1274,23 +1950,23 @@ pm_new_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--backend requires an argument: --backend, -b BACKEND" >&2
+          printf "%s\n" "$(red pm:) --backend requires an argument: --backend, -b BACKEND" >&2
           exit 1
         fi
         ;;
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
       *)
 
-        if [[ -z ${args['name']+x} ]]; then
-          args['name']=$1
+        if [[ -z ${args['path']+x} ]]; then
+          args['path']=$1
           shift
         else
-          printf "invalid argument: %s\n" "$key" >&2
+          printf "$(red pm:) invalid argument: %s\n" "$key" >&2
           exit 1
         fi
 
@@ -1299,21 +1975,31 @@ pm_new_parse_requirements() {
     esac
   done
 
-  if [[ -z ${args['name']+x} ]]; then
-    printf "missing required argument: NAME\nusage: pm new NAME [OPTIONS]\n" >&2
-
+  if [[ -n ${args['--space']+x} ]] && [[ -z "${args[--name]:-}" ]]; then
+    printf "%s\n" "$(red pm:) --space flag requires --name" >&2
     exit 1
   fi
 
+  if [[ -n ${args['--name']+x} ]] && [[ -z "${args[--space]:-}" ]]; then
+    printf "%s\n" "$(red pm:) --name flag requires --space" >&2
+    exit 1
+  fi
+
+  [[ -n ${args['--template']:-} ]] || args['--template']="default"
   [[ -n ${args['--backend']:-} ]] || args['--backend']="${PM_BACKEND}"
 
+  if [[ -v args['path'] && -n $(validate_project_is_missing "${args['path']:-}") ]]; then
+    printf "$(red pm:) validation error in %s:\n%s\n" "PATH" "$(validate_project_is_missing "${args['path']:-}")" >&2
+    exit 1
+  fi
+
   if [[ -v args['--space'] && -n $(validate_space_exists "${args['--space']:-}") ]]; then
-    printf "validation error in %s:\n%s\n" "--space, -s SPACE" "$(validate_space_exists "${args['--space']:-}")" >&2
+    printf "$(red pm:) validation error in %s:\n%s\n" "--space, -s SPACE" "$(validate_space_exists "${args['--space']:-}")" >&2
     exit 1
   fi
 
   if [[ -v args['--template'] && -n $(validate_template_exists "${args['--template']:-}") ]]; then
-    printf "validation error in %s:\n%s\n" "--template, -t TEMPLATE" "$(validate_template_exists "${args['--template']:-}")" >&2
+    printf "$(red pm:) validation error in %s:\n%s\n" "--template, -t TEMPLATE" "$(validate_template_exists "${args['--template']:-}")" >&2
     exit 1
   fi
 
@@ -1349,7 +2035,7 @@ pm_clone_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--space requires an argument: --space, -s SPACE" >&2
+          printf "%s\n" "$(red pm:) --space requires an argument: --space, -s SPACE" >&2
           exit 1
         fi
         ;;
@@ -1361,13 +2047,13 @@ pm_clone_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--name requires an argument: --name, -n NAME" >&2
+          printf "%s\n" "$(red pm:) --name requires an argument: --name, -n NAME" >&2
           exit 1
         fi
         ;;
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
@@ -1377,7 +2063,7 @@ pm_clone_parse_requirements() {
           args['repository']=$1
           shift
         else
-          printf "invalid argument: %s\n" "$key" >&2
+          printf "$(red pm:) invalid argument: %s\n" "$key" >&2
           exit 1
         fi
 
@@ -1387,13 +2073,22 @@ pm_clone_parse_requirements() {
   done
 
   if [[ -z ${args['repository']+x} ]]; then
-    printf "missing required argument: REPOSITORY\nusage: pm clone REPOSITORY [OPTIONS]\n" >&2
+    printf "$(red pm:) missing required argument: REPOSITORY\nusage: pm clone REPOSITORY [OPTIONS]\n" >&2
 
     exit 1
   fi
 
+  if [[ -z ${args['--space']+x} ]]; then
+    printf "$(red pm:) missing required flag: --space, -s SPACE\n" >&2
+    exit 1
+  fi
+  if [[ -z ${args['--name']+x} ]]; then
+    printf "$(red pm:) missing required flag: --name, -n NAME\n" >&2
+    exit 1
+  fi
+
   if [[ -v args['--space'] && -n $(validate_space_exists "${args['--space']:-}") ]]; then
-    printf "validation error in %s:\n%s\n" "--space, -s SPACE" "$(validate_space_exists "${args['--space']:-}")" >&2
+    printf "$(red pm:) validation error in %s:\n%s\n" "--space, -s SPACE" "$(validate_space_exists "${args['--space']:-}")" >&2
     exit 1
   fi
 
@@ -1429,7 +2124,19 @@ pm_open_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--space requires an argument: --space, -s SPACE" >&2
+          printf "%s\n" "$(red pm:) --space requires an argument: --space, -s SPACE" >&2
+          exit 1
+        fi
+        ;;
+
+      --name | -n)
+
+        if [[ -n ${2+x} ]]; then
+          args['--name']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "$(red pm:) --name requires an argument: --name, -n NAME" >&2
           exit 1
         fi
         ;;
@@ -1441,23 +2148,23 @@ pm_open_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--backend requires an argument: --backend, -b BACKEND" >&2
+          printf "%s\n" "$(red pm:) --backend requires an argument: --backend, -b BACKEND" >&2
           exit 1
         fi
         ;;
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
       *)
 
-        if [[ -z ${args['name']+x} ]]; then
-          args['name']=$1
+        if [[ -z ${args['path']+x} ]]; then
+          args['path']=$1
           shift
         else
-          printf "invalid argument: %s\n" "$key" >&2
+          printf "$(red pm:) invalid argument: %s\n" "$key" >&2
           exit 1
         fi
 
@@ -1466,12 +2173,187 @@ pm_open_parse_requirements() {
     esac
   done
 
-  [[ -n ${args['--backend']:-} ]] || args['--backend']="${PM_BACKEND}"
-
-  if [[ -v args['--space'] && -n $(validate_space_exists "${args['--space']:-}") ]]; then
-    printf "validation error in %s:\n%s\n" "--space, -s SPACE" "$(validate_space_exists "${args['--space']:-}")" >&2
+  if [[ -n ${args['--space']+x} ]] && [[ -z "${args[--name]:-}" ]]; then
+    printf "%s\n" "$(red pm:) --space flag requires --name" >&2
     exit 1
   fi
+
+  if [[ -n ${args['--name']+x} ]] && [[ -z "${args[--space]:-}" ]]; then
+    printf "%s\n" "$(red pm:) --name flag requires --space" >&2
+    exit 1
+  fi
+
+  [[ -n ${args['--backend']:-} ]] || args['--backend']="${PM_BACKEND}"
+
+  if [[ -v args['path'] && -n $(validate_project_exists "${args['path']:-}") ]]; then
+    printf "$(red pm:) validation error in %s:\n%s\n" "PATH" "$(validate_project_exists "${args['path']:-}")" >&2
+    exit 1
+  fi
+
+  if [[ -v args['--space'] && -n $(validate_space_exists "${args['--space']:-}") ]]; then
+    printf "$(red pm:) validation error in %s:\n%s\n" "--space, -s SPACE" "$(validate_space_exists "${args['--space']:-}")" >&2
+    exit 1
+  fi
+
+}
+
+pm_filter_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_filter_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="filter"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_list_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_list_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="list"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_completions_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_completions_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="completions"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+pm_cd_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_cd_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="cd"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
 
 }
 
@@ -1511,10 +2393,10 @@ pm_space_parse_requirements() {
       shift $#
       ;;
 
-    remove | rm)
-      action="remove"
+    filter)
+      action="filter"
       shift
-      pm_space_remove_parse_requirements "$@"
+      pm_space_filter_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1524,7 +2406,7 @@ pm_space_parse_requirements() {
       ;;
 
     *)
-      printf "invalid command: %s\n" "$action" >&2
+      printf "$(red pm:) invalid command: %s\n" "$action" >&2
       exit 1
       ;;
 
@@ -1535,13 +2417,13 @@ pm_space_parse_requirements() {
     case "$key" in
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
       *)
 
-        printf "invalid argument: %s\n" "$key" >&2
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
         exit 1
 
         ;;
@@ -1575,7 +2457,7 @@ pm_space_add_parse_requirements() {
     case "$key" in
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
@@ -1585,7 +2467,7 @@ pm_space_add_parse_requirements() {
           args['space']=$1
           shift
         else
-          printf "invalid argument: %s\n" "$key" >&2
+          printf "$(red pm:) invalid argument: %s\n" "$key" >&2
           exit 1
         fi
 
@@ -1595,13 +2477,13 @@ pm_space_add_parse_requirements() {
   done
 
   if [[ -z ${args['space']+x} ]]; then
-    printf "missing required argument: SPACE\nusage: pm space add SPACE\n" >&2
+    printf "$(red pm:) missing required argument: SPACE\nusage: pm space add SPACE\n" >&2
 
     exit 1
   fi
 
   if [[ -v args['space'] && -n $(validate_space_is_missing "${args['space']:-}") ]]; then
-    printf "validation error in %s:\n%s\n" "SPACE" "$(validate_space_is_missing "${args['space']:-}")" >&2
+    printf "$(red pm:) validation error in %s:\n%s\n" "SPACE" "$(validate_space_is_missing "${args['space']:-}")" >&2
     exit 1
   fi
 
@@ -1631,13 +2513,13 @@ pm_space_list_parse_requirements() {
     case "$key" in
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
       *)
 
-        printf "invalid argument: %s\n" "$key" >&2
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
         exit 1
 
         ;;
@@ -1647,13 +2529,13 @@ pm_space_list_parse_requirements() {
 
 }
 
-pm_space_remove_parse_requirements() {
+pm_space_filter_parse_requirements() {
 
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --help | -h)
         long_usage=yes
-        pm_space_remove_usage
+        pm_space_filter_usage
         exit
         ;;
 
@@ -1664,76 +2546,20 @@ pm_space_remove_parse_requirements() {
     esac
   done
 
-  action="space remove"
+  action="space filter"
 
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
       *)
 
-        if [[ -z ${args['space']+x} ]]; then
-          args['space']=$1
-          shift
-        else
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-        fi
-
-        ;;
-
-    esac
-  done
-
-  if [[ -z ${args['space']+x} ]]; then
-    printf "missing required argument: SPACE\nusage: pm space remove SPACE\n" >&2
-
-    exit 1
-  fi
-
-  if [[ -v args['space'] && -n $(validate_space_exists "${args['space']:-}") ]]; then
-    printf "validation error in %s:\n%s\n" "SPACE" "$(validate_space_exists "${args['space']:-}")" >&2
-    exit 1
-  fi
-
-}
-
-pm_list_parse_requirements() {
-
-  while [[ $# -gt 0 ]]; do
-    case "${1:-}" in
-      --help | -h)
-        long_usage=yes
-        pm_list_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  action="list"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        printf "invalid argument: %s\n" "$key" >&2
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
         exit 1
 
         ;;
@@ -1772,6 +2598,13 @@ pm_template_parse_requirements() {
       shift $#
       ;;
 
+    filter)
+      action="filter"
+      shift
+      pm_template_filter_parse_requirements "$@"
+      shift $#
+      ;;
+
     show)
       action="show"
       shift
@@ -1786,13 +2619,27 @@ pm_template_parse_requirements() {
       shift $#
       ;;
 
+    edit)
+      action="edit"
+      shift
+      pm_template_edit_parse_requirements "$@"
+      shift $#
+      ;;
+
+    which)
+      action="which"
+      shift
+      pm_template_which_parse_requirements "$@"
+      shift $#
+      ;;
+
     "")
       pm_template_usage >&2
       exit 1
       ;;
 
     *)
-      printf "invalid command: %s\n" "$action" >&2
+      printf "$(red pm:) invalid command: %s\n" "$action" >&2
       exit 1
       ;;
 
@@ -1803,13 +2650,13 @@ pm_template_parse_requirements() {
     case "$key" in
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
       *)
 
-        printf "invalid argument: %s\n" "$key" >&2
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
         exit 1
 
         ;;
@@ -1842,20 +2689,94 @@ pm_template_list_parse_requirements() {
     key="$1"
     case "$key" in
 
+      --only | -o)
+
+        if [[ -n ${2+x} ]]; then
+          args['--only']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "$(red pm:) --only requires an argument: --only, -o GROUP" >&2
+          exit 1
+        fi
+        ;;
+
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
       *)
 
-        printf "invalid argument: %s\n" "$key" >&2
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
         exit 1
 
         ;;
 
     esac
   done
+
+  if [[ ${args['--only']:-} ]] && [[ ! ${args['--only']:-} =~ ^(user|default)$ ]]; then
+    printf "%s\n" "$(red pm:) --only must be one of: user, default" >&2
+    exit 1
+  fi
+
+}
+
+pm_template_filter_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_template_filter_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="template filter"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      --only | -o)
+
+        if [[ -n ${2+x} ]]; then
+          args['--only']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "$(red pm:) --only requires an argument: --only, -o GROUP" >&2
+          exit 1
+        fi
+        ;;
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+  if [[ ${args['--only']:-} ]] && [[ ! ${args['--only']:-} =~ ^(user|default)$ ]]; then
+    printf "%s\n" "$(red pm:) --only must be one of: user, default" >&2
+    exit 1
+  fi
 
 }
 
@@ -1882,20 +2803,20 @@ pm_template_show_parse_requirements() {
     key="$1"
     case "$key" in
 
-      --exec | -e)
+      --exec | -x)
 
         if [[ -n ${2+x} ]]; then
           args['--exec']="$2"
           shift
           shift
         else
-          printf "%s\n" "--exec requires an argument: --exec, -e EXECUTABLE" >&2
+          printf "%s\n" "$(red pm:) --exec requires an argument: --exec, -x EXECUTABLE" >&2
           exit 1
         fi
         ;;
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
@@ -1905,7 +2826,7 @@ pm_template_show_parse_requirements() {
           args['template']=$1
           shift
         else
-          printf "invalid argument: %s\n" "$key" >&2
+          printf "$(red pm:) invalid argument: %s\n" "$key" >&2
           exit 1
         fi
 
@@ -1915,15 +2836,15 @@ pm_template_show_parse_requirements() {
   done
 
   if [[ -z ${args['template']+x} ]]; then
-    printf "missing required argument: TEMPLATE\nusage: pm template show TEMPLATE [OPTIONS]\n" >&2
+    printf "$(red pm:) missing required argument: TEMPLATE\nusage: pm template show TEMPLATE [OPTIONS]\n" >&2
 
     exit 1
   fi
 
-  [[ -n ${args['--exec']:-} ]] || args['--exec']="${PM_SHOW_CMD}"
+  [[ -n ${args['--exec']:-} ]] || args['--exec']="${PM_TEMPLATE_SHOW_CMD}"
 
   if [[ -v args['template'] && -n $(validate_template_exists "${args['template']:-}") ]]; then
-    printf "validation error in %s:\n%s\n" "TEMPLATE" "$(validate_template_exists "${args['template']:-}")" >&2
+    printf "$(red pm:) validation error in %s:\n%s\n" "TEMPLATE" "$(validate_template_exists "${args['template']:-}")" >&2
     exit 1
   fi
 
@@ -1953,7 +2874,7 @@ pm_template_new_parse_requirements() {
     case "$key" in
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
@@ -1963,7 +2884,7 @@ pm_template_new_parse_requirements() {
           args['template']=$1
           shift
         else
-          printf "invalid argument: %s\n" "$key" >&2
+          printf "$(red pm:) invalid argument: %s\n" "$key" >&2
           exit 1
         fi
 
@@ -1973,25 +2894,25 @@ pm_template_new_parse_requirements() {
   done
 
   if [[ -z ${args['template']+x} ]]; then
-    printf "missing required argument: TEMPLATE\nusage: pm template new TEMPLATE\n" >&2
+    printf "$(red pm:) missing required argument: TEMPLATE\nusage: pm template new TEMPLATE\n" >&2
 
     exit 1
   fi
 
   if [[ -v args['template'] && -n $(validate_template_is_missing "${args['template']:-}") ]]; then
-    printf "validation error in %s:\n%s\n" "TEMPLATE" "$(validate_template_is_missing "${args['template']:-}")" >&2
+    printf "$(red pm:) validation error in %s:\n%s\n" "TEMPLATE" "$(validate_template_is_missing "${args['template']:-}")" >&2
     exit 1
   fi
 
 }
 
-pm_cd_parse_requirements() {
+pm_template_edit_parse_requirements() {
 
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --help | -h)
         long_usage=yes
-        pm_cd_usage
+        pm_template_edit_usage
         exit
         ;;
 
@@ -2002,20 +2923,189 @@ pm_cd_parse_requirements() {
     esac
   done
 
-  action="cd"
+  action="template edit"
 
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
 
       -?*)
-        printf "invalid option: %s\n" "$key" >&2
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
         exit 1
         ;;
 
       *)
 
-        printf "invalid argument: %s\n" "$key" >&2
+        if [[ -z ${args['template']+x} ]]; then
+          args['template']=$1
+          shift
+        else
+          printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  if [[ -z ${args['template']+x} ]]; then
+    printf "$(red pm:) missing required argument: TEMPLATE\nusage: pm template edit TEMPLATE\n" >&2
+
+    exit 1
+  fi
+
+  if [[ -v args['template'] && -n $(validate_template_exists "${args['template']:-}") ]]; then
+    printf "$(red pm:) validation error in %s:\n%s\n" "TEMPLATE" "$(validate_template_exists "${args['template']:-}")" >&2
+    exit 1
+  fi
+
+}
+
+pm_template_which_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_template_which_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="template which"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        if [[ -z ${args['template']+x} ]]; then
+          args['template']=$1
+          shift
+        else
+          printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  if [[ -z ${args['template']+x} ]]; then
+    printf "$(red pm:) missing required argument: TEMPLATE\nusage: pm template which TEMPLATE\n" >&2
+
+    exit 1
+  fi
+
+  if [[ -v args['template'] && -n $(validate_template_exists "${args['template']:-}") ]]; then
+    printf "$(red pm:) validation error in %s:\n%s\n" "TEMPLATE" "$(validate_template_exists "${args['template']:-}")" >&2
+    exit 1
+  fi
+
+}
+
+pm_backend_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_backend_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action=${1:-}
+
+  case $action in
+    -*) ;;
+
+    list | ls)
+      action="list"
+      shift
+      pm_backend_list_parse_requirements "$@"
+      shift $#
+      ;;
+
+    filter)
+      action="filter"
+      shift
+      pm_backend_filter_parse_requirements "$@"
+      shift $#
+      ;;
+
+    show)
+      action="show"
+      shift
+      pm_backend_show_parse_requirements "$@"
+      shift $#
+      ;;
+
+    new)
+      action="new"
+      shift
+      pm_backend_new_parse_requirements "$@"
+      shift $#
+      ;;
+
+    edit)
+      action="edit"
+      shift
+      pm_backend_edit_parse_requirements "$@"
+      shift $#
+      ;;
+
+    which)
+      action="which"
+      shift
+      pm_backend_which_parse_requirements "$@"
+      shift $#
+      ;;
+
+    "")
+      pm_backend_usage >&2
+      exit 1
+      ;;
+
+    *)
+      printf "$(red pm:) invalid command: %s\n" "$action" >&2
+      exit 1
+      ;;
+
+  esac
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
         exit 1
 
         ;;
@@ -2025,29 +3115,387 @@ pm_cd_parse_requirements() {
 
 }
 
+pm_backend_list_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_backend_list_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="backend list"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      --only | -o)
+
+        if [[ -n ${2+x} ]]; then
+          args['--only']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "$(red pm:) --only requires an argument: --only, -o GROUP" >&2
+          exit 1
+        fi
+        ;;
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+  if [[ ${args['--only']:-} ]] && [[ ! ${args['--only']:-} =~ ^(user|default)$ ]]; then
+    printf "%s\n" "$(red pm:) --only must be one of: user, default" >&2
+    exit 1
+  fi
+
+}
+
+pm_backend_filter_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_backend_filter_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="backend filter"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      --only | -o)
+
+        if [[ -n ${2+x} ]]; then
+          args['--only']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "$(red pm:) --only requires an argument: --only, -o GROUP" >&2
+          exit 1
+        fi
+        ;;
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+  if [[ ${args['--only']:-} ]] && [[ ! ${args['--only']:-} =~ ^(user|default)$ ]]; then
+    printf "%s\n" "$(red pm:) --only must be one of: user, default" >&2
+    exit 1
+  fi
+
+}
+
+pm_backend_show_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_backend_show_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="backend show"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      --exec | -x)
+
+        if [[ -n ${2+x} ]]; then
+          args['--exec']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "$(red pm:) --exec requires an argument: --exec, -x EXECUTABLE" >&2
+          exit 1
+        fi
+        ;;
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        if [[ -z ${args['backend']+x} ]]; then
+          args['backend']=$1
+          shift
+        else
+          printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  if [[ -z ${args['backend']+x} ]]; then
+    printf "$(red pm:) missing required argument: BACKEND\nusage: pm backend show BACKEND [OPTIONS]\n" >&2
+
+    exit 1
+  fi
+
+  [[ -n ${args['--exec']:-} ]] || args['--exec']="${PM_BACKEND_SHOW_CMD}"
+
+  if [[ -v args['backend'] && -n $(validate_backend_exists "${args['backend']:-}") ]]; then
+    printf "$(red pm:) validation error in %s:\n%s\n" "BACKEND" "$(validate_backend_exists "${args['backend']:-}")" >&2
+    exit 1
+  fi
+
+}
+
+pm_backend_new_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_backend_new_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="backend new"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        if [[ -z ${args['backend']+x} ]]; then
+          args['backend']=$1
+          shift
+        else
+          printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  if [[ -z ${args['backend']+x} ]]; then
+    printf "$(red pm:) missing required argument: BACKEND\nusage: pm backend new BACKEND\n" >&2
+
+    exit 1
+  fi
+
+  if [[ -v args['backend'] && -n $(validate_backend_is_missing "${args['backend']:-}") ]]; then
+    printf "$(red pm:) validation error in %s:\n%s\n" "BACKEND" "$(validate_backend_is_missing "${args['backend']:-}")" >&2
+    exit 1
+  fi
+
+}
+
+pm_backend_edit_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_backend_edit_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="backend edit"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        if [[ -z ${args['backend']+x} ]]; then
+          args['backend']=$1
+          shift
+        else
+          printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  if [[ -z ${args['backend']+x} ]]; then
+    printf "$(red pm:) missing required argument: BACKEND\nusage: pm backend edit BACKEND\n" >&2
+
+    exit 1
+  fi
+
+  if [[ -v args['backend'] && -n $(validate_backend_exists "${args['backend']:-}") ]]; then
+    printf "$(red pm:) validation error in %s:\n%s\n" "BACKEND" "$(validate_backend_exists "${args['backend']:-}")" >&2
+    exit 1
+  fi
+
+}
+
+pm_backend_which_parse_requirements() {
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        pm_backend_which_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="backend which"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "$(red pm:) invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        if [[ -z ${args['backend']+x} ]]; then
+          args['backend']=$1
+          shift
+        else
+          printf "$(red pm:) invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  if [[ -z ${args['backend']+x} ]]; then
+    printf "$(red pm:) missing required argument: BACKEND\nusage: pm backend which BACKEND\n" >&2
+
+    exit 1
+  fi
+
+  if [[ -v args['backend'] && -n $(validate_backend_exists "${args['backend']:-}") ]]; then
+    printf "$(red pm:) validation error in %s:\n%s\n" "BACKEND" "$(validate_backend_exists "${args['backend']:-}")" >&2
+    exit 1
+  fi
+
+}
+
 initialize() {
-  version="1.8.2"
+  version="1.8.3"
   long_usage=''
   set -e
 
   export PM_DATA_DIR="${PM_DATA_DIR:-${HOME}/.local/share/pm}"
   export PM_HOME="${PM_HOME:-${HOME}/dev}"
   export PM_BACKEND="${PM_BACKEND:-tmux}"
-  export PM_SHOW_CMD="${PM_SHOW_CMD:-cat}"
+  export PM_BACKEND_SHOW_CMD="${PM_BACKEND_SHOW_CMD:-cat}"
+  export PM_TEMPLATE_SHOW_CMD="${PM_TEMPLATE_SHOW_CMD:-cat}"
 
-  export SPACE_INDEX="${PM_DATA_DIR}/spaces"
+  dirs=(
+      "${PM_HOME}"
 
-  [[ ! -d "${PM_HOME}" ]] && command mkdir -p "${PM_HOME}"
-  [[ ! -d "${PM_DATA_DIR}" ]] && command mkdir -p "${PM_DATA_DIR}"
+      "${PM_DATA_DIR}/templates"
+      "${PM_DATA_DIR}/backends"
 
-  [[ ! -f "${SPACE_INDEX}" ]] && touch "${SPACE_INDEX}"
+      "${HOME}/.config/pm/templates"
+      "${HOME}/.config/pm/backends"
+  )
 
+  #
   # Create directories if not present
-  for space in $(cat "${SPACE_INDEX}"); do
-      [[ ! -d "${PM_HOME}/${space}" ]] && command mkdir -p "${PM_HOME}/${space}"
+  #
+  for destination in ${dirs[*]}; do
+      if [[ ! -d "${destination}" ]]; then
+          command mkdir -p "${destination}"
+      fi
   done
-
-  command sort --unique "${SPACE_INDEX}" --output "${SPACE_INDEX}"
 
 }
 
@@ -2061,22 +3509,33 @@ run() {
   parse_requirements "${input[@]}"
 
   case "$action" in
-    "help") pm_help_command ;;
     "install-hook") pm_install_hook_command ;;
     "uninstall-hook") pm_uninstall_hook_command ;;
     "new") pm_new_command ;;
     "clone") pm_clone_command ;;
     "open") pm_open_command ;;
+    "filter") pm_filter_command ;;
+    "list") pm_list_command ;;
+    "completions") pm_completions_command ;;
+    "cd") pm_cd_command ;;
     "space") pm_space_command ;;
     "space add") pm_space_add_command ;;
     "space list") pm_space_list_command ;;
-    "space remove") pm_space_remove_command ;;
-    "list") pm_list_command ;;
+    "space filter") pm_space_filter_command ;;
     "template") pm_template_command ;;
     "template list") pm_template_list_command ;;
+    "template filter") pm_template_filter_command ;;
     "template show") pm_template_show_command ;;
     "template new") pm_template_new_command ;;
-    "cd") pm_cd_command ;;
+    "template edit") pm_template_edit_command ;;
+    "template which") pm_template_which_command ;;
+    "backend") pm_backend_command ;;
+    "backend list") pm_backend_list_command ;;
+    "backend filter") pm_backend_filter_command ;;
+    "backend show") pm_backend_show_command ;;
+    "backend new") pm_backend_new_command ;;
+    "backend edit") pm_backend_edit_command ;;
+    "backend which") pm_backend_which_command ;;
   esac
 }
 

@@ -3,20 +3,8 @@ local repository="${args[repository]}"
 local name="${args[--name]}"
 local space="${args[--space]}"
 
-if [[ -z "${name}" ]]; then
-    name="$(command "${deps[gum]}" input --placeholder "awesome-project" --prompt "◉ Project name: " --no-show-help)"
-
-    [[ -z "${name}" ]] && exit 0
-fi
-
-if [[ -z "${space}" ]]; then
-    space="$(cat "${SPACE_INDEX}" | "${deps[gum]}" filter --placeholder "Select a space")"
-
-    [[ -z "${space}" ]] && exit 0
-fi
-
-if [[ -d "${PM_HOME}/${destination}/${name}" ]]; then
-    error "space '${space}' already contains this project"
+if project_exists "${space}" "${name}"; then
+    error "project '${name}' already exists in space '${space}'"
     exit 1
 fi
 

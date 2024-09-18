@@ -1,27 +1,18 @@
-local name="${args[name]}"
+local path="${args[path]}"
+
 local space="${args[--space]}"
+local name="${args[--name]}"
 
 local backend_name="${args[--backend]}"
 
-if [[ -z "${name}" ]]; then
-    if [[ -z "${space}" ]]; then
-        project="$(filter_project)"
-    else
-        project="$(filter_project_by_space "${space}")"
-    fi
-
-    name="$(basename "${project}")"
-    space="$(dirname "${project}")"
-else
-    if [[ "${name}" = */* ]]; then
-        # NOTE: order matters here
-        space="$(dirname "${name}")"
-        name="$(basename "${name}")"
-
-    elif [[ -z "${space}" ]]; then
-        error "must use --space flag with argumet NAME"
+if [[ -z "${space}" ]] && [[ -z "${name}" ]]; then
+    if [[ -z "${path}" ]]; then
+        error "missing required argument: PATH"
         exit 1
     fi
+
+    space="$(dirname "${path}")"
+    name="$(basename "${path}")"
 fi
 
 if ! project_exists "${space}" "${name}"; then
@@ -29,26 +20,11 @@ if ! project_exists "${space}" "${name}"; then
     exit 1
 fi
 
-# Search for user backend first
-local backend="${HOME}/.config/pm/backends/${backend_name}.sh"
-
-if [[ ! -f "${backend}" ]]; then
-    # Then search for pm backends
-    backend="${PM_DATA_DIR}/backends/${backend_name}.sh"
-
-    if [[ ! -f "${backend}" ]]; then
-        error "backend '${backend_name}' not found"
-        return 1
-    fi
-fi
-
-local path="${PM_HOME}/${space}/${name}"
-
-# Export variable that will be usable within the sourced template script
+# Export variable that will be usable within the backend script
 export SPACE="${space}"
-export SPACE_PATH="$(dirname "${path}")"
+export SPACE_PATH="${PM_HOME}/${space}"
 
 export PROJECT="${name}"
-export PROJECT_PATH="${path}"
+export PROJECT_PATH="${PM_HOME}/${space}/${name}"
 
-source "${backend}"
+source "$(find_backend "${backend_name}")"

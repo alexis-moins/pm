@@ -1,6 +1,6 @@
 <div align='center'>
 
-![Version](https://img.shields.io/badge/version-1.8.2-blue.svg)
+![Version](https://img.shields.io/badge/version-1.8.3-blue.svg)
 
 </div>
 
@@ -37,25 +37,22 @@ After installing, you can follow these steps to quickly see how it works:
 pm space add personal
 
 # You can then create new projects in this space
-pm new <project> -s personal
+pm new -s personal -n react-app
 
 # pm supports project creation using templates
-pm new <project> -s personal -t cargo
+pm new -s personal -n react-app -t vite
 
-# You can list templates...
-pm template list
-
-# ...and even create your own
+# But also creating your own one
 pm template new python-poetry
 
-# Opening a project is even simpler
-pm open <project> -s personal
+# Opening a project is simple
+pm open personal/react-app
 
 # But using a different backend is also possible
-pm open <project> -s personal -b vscode
+pm open -s personal -n react-app -b vscode
 
 # You can even clone github repositories directly
-pm clone git@github.com:alexis-moins/dot.git -s work
+pm clone git@github.com:alexis-moins/dot.git -s work -n dot
 ```
 
 ## 🚦 Usage
@@ -71,16 +68,18 @@ Usage:
   pm --version | -v
 
 Commands:
-  help       Show help about a command
-  space      Space related commands
-  template   Template related commands
-  cd         Navigate to your pm home in a new shell
+  completions      Generate bash completions
+  cd               Open pm home in a new shell
+  space            Add, list and filter spaces
+  template         Template related commands
+  backend          Backend related commands
 
 Project Commands:
-  new        Create a new empty project
-  clone      Clone a remote git repository
-  open       Open a project
-  list       List projects
+  new              Create a new empty project
+  clone            Clone a remote git repository
+  open             Open a project
+  filter           Filter projects
+  list             List projects
 
 Options:
   --help, -h
@@ -98,7 +97,11 @@ Environment Variables:
     Name of the backend used to open projects
     Default: tmux
 
-  PM_SHOW_CMD
+  PM_BACKEND_SHOW_CMD
+    Command used to show backends
+    Default: cat
+
+  PM_TEMPLATE_SHOW_CMD
     Command used to show templates
     Default: cat
 ```

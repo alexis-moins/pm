@@ -1,13 +1,18 @@
-export SPACE_INDEX="${PM_DATA_DIR}/spaces"
+dirs=(
+    "${PM_HOME}"
 
-[[ ! -d "${PM_HOME}" ]] && command mkdir -p "${PM_HOME}"
-[[ ! -d "${PM_DATA_DIR}" ]] && command mkdir -p "${PM_DATA_DIR}"
+    "${PM_DATA_DIR}/templates"
+    "${PM_DATA_DIR}/backends"
 
-[[ ! -f "${SPACE_INDEX}" ]] && touch "${SPACE_INDEX}"
+    "${HOME}/.config/pm/templates"
+    "${HOME}/.config/pm/backends"
+)
 
+#
 # Create directories if not present
-for space in $(cat "${SPACE_INDEX}"); do
-    [[ ! -d "${PM_HOME}/${space}" ]] && command mkdir -p "${PM_HOME}/${space}"
+#
+for destination in ${dirs[*]}; do
+    if [[ ! -d "${destination}" ]]; then
+        command mkdir -p "${destination}"
+    fi
 done
-
-command sort --unique "${SPACE_INDEX}" --output "${SPACE_INDEX}"

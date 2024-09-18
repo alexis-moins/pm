@@ -1,6 +1,6 @@
 name: pm
 help: manage your projects the easy way
-version: 1.8.2
+version: 1.8.3
 
 environment_variables:
   - name: PM_DATA_DIR
@@ -15,7 +15,11 @@ environment_variables:
     help: Name of the backend used to open projects
     default: tmux
 
-  - name: PM_SHOW_CMD
+  - name: PM_BACKEND_SHOW_CMD
+    help: Command used to show backends
+    default: cat
+
+  - name: PM_TEMPLATE_SHOW_CMD
     help: Command used to show templates
     default: cat
 
@@ -24,12 +28,6 @@ dependencies:
   - gum
 
 commands:
-  - name: help
-    help: Show help about a command
-    args:
-    - name: command
-      help: Help subject
-
   - name: install-hook
     private: true
 
@@ -41,21 +39,29 @@ commands:
     group: Project
 
     args:
-      - name: name
-        help: Name of the new project
-        required: true
+      - name: path
+        help: Path to the project (relative to \$PM_HOME)
+        validate: project_is_missing
 
     flags:
       - short: -s
         long: --space
-        help: Space of the new project
+        help: Space to create the project in
         arg: space
         validate: space_exists
+        needs: [--name]
+
+      - short: -n
+        long: --name
+        help: Name of the project
+        arg: name
+        needs: [--space]
 
       - short: -t
         long: --template
         help: Name of the template
         arg: template
+        default: default
         validate: template_exists
 
       - short: -b
@@ -65,8 +71,8 @@ commands:
         default: ${PM_BACKEND}
 
     examples:
-      - pm new recipe --space tools
-      - pm new recipe --template cargo --space tools
+      - pm new tools/recipe
+      - pm new -n recipe -s tools -t cargo
 
   - name: clone
     help: Clone a remote git repository
@@ -82,24 +88,26 @@ commands:
         long: --space
         help: Space to clone the project in
         arg: space
+        required: true
         validate: space_exists
 
       - short: -n
         long: --name
-        help: Name to clone the project as
+        help: Name of the project
         arg: name
+        required: true
 
     examples:
-      - pm clone alexis-moins/recipe
-      - pm clone neovim/neovim --space tools --name editor
+      - pm clone alexis-moins/recipe -s tools -n recipe
 
   - name: open
     help: Open a project
     group: Project
 
     args:
-      - name: name
-        help: Name of the project
+      - name: path
+        help: Path to the project (relative to \$PM_HOME)
+        validate: project_exists
 
     flags:
       - short: -s
@@ -107,6 +115,13 @@ commands:
         help: Space where the project is located
         arg: space
         validate: space_exists
+        needs: [--name]
+
+      - short: -n
+        long: --name
+        help: Name of the project
+        arg: name
+        needs: [--space]
 
       - short: -b
         long: --backend
@@ -115,11 +130,40 @@ commands:
         default: ${PM_BACKEND}
 
     examples:
-      - pm open personal/recipe
-      - pm open editor --space tools
+      - pm open tools/recipe
+      - pm open -s tools -n recipe
+
+  - name: filter
+    help: Filter projects
+    group: Project
+
+    examples:
+      - pm filter
+
+  - name: list
+    alias: ls
+    help: List projects
+    group: Project
+
+    examples:
+      - pm ls
+      - pm list
+
+  - name: completions
+    help: Generate bash completions
+
+    examples:
+      - pm completions
+      - eval "$(pm completions)"
+
+  - name: cd
+    help: Open pm home in a new shell
+
+    examples:
+      - pm cd
 
   - name: space
-    help: Space related commands
+    help: Add, list and filter spaces
 
     commands:
       - name: add
@@ -142,29 +186,14 @@ commands:
           - pm space ls
           - pm space list
 
-      - name: remove
-        alias: rm
-        help: Remove a space (projects will not be removed)
-
-        args:
-          - name: space
-            help: Name of the space to remove
-            required: true
-            validate: space_exists
+      - name: filter
+        help: Filter spaces
 
         examples:
-          - pm space rm personal
-
-  - name: list
-    alias: ls
-    help: List projects
-    group: Project
-
-    examples:
-      - pm ls
-      - pm list
+          - pm space filter
 
   - name: template
+    alias: templ
     help: Template related commands
 
     commands:
@@ -172,9 +201,30 @@ commands:
         alias: ls
         help: List templates
 
+        flags:
+          - short: -o
+            long: --only
+            help: List only specific templates
+            arg: group
+            allowed: [user, default]
+
         examples:
-          - pm template ls
           - pm template list
+          - pm template list --only=default
+
+      - name: filter
+        help: Filter templates
+
+        flags:
+          - short: -o
+            long: --only
+            help: Filter only specific templates
+            arg: group
+            allowed: [user, default]
+
+        examples:
+          - pm template filter
+          - pm template filter --only=user
 
       - name: show
         help: Show a template
@@ -182,19 +232,19 @@ commands:
         args:
           - name: template
             help: Name of the template
-            required: true
             validate: template_exists
+            required: true
 
         flags:
-          - short: -e
+          - short: -x
             long: --exec
             arg: executable
-            default: ${PM_SHOW_CMD}
+            default: ${PM_TEMPLATE_SHOW_CMD}
             help: Command used to show the template
 
         examples:
           - pm template show cargo
-          - pm template show cargo -e bat
+          - pm template show cargo -x bat
 
       - name: new
         help: Create a new template
@@ -208,8 +258,116 @@ commands:
         examples:
           - pm template new poetry
 
-  - name: cd
-    help: Navigate to your pm home in a new shell
+      - name: edit
+        help: Edit a template
 
-    examples:
-      - pm cd
+        args:
+          - name: template
+            help: Name of the template
+            required: true
+            validate: template_exists
+
+        examples:
+          - pm template edit python
+
+      - name: which
+        help: Locates a template
+
+        args:
+          - name: template
+            help: Name of the template
+            required: true
+            validate: template_exists
+
+        examples:
+          - pm template which python
+
+  - name: backend
+    help: Backend related commands
+
+    commands:
+      - name: list
+        alias: ls
+        help: List backends
+
+        flags:
+          - short: -o
+            long: --only
+            help: List only specific backends
+            arg: group
+            allowed: [user, default]
+
+        examples:
+          - pm backend list
+          - pm backend list --only=default
+
+      - name: filter
+        help: Filter backends
+
+        flags:
+          - short: -o
+            long: --only
+            help: Filter only specific backends
+            arg: group
+            allowed: [user, default]
+
+        examples:
+          - pm backend filter
+          - pm backend filter --only=user
+
+      - name: show
+        help: Show backends
+
+        args:
+          - name: backend
+            help: Name of the backend
+            validate: backend_exists
+            required: true
+
+        flags:
+          - short: -x
+            long: --exec
+            arg: executable
+            default: ${PM_BACKEND_SHOW_CMD}
+            help: Command used to show the backend
+
+        examples:
+          - pm backend show cargo
+          - pm backend show cargo -x bat
+
+      - name: new
+        help: Create a new backend
+
+        args:
+          - name: backend
+            help: Name of the backend
+            required: true
+            validate: backend_is_missing
+
+        examples:
+          - pm backend new vscode
+
+      - name: edit
+        help: Edit a backend
+
+        args:
+          - name: backend
+            help: Name of the backend
+            required: true
+            validate: backend_exists
+
+        examples:
+          - pm backend edit tmux
+
+      - name: which
+        help: Locates a backend
+
+        args:
+          - name: backend
+            help: Name of the backend
+            required: true
+            validate: backend_exists
+
+        examples:
+          - pm backend which tmux
+
