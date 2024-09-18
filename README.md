@@ -52,7 +52,7 @@ pm open personal/react-app
 pm open -s personal -n react-app -b vscode
 
 # You can even clone github repositories directly
-pm clone git@github.com:alexis-moins/dot.git --space=work --name=dot
+pm clone git@github.com:alexis-moins/dot.git -s work -n dot
 ```
 
 ## 🚦 Usage
