@@ -1,1 +1,1 @@
-list_projects | command "${deps[gum]}" filter --placeholder "Filter projects"
+filter_projects

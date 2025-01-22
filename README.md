@@ -1,6 +1,6 @@
 <div align='center'>
 
-![Version](https://img.shields.io/badge/version-1.8.3-blue.svg)
+![Version](https://img.shields.io/badge/version-1.8.4-blue.svg)
 
 </div>
 
@@ -37,10 +37,10 @@ After installing, you can follow these steps to quickly see how it works:
 pm space add personal
 
 # You can then create new projects in this space
-pm new -s personal -n react-app
+pm new personal/react-app
 
 # pm supports project creation using templates
-pm new -s personal -n react-app -t vite
+pm new personal/react-app --template=vite
 
 # But also creating your own one
 pm template new python-poetry
@@ -49,10 +49,10 @@ pm template new python-poetry
 pm open personal/react-app
 
 # But using a different backend is also possible
-pm open -s personal -n react-app -b vscode
+pm open personal/react-app --backend=vscode
 
 # You can even clone github repositories directly
-pm clone git@github.com:alexis-moins/dot.git -s work -n dot
+pm clone git@github.com:alexis-moins/dot.git --space=work --name=dot
 ```
 
 ## 🚦 Usage
@@ -67,19 +67,17 @@ Usage:
   pm [COMMAND] --help | -h
   pm --version | -v
 
-Commands:
-  completions      Generate bash completions
-  cd               Open pm home in a new shell
-  space            Add, list and filter spaces
-  template         Template related commands
-  backend          Backend related commands
-
 Project Commands:
-  new              Create a new empty project
-  clone            Clone a remote git repository
-  open             Open a project
-  filter           Filter projects
-  list             List projects
+  new        Create a new empty project
+  clone      Clone a remote git repository
+  open       Open a project
+  filter     Filter projects
+  list       List projects
+
+Commands:
+  space      Add, list and filter spaces
+  template   Template related commands
+  backend    Backend related commands
 
 Options:
   --help, -h
@@ -92,10 +90,6 @@ Environment Variables:
   PM_HOME
     Directory where the projects will be managed
     Default: ~/dev
-
-  PM_BACKEND
-    Name of the backend used to open projects
-    Default: tmux
 
   PM_BACKEND_SHOW_CMD
     Command used to show backends

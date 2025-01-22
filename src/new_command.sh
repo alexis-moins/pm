@@ -3,23 +3,40 @@ local path="${args[path]}"
 local name="${args[--name]}"
 local space="${args[--space]}"
 
-local template_name="${args[--template]}"
-local backend_name="${args[--backend]}"
+local template="${args[--template]}"
+local backend="${args[--backend]}"
+
+if [[ -n "${template}" ]]; then
+    # Path to the current template
+    export TEMPLATE_PATH="$(find_template "${template}")"
+fi
+
+if [[ -n "${backend}" ]]; then
+    # Path to the current backend
+    export BACKEND_PATH="$(find_backend "${backend}")"
+fi
 
 if [[ -z "${space}" ]] && [[ -z "${name}" ]]; then
     if [[ -z "${path}" ]]; then
-        error "missing required argument: PATH"
-        exit 1
+        space="$(filter_spaces)"
+
+        echo "Space to create the project in: $(green "${space}")"
+
+        [[ -z "${space}" ]] && exit 1
+        name=$(gum input --prompt="What is the name of the project? " --placeholder="project name" --no-show-help)
+
+        [[ -z "${name}" ]] && exit 1
+        echo "What is the name of the project: $(green "${name}")"
+    else
+        space="$(dirname "${path}")"
+
+        if ! space_exists "${space}"; then
+            error "'${space}' is not a valid space"
+            exit 1
+        fi
+
+        name="$(basename "${path}")"
     fi
-
-    space="$(dirname "${path}")"
-
-    if ! space_exists "${space}"; then
-        error "'${space}' is not a valid space"
-        exit 1
-    fi
-
-    name="$(basename "${path}")"
 fi
 
 if project_exists "${space}" "${name}"; then
@@ -34,11 +51,7 @@ export SPACE_PATH="${PM_HOME}/${space}"
 export PROJECT="${name}"
 export PROJECT_PATH="${PM_HOME}/${space}/${name}"
 
-# Both find_* functions exit on error so we can avoid checking result
-local template="$(find_template "${template_name}")"
-local backend="$(find_backend "${backend_name}")"
-
-source "${template}"
+source "${TEMPLATE_PATH}"
 
 if [[ "${?}" -eq 0 ]]; then
     success "project '${name}' created in space '${space}'"
@@ -47,4 +60,4 @@ else
     exit 1
 fi
 
-source "${backend}"
+source "${BACKEND_PATH}"
