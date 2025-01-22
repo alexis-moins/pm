@@ -1,8 +1,8 @@
 watch:
-	@bashly generate --watch
+	bashly generate --watch
 
 build:
-	@bashly generate --env=production --upgrade
+	bashly generate --env=production --upgrade
 
 re:
-	@bash uninstall.sh && bash install.sh
+	bash uninstall.sh && bash install.sh

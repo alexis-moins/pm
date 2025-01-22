@@ -1,19 +1,12 @@
 name: pm
 help: manage your projects the easy way
-version: 1.8.3
+extensible: true
+version: 1.8.4
 
 environment_variables:
-  - name: PM_DATA_DIR
-    default: ${HOME}/.local/share/pm
-    private: true
-
   - name: PM_HOME
     help: Directory where the projects will be managed
     default: ${HOME}/dev
-
-  - name: PM_BACKEND
-    help: Name of the backend used to open projects
-    default: tmux
 
   - name: PM_BACKEND_SHOW_CMD
     help: Command used to show backends
@@ -28,12 +21,6 @@ dependencies:
   - gum
 
 commands:
-  - name: install-hook
-    private: true
-
-  - name: uninstall-hook
-    private: true
-
   - name: new
     help: Create a new empty project
     group: Project
@@ -61,14 +48,13 @@ commands:
         long: --template
         help: Name of the template
         arg: template
-        default: default
         validate: template_exists
 
       - short: -b
         long: --backend
         help: Name of the backend used to open projects
         arg: backend
-        default: ${PM_BACKEND}
+        validate: backend_exists
 
     examples:
       - pm new tools/recipe
@@ -98,16 +84,18 @@ commands:
         required: true
 
     examples:
-      - pm clone alexis-moins/recipe -s tools -n recipe
+      - pm clone git@github.com:alexis-moins/recipe.git -s tools -n recipe
 
   - name: open
     help: Open a project
     group: Project
+    alias: o
 
     args:
       - name: path
         help: Path to the project (relative to \$PM_HOME)
         validate: project_exists
+        required: false
 
     flags:
       - short: -s
@@ -127,7 +115,7 @@ commands:
         long: --backend
         help: Name of the backend used to open projects
         arg: backend
-        default: ${PM_BACKEND}
+        validate: backend_exists
 
     examples:
       - pm open tools/recipe
@@ -148,19 +136,6 @@ commands:
     examples:
       - pm ls
       - pm list
-
-  - name: completions
-    help: Generate bash completions
-
-    examples:
-      - pm completions
-      - eval "$(pm completions)"
-
-  - name: cd
-    help: Open pm home in a new shell
-
-    examples:
-      - pm cd
 
   - name: space
     help: Add, list and filter spaces
@@ -193,10 +168,23 @@ commands:
           - pm space filter
 
   - name: template
-    alias: templ
     help: Template related commands
+    alias: temp
 
     commands:
+      - name: global
+        alias: g
+        help: Set a template as global
+
+        args:
+          - name: template
+            help: Name of the template
+            validate: template_exists
+
+        examples:
+          - pm template global
+          - pm template global react
+
       - name: list
         alias: ls
         help: List templates
@@ -260,14 +248,16 @@ commands:
 
       - name: edit
         help: Edit a template
+        alias: e
 
         args:
           - name: template
             help: Name of the template
-            required: true
+            required: false
             validate: template_exists
 
         examples:
+          - pm template edit
           - pm template edit python
 
       - name: which
@@ -276,7 +266,7 @@ commands:
         args:
           - name: template
             help: Name of the template
-            required: true
+            required: false
             validate: template_exists
 
         examples:
@@ -284,8 +274,22 @@ commands:
 
   - name: backend
     help: Backend related commands
+    alias: back
 
     commands:
+      - name: global
+        alias: g
+        help: Set a backend as global
+
+        args:
+          - name: backend
+            help: Name of the backend
+            validate: backend_exists
+
+        examples:
+          - pm backend global
+          - pm backend global vscode
+
       - name: list
         alias: ls
         help: List backends
@@ -353,10 +357,11 @@ commands:
         args:
           - name: backend
             help: Name of the backend
-            required: true
+            required: false
             validate: backend_exists
 
         examples:
+          - pm backend edit
           - pm backend edit tmux
 
       - name: which
@@ -370,4 +375,3 @@ commands:
 
         examples:
           - pm backend which tmux
-

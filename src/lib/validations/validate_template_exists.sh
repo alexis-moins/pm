@@ -1,5 +1,5 @@
 validate_template_exists() {
-    if [[ ! -f "${PM_DATA_DIR}/templates/${1}.sh" ]] && [[ ! -f "${HOME}/.config/pm/templates/${1}.sh" ]]; then
-        error "template '${1}' not found"
+    if ! template_exists "${1}"; then
+        error "template not found: ${1}"
     fi
 }

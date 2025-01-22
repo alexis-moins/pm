@@ -1,13 +1,17 @@
-local path="${args[path]}"
-
 local space="${args[--space]}"
 local name="${args[--name]}"
 
-local backend_name="${args[--backend]}"
+local backend="${args[--backend]}"
+
+if [[ -n "${backend}" ]]; then
+    # Path to the current backend
+    export BACKEND_PATH="$(find_backend "${backend}")"
+fi
 
 if [[ -z "${space}" ]] && [[ -z "${name}" ]]; then
+    local path="${args[path]:-"$(filter_projects)"}"
+
     if [[ -z "${path}" ]]; then
-        error "missing required argument: PATH"
         exit 1
     fi
 
@@ -27,4 +31,4 @@ export SPACE_PATH="${PM_HOME}/${space}"
 export PROJECT="${name}"
 export PROJECT_PATH="${PM_HOME}/${space}/${name}"
 
-source "$(find_backend "${backend_name}")"
+source "${BACKEND_PATH}"
